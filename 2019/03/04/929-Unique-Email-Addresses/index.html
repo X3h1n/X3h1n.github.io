@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="pwnable.kr," />
+  <meta name="keywords" content="leetcode," />
 
 
 
@@ -79,24 +79,18 @@
 
 
 
-<meta name="description" content="Pwnable.kr的第6道题目random的writeup。">
-<meta name="keywords" content="pwnable.kr">
+<meta name="description" content="leetcode的第929题，难度easy">
+<meta name="keywords" content="leetcode">
 <meta property="og:type" content="article">
-<meta property="og:title" content="pwnable.kr random">
-<meta property="og:url" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/index.html">
+<meta property="og:title" content="929.Unique Email Addresses">
+<meta property="og:url" content="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="Pwnable.kr的第6道题目random的writeup。">
+<meta property="og:description" content="leetcode的第929题，难度easy">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/1.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/6.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/4.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/5.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/3.PNG">
-<meta property="og:updated_time" content="2019-02-25T13:18:46.991Z">
+<meta property="og:updated_time" content="2019-03-04T14:01:54.493Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="pwnable.kr random">
-<meta name="twitter:description" content="Pwnable.kr的第6道题目random的writeup。">
-<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/1.PNG">
+<meta name="twitter:title" content="929.Unique Email Addresses">
+<meta name="twitter:description" content="leetcode的第929题，难度easy">
 
 
 
@@ -126,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/"/>
+  <link rel="canonical" href="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/"/>
 
 
 
 
 
-  <title>pwnable.kr random | X3h1n</title>
+  <title>929.Unique Email Addresses | X3h1n</title>
   
 
 
@@ -249,7 +243,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2018/08/30/pwnable-kr-random/">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -266,7 +260,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">pwnable.kr random</h1>
+          <h1 class="post-title" itemprop="name headline">929.Unique Email Addresses</h1>
         
 
         <div class="post-meta">
@@ -278,8 +272,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-30T20:48:00+08:00">
-                2018-08-30
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-04T21:39:11+08:00">
+                2019-03-04
               </time>
             
 
@@ -316,18 +310,12 @@
       
 
       
-        <p>Pwnable.kr的第6道题目random的writeup。</p>
-<a id="more"></a>
-<p>首先连接题目，查看当前目录：</p>
-<p><img src="/2018/08/30/pwnable-kr-random/1.PNG" alt="1"></p>
-<p>查看题目的源码random.c：</p>
-<p><img src="/2018/08/30/pwnable-kr-random/6.PNG" alt="6"></p>
-<p>可以看到程序首先调用rand()生成随机数random，若输入的key与random异或的值为0xdeadbeef，即可得到flag，关键是要知道随机数random的值。rand函数并不是真正的随机数生成器，rand()根据srand函数提供的种子生成随机序列，若在第一次调用rand函数之前没有调用srand生成种子seed，系统会将种子seed设置为1。若种子相同，则得到的随机序列也相同。因此，在该程序中，每次产生的随机数random其实是不变的。可以使用gdb调试程序，查看生成的random的值。</p>
-<p>我们知道，程序在执行完rand函数后，随机数即返回值存储在eax寄存器中，在0x400606处设置断点，查看eax的值：</p>
-<p><img src="/2018/08/30/pwnable-kr-random/4.PNG" alt="4"></p>
-<p><img src="/2018/08/30/pwnable-kr-random/5.PNG" alt="4"></p>
-<p>因此，key = random ^ 0xdeadbeef = 1804289383 ^ 0xdeadbeef = 3039230856，输入3039230856，得到flag：</p>
-<p><img src="/2018/08/30/pwnable-kr-random/3.PNG" alt="3"></p>
+        <p>leetcode的第929题，难度easy<br><a id="more"></a><br>自己的算法真的是太烂了，想着坚持每天做一道算法题，并把它记录下来。之前断断续续做的题就断断续续的整理吧。</p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><p>Every email consists of a local name and a domain name, separated by the @ sign.<br>For example, in <a href="mailto:alice@leetcode.com" target="_blank" rel="noopener">alice@leetcode.com</a>, alice is the local name, and leetcode.com is the domain name.<br>Besides lowercase letters, these emails may contain ‘.’s or ‘+’s.<br>If you add periods (‘.’) between some characters in the local name part of an email address, mail sent there will be forwarded to the same address without dots in the local name.  For example, “<a href="mailto:alice.z@leetcode.com" target="_blank" rel="noopener">alice.z@leetcode.com</a>“ and “<a href="mailto:alicez@leetcode.com" target="_blank" rel="noopener">alicez@leetcode.com</a>“ forward to the same email address.  (Note that this rule does not apply for domain names.)<br>If you add a plus (‘+’) in the local name, everything after the first plus sign will be ignored. This allows certain emails to be filtered, for example <a href="mailto:m.y+name@email.com" target="_blank" rel="noopener">m.y+name@email.com</a> will be forwarded to <a href="mailto:my@email.com" target="_blank" rel="noopener">my@email.com</a>.  (Again, this rule does not apply for domain names.)<br>It is possible to use both of these rules at the same time.<br>Given a list of emails, we send one email to each address in the list.  How many different addresses actually receive mails? </p>
+<h1 id="样例"><a href="#样例" class="headerlink" title="样例"></a>样例</h1><p>Input: [“<a href="mailto:test.email+alex@leetcode.com" target="_blank" rel="noopener">test.email+alex@leetcode.com</a>“,”<a href="mailto:test.e.mail+bob.cathy@leetcode.com" target="_blank" rel="noopener">test.e.mail+bob.cathy@leetcode.com</a>“,”<a href="mailto:testemail+david@lee.tcode.com" target="_blank" rel="noopener">testemail+david@lee.tcode.com</a>“]<br>Output: 2<br>Explanation: “<a href="mailto:testemail@leetcode.com" target="_blank" rel="noopener">testemail@leetcode.com</a>“ and “<a href="mailto:testemail@lee.tcode.com" target="_blank" rel="noopener">testemail@lee.tcode.com</a>“ actually receive mails</p>
+<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><p>题目要求对email地址的local name进行解析，以‘@’的位置定位local name，在‘@’的位置之前，遇到’.’就删除，遇到’+’就删除’+’及其后面的内容，然后统计有多少不同的email地址。在统计email地址时可以建立map，利用map的key不能重复的特性进行统计。</p>
+<h1 id="我的答案"><a href="#我的答案" class="headerlink" title="我的答案"></a>我的答案</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">numUniqueEmails</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt;&amp; emails)</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">int</span> i,j;</span><br><span class="line">    	<span class="built_in">map</span>&lt;<span class="built_in">string</span>,<span class="keyword">int</span>&gt; map_s;</span><br><span class="line">    	<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;emails.size();i++)&#123;</span><br><span class="line">        	<span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;emails[i].length();j++)&#123;</span><br><span class="line">            	<span class="keyword">if</span>(emails[i][j]==<span class="string">'.'</span>)</span><br><span class="line">                	emails[i].erase(j,<span class="number">1</span>);</span><br><span class="line">            	<span class="keyword">if</span>(emails[i][j]==<span class="string">'+'</span>)&#123;</span><br><span class="line">                	<span class="keyword">int</span> pos = emails[i].find(<span class="string">'@'</span>);</span><br><span class="line">                	emails[i].erase(j,pos-j);</span><br><span class="line">                	<span class="keyword">break</span>;</span><br><span class="line">            	&#125;</span><br><span class="line">        	&#125;</span><br><span class="line">        	<span class="keyword">if</span>(!map_s.count(emails[i]))</span><br><span class="line">            	map_s[emails[i]] = i;</span><br><span class="line">    	&#125;</span><br><span class="line"></span><br><span class="line">    	<span class="keyword">return</span> map_s.size();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h1 id="c-用法积累"><a href="#c-用法积累" class="headerlink" title="c++用法积累"></a>c++用法积累</h1><p>~~~c++<br>map_s.count(emails[i]); //统计map中指定key的个数，由于map中key不能重复，key存在返回1，不存在返回0<br>map_s[emails[i]] = i; //向map中插入元素，key为emails[i],value为i</p>
 
       
     </div>
@@ -345,7 +333,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/pwnable-kr/" rel="tag"># pwnable.kr</a>
+            <a href="/tags/leetcode/" rel="tag"># leetcode</a>
           
         </div>
       
@@ -358,8 +346,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/08/30/pwnable-kr-passcode/" rel="next" title="pwnable.kr passcode">
-                <i class="fa fa-chevron-left"></i> pwnable.kr passcode
+              <a href="/2018/08/30/pwnable-kr-random/" rel="next" title="pwnable.kr random">
+                <i class="fa fa-chevron-left"></i> pwnable.kr random
               </a>
             
           </div>
@@ -367,10 +355,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/03/04/929-Unique-Email-Addresses/" rel="prev" title="929.Unique Email Addresses">
-                929.Unique Email Addresses <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -422,8 +406,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -474,6 +467,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#样例"><span class="nav-number">2.</span> <span class="nav-text">样例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析"><span class="nav-number">3.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#我的答案"><span class="nav-number">4.</span> <span class="nav-text">我的答案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c-用法积累"><span class="nav-number">5.</span> <span class="nav-text">c++用法积累</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
