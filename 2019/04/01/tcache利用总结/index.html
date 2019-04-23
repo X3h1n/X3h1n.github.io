@@ -87,9 +87,9 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="tcache利用的2道典型题目">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/1.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/1.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/2.png">
-<meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/3.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/3.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/4.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/5.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/6.PNG">
@@ -97,11 +97,11 @@
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/8.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/9.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/10.PNG">
-<meta property="og:updated_time" content="2019-04-23T09:15:56.967Z">
+<meta property="og:updated_time" content="2019-04-23T09:39:56.843Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="tcache利用总结">
 <meta name="twitter:description" content="tcache利用的2道典型题目">
-<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/1.PNG">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/1.png">
 
 
 
@@ -326,12 +326,12 @@
 <p>#tcache利用<br>tcache利用常和off by one、chunk overlapp结合，进行tcache的double free。</p>
 <h2 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h2><p>tcache需要libc版本在2.26以上，2.27居多，之前尝试在ubuntu 18.04上装pwndbg，一直没有装成功，同学推荐了pwn的docker，目前有两种解决方案：推荐一个gdb-peda的插件，<a href="https://github.com/scwuaptx/Pwngdb" target="_blank" rel="noopener">Pwngdb</a>,在ubuntu18.04上挺好用的，在ubuntu18.10上使用Ctrl+C下断点的时候反应很慢，还没找到解决方案。另外推荐两个pwn环境的docker，<a href="https://github.com/skysider/pwndocker" target="_blank" rel="noopener">pwndocker</a>和<a href="https://github.com/Escapingbug/ancypwn" target="_blank" rel="noopener">ancypwn</a>。</p>
 <p>#HITCON 2018 baby_tcache</p>
-<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>这道题提供了add和remove两个功能，可以malloc不超过0x2000的任意堆块，申请的chunk大小可以控制，但是没有show的功能，泄露libc地址需要另外想办法。<br>题目开的保护情况：<br><img src="/2019/04/01/tcache利用总结/1.PNG" alt="1"></p>
+<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>这道题提供了add和remove两个功能，可以malloc不超过0x2000的任意堆块，申请的chunk大小可以控制，但是没有show的功能，泄露libc地址需要另外想办法。<br>题目开的保护情况：<br><img src="/2019/04/01/tcache利用总结/1.png" alt="1"></p>
 <h2 id="题目漏洞"><a href="#题目漏洞" class="headerlink" title="题目漏洞"></a>题目漏洞</h2><p>这道题有一个off by null的漏洞，由于没有show的功能，无法直接泄露libc，参考这篇大佬的<a href="http://myhackerworld.top/2018/11/20/tcache机制的几道pwn题/" target="_blank" rel="noopener">writeup</a>。首先利用IO_FILE结构体去泄露地址，然后利用off by null进行chunk overlapping,从而造成类似tcache double free的状态，然后修改__free_hook为one_gadget，调用free进行触发。具体分析如下。<br><img src="/2019/04/01/tcache利用总结/2.png" alt="2"></p>
 <h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>初始堆的布局，分配7个chunk:<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x500</span><span class="number">-8</span>,<span class="string">'0'</span>) <span class="comment">#0 0x500</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">'1'</span>) <span class="comment">#1 0x40</span></span><br><span class="line">add(<span class="number">0x40</span>,<span class="string">'2'</span>) <span class="comment">#2 0x50</span></span><br><span class="line">add(<span class="number">0x50</span>,<span class="string">'3'</span>) <span class="comment">#3 0x60</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'4'</span>) <span class="comment">#4 0x70</span></span><br><span class="line">add(<span class="number">0x500</span><span class="number">-8</span>,<span class="string">'5'</span>) <span class="comment">#5</span></span><br><span class="line">add(<span class="number">0x70</span>,<span class="string">'6'</span>) <span class="comment">#6</span></span><br></pre></td></tr></table></figure></p>
 <p>释放idx4,再重新分配，并修改覆盖idx5的prev_size,idx5的prev_size域由0x500覆盖为0x660，而0x660恰好就是前面分配的idx0~idx4的大小之和：(0x500+0x40+0x50+0x60+0x70)=0x660。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#cover prev_size</span></span><br><span class="line">remove(<span class="number">4</span>)</span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">'a'</span>*<span class="number">0x60</span>+<span class="string">'\x60\x06'</span>) <span class="comment">#idx0-idx4 #4</span></span><br></pre></td></tr></table></figure></p>
 <p>释放idx2和idx0，再释放idx5，会根据idx5的prev_size大小0x660触发chunk的合并,进入unsorted bin中，大小为0xb60：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">remove(<span class="number">2</span>) <span class="comment">#0x50 put tcache</span></span><br><span class="line">remove(<span class="number">0</span>) <span class="comment">#0x500 put unsorted bin</span></span><br><span class="line">remove(<span class="number">5</span>) <span class="comment">#merge idx0 put unsorted bin</span></span><br></pre></td></tr></table></figure></p>
-<p><img src="/2019/04/01/tcache利用总结/3.PNG" alt="3"><br>再分配大小为0x530的堆块，unsorted bin和tcache中分配的起始地址相同：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x530</span>,<span class="string">'0'</span>) <span class="comment">#0 0x540 tcache:idx2-&gt; main_arena+0x80 -&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="/2019/04/01/tcache利用总结/3.png" alt="3"><br>再分配大小为0x530的堆块，unsorted bin和tcache中分配的起始地址相同：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x530</span>,<span class="string">'0'</span>) <span class="comment">#0 0x540 tcache:idx2-&gt; main_arena+0x80 -&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p><img src="/2019/04/01/tcache利用总结/4.PNG" alt="4"></p>
 <p>下面可以进行libc的泄露了,由于没有打印函数,所以这里使用修改tcache 0x50的fd指针指向_IO_2_1_stdout_,修改该结构体的flag部分,让程序认为stdout有缓冲区,使得函数在调用puts函数时会最终调用到_IO_new_file_overflow,该函数会调用_IO_do_write进行输出,程序会以_IO_write_base开始,_IO_write_ptr结束的部分为缓冲区进行输出。在修改fd指针时需要爆破2个字节。</p>
 <p><img src="/2019/04/01/tcache利用总结/5.PNG" alt="5"></p>
