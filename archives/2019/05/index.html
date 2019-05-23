@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="pwnable.kr," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -79,23 +79,13 @@
 
 
 
-<meta name="description" content="Pwnable.kr的第一道题目fd的writeup">
-<meta name="keywords" content="pwnable.kr">
-<meta property="og:type" content="article">
-<meta property="og:title" content="pwnable.kr fd">
-<meta property="og:url" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/index.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="X3h1n">
+<meta property="og:url" content="http://x3h1n.github.io/archives/2019/05/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="Pwnable.kr的第一道题目fd的writeup">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/1.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/2.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/3.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/4.PNG">
-<meta property="og:updated_time" content="2019-02-25T13:18:01.665Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="pwnable.kr fd">
-<meta name="twitter:description" content="Pwnable.kr的第一道题目fd的writeup">
-<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/1.PNG">
+<meta name="twitter:title" content="X3h1n">
 
 
 
@@ -125,13 +115,13 @@
 
 
 
-  <link rel="canonical" href="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/"/>
+  <link rel="canonical" href="http://x3h1n.github.io/archives/2019/05/"/>
 
 
 
 
 
-  <title>pwnable.kr fd | X3h1n</title>
+  <title>归档 | X3h1n</title>
   
 
 
@@ -150,7 +140,7 @@
     
   
 
-  <div class="container sidebar-position-left page-post-detail">
+  <div class="container sidebar-position-left page-archive">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -234,162 +224,111 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-expand">
-    
+  
+  
+  
+  <div class="post-block archive">
+    <div id="posts" class="posts-collapse">
+      <span class="archive-move-on"></span>
 
-  
+      <span class="archive-page-counter">
+        
+        
+        
+          
+        
+        嗯..! 目前共计 17 篇日志。 继续努力。
+      </span>
 
-  
-  
-  
+      
+
+        
+        
+        
+
+        
+          
+          <div class="collection-title">
+            <h1 class="archive-year" id="archive-year-2019">2019</h1>
+          </div>
+        
+        
+
+        
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2018/08/27/pwnable-kr-fd/">
+    <header class="post-header">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
+      <h2 class="post-title">
         
-        
-          <h1 class="post-title" itemprop="name headline">pwnable.kr fd</h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
+            <a class="post-title-link" href="/2019/05/10/pwnable-tw-Secret-of-My-Heart/" itemprop="url">
               
-                <span class="post-meta-item-text">发表于</span>
+                <span itemprop="name">pwnable.tw Secret of My Heart</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-27T20:18:58+08:00">
-                2018-08-27
-              </time>
-            
+            </a>
+        
+      </h2>
 
-            
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2019-05-10T10:53:28+08:00"
+              content="2019-05-10" >
+          05-10
+        </time>
+      </div>
 
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        <p>Pwnable.kr的第一道题目fd的writeup</p>
-<a id="more"></a>
-<p>fd是pwnbale.kr的第一道题目，比较简单，连接登录：</p>
-<p><img src="/2018/08/27/pwnable-kr-fd/1.PNG" alt="1"></p>
-<p>看到有源文件及flag文件，查看文件的权限：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -al</span><br></pre></td></tr></table></figure>
-<p><img src="/2018/08/27/pwnable-kr-fd/2.PNG" alt="2"></p>
-<p>当前用户没有打开flag文件的权限，但有读fd.c的权限，打开fd.c，可以看到fd的源代码：</p>
-<p><img src="/2018/08/27/pwnable-kr-fd/3.PNG" alt="3"></p>
-<p>可以看到，read函数的第一个参数为程序的第一个参数fd，read函数定义如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ssize_t</span> read(<span class="keyword">int</span> filedes, <span class="keyword">void</span> *buf, <span class="keyword">size_t</span> nbytes);</span><br></pre></td></tr></table></figure>
-<p>函数从filedes指定的文件读取nbytes个字符至buf缓冲区中，第一个参数为文件描述符，指定了要读取的文件，filedes可被赋为以下特殊值：</p>
-<p>0：标准输入  1：标准输出    2：标准错误</p>
-<p>对于这道题目，可以将fd赋值为0，从终端读入“LETMEWIN\n”，使得if条件成立，从而获得flag。</p>
-<p>根据fd - 0x1234 = 0可知，输入的fd应该为0x1234，因为atoi函数在将字符串转换成整型时是逐个字符对目标字符串进行扫描，遇到正负号或数字才开始转换，直至遇到非数字或‘\0’结束转换，因此这里的输入应该是十进制的fd，因此输入应该为4660，再输入LETMEWIN，回车之后即可得到flag：</p>
-<p><img src="/2018/08/27/pwnable-kr-fd/4.PNG" alt="4"></p>
-
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/pwnable-kr/" rel="tag"># pwnable.kr</a>
-          
-        </div>
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/08/28/pwnable-kr-collision/" rel="prev" title="pwnable.kr collision">
-                pwnable.kr collision <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
+    </header>
   </article>
 
 
 
-    <div class="post-spread">
       
+
+        
+        
+        
+
+        
+        
+
+        
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <h2 class="post-title">
+        
+            <a class="post-title-link" href="/2019/05/08/两个babyheap/" itemprop="url">
+              
+                <span itemprop="name">两个babyheap</span>
+              
+            </a>
+        
+      </h2>
+
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2019-05-08T20:35:31+08:00"
+              content="2019-05-08" >
+          05-08
+        </time>
+      </div>
+
+    </header>
+  </article>
+
+
+
+      
+
     </div>
   </div>
+  
+  
+  
+
+  
+
 
 
           </div>
@@ -397,10 +336,6 @@
 
 
           
-
-  
-
-
 
         </div>
         
@@ -613,10 +548,6 @@
 
 
   
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
-
-
 
   
 
