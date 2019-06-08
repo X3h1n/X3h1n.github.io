@@ -89,7 +89,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/1.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/2.png">
-<meta property="og:updated_time" content="2019-06-08T08:38:39.961Z">
+<meta property="og:updated_time" content="2019-06-08T09:24:20.846Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TSCTF 2019 babyheap">
 <meta name="twitter:description" content="TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这">
@@ -313,7 +313,7 @@
       
 
       
-        <p>TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这个堆块时size就过不了检查了。赛后参考官方wp复现了一遍。</p>
+        <p>TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这个堆块时size就过不了检查了。赛后参考官方wp复现了一遍。<br><a id="more"></a></p>
 <h1 id="题目简述"><a href="#题目简述" class="headerlink" title="题目简述"></a>题目简述</h1><p>题目有两个功能，申请和释放堆块，申请的堆块大小最大为0x100，个数最多为16个。libc版本为2.23。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">WelCome TSCTF2019!!!! Have fun <span class="keyword">with</span> this babyheap!!!</span><br><span class="line">==============================</span><br><span class="line">=     <span class="number">1.</span> Alloc heap          =</span><br><span class="line">=     <span class="number">2.</span> Delete heap         =</span><br><span class="line">=     <span class="number">3.</span> Exit                =</span><br><span class="line">==============================</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></p>
 <h1 id="题目漏洞"><a href="#题目漏洞" class="headerlink" title="题目漏洞"></a>题目漏洞</h1><p>在read_data函数中有off by null的漏洞：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __int64 __<span class="function">fastcall <span class="title">read_data</span><span class="params">(__int64 data_buf, <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf; <span class="comment">// [rsp+1Fh] [rbp-11h]</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [rsp+20h] [rbp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> v5; <span class="comment">// [rsp+24h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// [rsp+28h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v5 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; a2; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    v5 = read(<span class="number">0</span>, &amp;buf, <span class="number">1u</span>LL);</span><br><span class="line">    <span class="keyword">if</span> ( v5 &lt;= <span class="number">0</span> || buf == <span class="number">10</span> )</span><br><span class="line">      <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v6;</span><br><span class="line">    *(_BYTE *)(data_buf + i) = buf;</span><br><span class="line">  &#125;</span><br><span class="line">  *(_BYTE *)(i + data_buf) = <span class="number">0</span>; <span class="comment">//off by null</span></span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v6;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h1 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h1><p>因为没有show的功能，需要利用stdout来泄露libc，和另外一道babytcache相同。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.利用off by null进行chunk overlapping，构造一个大小为0x70的堆块处于double free状态，一个处于fastbin 0x70中，一个处于unsorted bin中，在其fd和bk写入main_arena附近的地址。</span><br><span class="line">3.修改该堆块的fd域的低字节至stdout附近，申请到该堆块并修改其flag和IO_write_base，泄露libc。</span><br><span class="line">3.再次进行chunk overlapping，申请malloc_hook-0x23处的堆块，修改malloc_hook为one_gadget。</span><br></pre></td></tr></table></figure></p>
@@ -366,8 +366,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/05/29/starctf-2019-heap-master/" rel="next" title="starctf 2019 heap_master">
-                <i class="fa fa-chevron-left"></i> starctf 2019 heap_master
+              <a href="/2019/05/26/RCTF-2019-babyheap/" rel="next" title="RCTF 2019 pwn">
+                <i class="fa fa-chevron-left"></i> RCTF 2019 pwn
               </a>
             
           </div>
@@ -375,6 +375,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/03/starctf-2019-heap-master/" rel="prev" title="starctf 2019 heap_master">
+                starctf 2019 heap_master <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
