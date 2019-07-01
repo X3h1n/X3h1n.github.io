@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="leetcode," />
+  <meta name="keywords" content="pwn, Linux kernel pwn," />
 
 
 
@@ -79,18 +79,20 @@
 
 
 
-<meta name="description" content="leetcode的第929题，难度easy">
-<meta name="keywords" content="leetcode">
+<meta name="description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
+<meta name="keywords" content="pwn, Linux kernel pwn">
 <meta property="og:type" content="article">
-<meta property="og:title" content="929.Unique Email Addresses">
-<meta property="og:url" content="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/index.html">
+<meta property="og:title" content="Linux kernel pwn基础">
+<meta property="og:url" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="leetcode的第929题，难度easy">
+<meta property="og:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-23T09:41:28.799Z">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
+<meta property="og:updated_time" content="2019-06-28T03:48:35.475Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="929.Unique Email Addresses">
-<meta name="twitter:description" content="leetcode的第929题，难度easy">
+<meta name="twitter:title" content="Linux kernel pwn基础">
+<meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
 
 
 
@@ -120,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/"/>
+  <link rel="canonical" href="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/"/>
 
 
 
 
 
-  <title>929.Unique Email Addresses | X3h1n</title>
+  <title>Linux kernel pwn基础 | X3h1n</title>
   
 
 
@@ -243,7 +245,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/03/04/929-Unique-Email-Addresses/">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -260,7 +262,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">929.Unique Email Addresses</h1>
+          <h1 class="post-title" itemprop="name headline">Linux kernel pwn基础</h1>
         
 
         <div class="post-meta">
@@ -272,8 +274,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-04T21:39:11+08:00">
-                2019-03-04
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-28T10:40:47+08:00">
+                2019-06-28
               </time>
             
 
@@ -310,12 +312,25 @@
       
 
       
-        <p>leetcode的第929题，难度easy<br><a id="more"></a><br>自己的算法真的是太烂了，想着要坚持做算法题，并把它记录下来。之前断断续续做的题就断断续续的整理吧。</p>
-<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Every email consists of a local name and a domain name, separated by the @ sign.</span><br><span class="line">For example, in alice@leetcode.com, alice is the local name, and leetcode.com is the domain name.</span><br><span class="line">Besides lowercase letters, these emails may contain &apos;.&apos;s or &apos;+&apos;s.</span><br><span class="line">If you add periods (&apos;.&apos;) between some characters in the local name part of an email address, mail sent there will be forwarded to the same address without dots in the local name.  For example, &quot;alice.z@leetcode.com&quot; and &quot;alicez@leetcode.com&quot; forward to the same email address.  (Note that this rule does not apply for domain names.)</span><br><span class="line">If you add a plus (&apos;+&apos;) in the local name, everything after the first plus sign will be ignored. This allows certain emails to be filtered, for example m.y+name@email.com will be forwarded to my@email.com.  (Again, this rule does not apply for domain names.)</span><br><span class="line">It is possible to use both of these rules at the same time.</span><br><span class="line">Given a list of emails, we send one email to each address in the list.  How many different addresses actually receive mails?</span><br></pre></td></tr></table></figure>
-<h1 id="样例"><a href="#样例" class="headerlink" title="样例"></a>样例</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Input: [&quot;test.email+alex@leetcode.com&quot;,&quot;test.e.mail+bob.cathy@leetcode.com&quot;,&quot;testemail+david@lee.tcode.com&quot;]</span><br><span class="line">Output: 2</span><br><span class="line">Explanation: &quot;testemail@leetcode.com&quot; and &quot;testemail@lee.tcode.com&quot; actually receive mails</span><br></pre></td></tr></table></figure>
-<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><p>题目要求对email地址的local name进行解析，以‘@’的位置定位local name，在‘@’的位置之前，遇到’.’就删除，遇到’+’就删除’+’及其后面的内容，然后统计有多少不同的email地址。在统计email地址时可以建立map，利用map的key不能重复的特性进行统计。</p>
-<h1 id="我的答案"><a href="#我的答案" class="headerlink" title="我的答案"></a>我的答案</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">numUniqueEmails</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt;&amp; emails)</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">int</span> i,j;</span><br><span class="line">    	<span class="built_in">map</span>&lt;<span class="built_in">string</span>,<span class="keyword">int</span>&gt; map_s;</span><br><span class="line">    	<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;emails.size();i++)&#123;</span><br><span class="line">        	<span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;emails[i].length();j++)&#123;</span><br><span class="line">            	<span class="keyword">if</span>(emails[i][j]==<span class="string">'.'</span>)</span><br><span class="line">                	emails[i].erase(j,<span class="number">1</span>);</span><br><span class="line">            	<span class="keyword">if</span>(emails[i][j]==<span class="string">'+'</span>)&#123;</span><br><span class="line">                	<span class="keyword">int</span> pos = emails[i].find(<span class="string">'@'</span>);</span><br><span class="line">                	emails[i].erase(j,pos-j);</span><br><span class="line">                	<span class="keyword">break</span>;</span><br><span class="line">            	&#125;</span><br><span class="line">        	&#125;</span><br><span class="line">        	<span class="keyword">if</span>(!map_s.count(emails[i]))</span><br><span class="line">            	map_s[emails[i]] = i;</span><br><span class="line">    	&#125;</span><br><span class="line"></span><br><span class="line">    	<span class="keyword">return</span> map_s.size();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<h1 id="c-用法积累"><a href="#c-用法积累" class="headerlink" title="c++用法积累"></a>c++用法积累</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">map_s.count(emails[i]); <span class="comment">//统计map中指定key的个数，由于map中key不能重复，key存在返回1，不存在返回0</span></span><br><span class="line">map_s[emails[i]] = i; <span class="comment">//向map中插入元素，key为emails[i],value为i</span></span><br></pre></td></tr></table></figure>
+        <p>主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。</p>
+<a id="more"></a>
+<h1 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h1><p>模块相关</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">insmod:加载指定模块</span><br><span class="line">rmmod：卸载指定模块</span><br><span class="line">lsmod:查看已经加载的模块</span><br></pre></td></tr></table></figure>
+<p>启动qemu</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">32位启动：</span><br><span class="line">qemu-system-i386 -kernel linux-2.6.32.1/arch/i386/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br><span class="line">64位启动：</span><br><span class="line">qemu-system-x86_64 -kernel linux-2.6.32.1/arch/x86/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br></pre></td></tr></table></figure>
+<p>ctf kernel pwn文件组成</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rootfs.cpio:文件系统镜像</span><br><span class="line">boot.sh：kernel启动的脚本，一般是qemu启动，可以根据参数查看题目的保护情况</span><br><span class="line">bzImage：内核镜像</span><br><span class="line">init文件：在rootfs.cpio文件解压可以看到，记录了系统初始化时的操作，一般在文件里insmod一个内核模块.ko文件，通常是有漏洞的文件</span><br><span class="line">.ko文件：需要拖到IDA里面分析找漏洞的文件，可以根据init文件的路径去rootfs.cpio里面找</span><br></pre></td></tr></table></figure>
+<h1 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h1><p>提权</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">commit_creds(prepare_kernel_cred(0))</span><br></pre></td></tr></table></figure>
+<p>查看函数地址，在/proc/kallsyms中查看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">grep commit_creds /proc/kallsyms</span><br><span class="line">grep prepare_kernel_cred /proc/kallsyms</span><br></pre></td></tr></table></figure>
+<p><img src="/2019/06/28/Linux-kernel-pwn基础/1.png" alt="1"></p>
+<p>常用函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kmalloc()，申请内存，类似于用户态的malloc()</span><br><span class="line">kfree()：释放内存，类似于用户态的free()</span><br><span class="line">printk():输出函数，类似于用户态的printf()</span><br><span class="line">copy_to_user():将内核空间的数据拷贝用户空间</span><br><span class="line">copy_from_user()：将用户控件的数据拷贝到内核空间</span><br></pre></td></tr></table></figure>
+<p>ioctl函数，对设备的I/O通道进行管理，cmd是用户程序对设备发出的控制命令，handle是打开涉笔返回的文件描述符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int ioctl(int handle, int cmd,[int *argdx, int argcx]);</span><br></pre></td></tr></table></figure>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/</a></p>
+
       
     </div>
     
@@ -332,7 +347,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/leetcode/" rel="tag"># leetcode</a>
+            <a href="/tags/pwn-Linux-kernel-pwn/" rel="tag"># pwn, Linux kernel pwn</a>
           
         </div>
       
@@ -345,8 +360,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/08/30/pwnable-kr-random/" rel="next" title="pwnable.kr random">
-                <i class="fa fa-chevron-left"></i> pwnable.kr random
+              <a href="/2019/06/24/SCTF2019-pwn/" rel="next" title="SCTF2019 pwn">
+                <i class="fa fa-chevron-left"></i> SCTF2019 pwn
               </a>
             
           </div>
@@ -355,8 +370,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/04/01/tcache利用总结/" rel="prev" title="tcache利用总结">
-                tcache利用总结 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/06/28/CISCN2017-babydriver/" rel="prev" title="CISCN2017 babydriver">
+                CISCN2017 babydriver <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -480,7 +495,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#样例"><span class="nav-number">2.</span> <span class="nav-text">样例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析"><span class="nav-number">3.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#我的答案"><span class="nav-number">4.</span> <span class="nav-text">我的答案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c-用法积累"><span class="nav-number">5.</span> <span class="nav-text">c++用法积累</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#指令"><span class="nav-number">1.</span> <span class="nav-text">指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">2.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
 
           </div>
