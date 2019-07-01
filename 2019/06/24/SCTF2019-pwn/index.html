@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血… one_heap这道题我只做到利用三次free泄露libc，然后就没有重">
+<meta name="description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…">
 <meta name="keywords" content="pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SCTF2019 pwn">
 <meta property="og:url" content="http://x3h1n.github.io/2019/06/24/SCTF2019-pwn/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血… one_heap这道题我只做到利用三次free泄露libc，然后就没有重">
+<meta property="og:description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-01T12:28:42.090Z">
+<meta property="og:updated_time" content="2019-07-01T13:23:14.948Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SCTF2019 pwn">
-<meta name="twitter:description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血… one_heap这道题我只做到利用三次free泄露libc，然后就没有重">
+<meta name="twitter:description" content="周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…">
 
 
 
@@ -310,7 +310,7 @@
       
 
       
-        <p>周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…</p>
+        <p>周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…<br><a id="more"></a></p>
 <h1 id="one-heap"><a href="#one-heap" class="headerlink" title="one_heap"></a>one_heap</h1><p>这道题我只做到利用三次free泄露libc，然后就没有重叠的块了，剩下的一次free的机会也没法用。这个exp是队里整理的exp，我也分不清是谁做的了，好像大家都参与了。</p>
 <h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>题目有add和delete两个功能，只允许add15次，free4次，每次free的都是最新add的chunk。</p>
 <p>因为没有show函数，需要修改stdout泄露libc。</p>
