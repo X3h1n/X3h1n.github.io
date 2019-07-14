@@ -79,19 +79,19 @@
 
 
 
-<meta name="description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
+<meta name="description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
 <meta name="keywords" content="pwn, Linux kernel pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux kernel pwn基础">
 <meta property="og:url" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
+<meta property="og:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
-<meta property="og:updated_time" content="2019-06-28T03:48:35.475Z">
+<meta property="og:updated_time" content="2019-07-09T03:22:41.997Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux kernel pwn基础">
-<meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。">
+<meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
 <meta name="twitter:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
 
 
@@ -312,24 +312,28 @@
       
 
       
-        <p>主要记录一下学习linux kernel pwn遇到的命令以及相关函数使用，之前没有接触过，有必要记录一下。</p>
+        <p>主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。</p>
 <a id="more"></a>
 <h1 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h1><p>模块相关</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">insmod:加载指定模块</span><br><span class="line">rmmod：卸载指定模块</span><br><span class="line">lsmod:查看已经加载的模块</span><br></pre></td></tr></table></figure>
 <p>启动qemu</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">32位启动：</span><br><span class="line">qemu-system-i386 -kernel linux-2.6.32.1/arch/i386/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br><span class="line">64位启动：</span><br><span class="line">qemu-system-x86_64 -kernel linux-2.6.32.1/arch/x86/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br></pre></td></tr></table></figure>
-<p>ctf kernel pwn文件组成</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rootfs.cpio:文件系统镜像</span><br><span class="line">boot.sh：kernel启动的脚本，一般是qemu启动，可以根据参数查看题目的保护情况</span><br><span class="line">bzImage：内核镜像</span><br><span class="line">init文件：在rootfs.cpio文件解压可以看到，记录了系统初始化时的操作，一般在文件里insmod一个内核模块.ko文件，通常是有漏洞的文件</span><br><span class="line">.ko文件：需要拖到IDA里面分析找漏洞的文件，可以根据init文件的路径去rootfs.cpio里面找</span><br></pre></td></tr></table></figure>
+<p>ctf kernel pwn文件组成<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rootfs.cpio:文件系统镜像</span><br><span class="line">boot.sh：kernel启动的脚本，一般是qemu启动，可以根据参数查看题目的保护情况</span><br><span class="line">bzImage：压缩后的内核文件</span><br><span class="line">vmlinux：静态编译，未压缩的内核文件，可以在里面找ROP</span><br><span class="line">init文件：在rootfs.cpio文件解压可以看到，记录了系统初始化时的操作，一般在文件里insmod一个内核模块.ko文件，通常是有漏洞的文件</span><br><span class="line">.ko文件：需要拖到IDA里面分析找漏洞的文件，可以根据init文件的路径去rootfs.cpio里面找</span><br></pre></td></tr></table></figure></p>
 <h1 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h1><p>提权</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">commit_creds(prepare_kernel_cred(0))</span><br></pre></td></tr></table></figure>
 <p>查看函数地址，在/proc/kallsyms中查看</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">grep commit_creds /proc/kallsyms</span><br><span class="line">grep prepare_kernel_cred /proc/kallsyms</span><br></pre></td></tr></table></figure>
 <p><img src="/2019/06/28/Linux-kernel-pwn基础/1.png" alt="1"></p>
-<p>常用函数</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kmalloc()，申请内存，类似于用户态的malloc()</span><br><span class="line">kfree()：释放内存，类似于用户态的free()</span><br><span class="line">printk():输出函数，类似于用户态的printf()</span><br><span class="line">copy_to_user():将内核空间的数据拷贝用户空间</span><br><span class="line">copy_from_user()：将用户控件的数据拷贝到内核空间</span><br></pre></td></tr></table></figure>
-<p>ioctl函数，对设备的I/O通道进行管理，cmd是用户程序对设备发出的控制命令，handle是打开涉笔返回的文件描述符。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int ioctl(int handle, int cmd,[int *argdx, int argcx]);</span><br></pre></td></tr></table></figure>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/</a></p>
+<p>常用函数<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kmalloc()，申请内存，类似于用户态的malloc()</span><br><span class="line">kfree()：释放内存，类似于用户态的free()</span><br><span class="line">printk():输出函数，类似于用户态的printf()</span><br><span class="line">copy_to_user():将内核空间的数据拷贝用户空间</span><br><span class="line">copy_from_user()：将用户控件的数据拷贝到内核空间</span><br></pre></td></tr></table></figure></p>
+<p>ioctl函数，对设备的I/O通道进行管理，cmd是用户程序对设备发出的控制命令，handle是打开涉笔返回的文件描述符。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ioctl</span><span class="params">(<span class="keyword">int</span> handle, <span class="keyword">int</span> cmd,[<span class="keyword">int</span> *argdx, <span class="keyword">int</span> argcx])</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>kptr_restrict控制/proc/kallsyms是否显示symbols的地址，通常会在init文件中给出限制：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 1 &gt; /proc/sys/kernel/kptr_restrict</span><br></pre></td></tr></table></figure></p>
+<p>dmesg_restrict限制非特权用户读取dmesg信息，无法访问内核打印的消息，通常会在init文件中给出限制：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 1 &gt; /proc/sys/kernel/dmesg_restrict</span><br></pre></td></tr></table></figure></p>
+<p>/proc文件系统是一个虚拟文件系统，可以在/proc中动态创建虚拟文件，通过对虚拟文件的读写与实现与内核的通信。可以使用以下函数创建虚拟文件：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//第三个参数是文件在/proc中的位置，默认为/proc</span></span><br><span class="line"><span class="function">struct proc_dir_entry *<span class="title">create_proc_entry</span><span class="params">( <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">mode_t</span> mode, struct proc_dir_entry *parent )</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> struct proc_dir_entry *<span class="title">proc_create</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">umode_t</span> mode, struct proc_dir_entry *parent,<span class="keyword">const</span> struct file_operations *proc_fops)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>删除虚拟文件使用以下函数:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">remove_proc_entry</span><span class="params">( <span class="keyword">const</span> <span class="keyword">char</span> *name, struct proc_dir_entry *parent )</span></span>;</span><br></pre></td></tr></table></figure></p>
+<h1 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h1><p>题目通常会给bzImage，如果没有vmlinux，可以使用extract-vmlinux提取，使用方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/kernel/pwn$ ./extract-vmlinux ./bzImage &gt; vmlinux</span><br></pre></td></tr></table></figure></p>
+<p>在ubuntu14.04上安装pwntools:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install -y python-dev python-pip libffi-dev libssl-dev</span><br><span class="line">sudo pip install -U setuptools</span><br><span class="line">sudo pip install cryptography==2.4.2</span><br><span class="line">sudo pip install pwntools</span><br></pre></td></tr></table></figure></p>
+<p>寻找rop的另外一个工具：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/sashs/Ropper</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/</a><br><a href="https://www.cnblogs.com/pcat/p/5451780.html" target="_blank" rel="noopener">https://www.cnblogs.com/pcat/p/5451780.html</a><br><a href="https://blog.csdn.net/tiantao2012/article/details/78864757" target="_blank" rel="noopener">https://blog.csdn.net/tiantao2012/article/details/78864757</a><br><a href="https://pengcc.iteye.com/blog/914092" target="_blank" rel="noopener">https://pengcc.iteye.com/blog/914092</a></p>
 
       
     </div>
@@ -449,7 +453,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-count">30</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -462,7 +466,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -495,7 +499,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#指令"><span class="nav-number">1.</span> <span class="nav-text">指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">2.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#指令"><span class="nav-number">1.</span> <span class="nav-text">指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">2.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工具"><span class="nav-number">3.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
 
           </div>

