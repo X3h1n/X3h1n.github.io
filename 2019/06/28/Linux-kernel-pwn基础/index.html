@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Linux kernel pwn,pwn," />
+  <meta name="keywords" content="pwn,Linux kernel pwn," />
 
 
 
@@ -80,19 +80,19 @@
 
 
 <meta name="description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
-<meta name="keywords" content="Linux kernel pwn,pwn">
+<meta name="keywords" content="pwn,Linux kernel pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux kernel pwn基础">
 <meta property="og:url" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/index.html">
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/Linux-kernel-pwn基础/1.png">
 <meta property="og:updated_time" content="2019-07-17T07:00:57.064Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux kernel pwn基础">
 <meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
-<meta name="twitter:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/Linux-kernel-pwn基础/1.png">
 
 
 
@@ -323,7 +323,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">commit_creds(prepare_kernel_cred(0))</span><br></pre></td></tr></table></figure>
 <p>查看函数地址，在/proc/kallsyms中查看</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">grep commit_creds /proc/kallsyms</span><br><span class="line">grep prepare_kernel_cred /proc/kallsyms</span><br></pre></td></tr></table></figure>
-<p><img src="/2019/06/28/Linux-kernel-pwn基础/1.png" alt="1"></p>
+<p><img src="Linux-kernel-pwn基础/1.png" alt="1"></p>
 <p>常用函数<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kmalloc()，申请内存，类似于用户态的malloc()</span><br><span class="line">kfree()：释放内存，类似于用户态的free()</span><br><span class="line">printk():输出函数，类似于用户态的printf()</span><br><span class="line">copy_to_user():将内核空间的数据拷贝用户空间</span><br><span class="line">copy_from_user()：将用户控件的数据拷贝到内核空间</span><br></pre></td></tr></table></figure></p>
 <p>ioctl函数，对设备的I/O通道进行管理，cmd是用户程序对设备发出的控制命令，handle是打开涉笔返回的文件描述符。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ioctl</span><span class="params">(<span class="keyword">int</span> handle, <span class="keyword">int</span> cmd,[<span class="keyword">int</span> *argdx, <span class="keyword">int</span> argcx])</span></span>;</span><br></pre></td></tr></table></figure></p>
 <p>kptr_restrict控制/proc/kallsyms是否显示symbols的地址，通常会在init文件中给出限制：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 1 &gt; /proc/sys/kernel/kptr_restrict</span><br></pre></td></tr></table></figure></p>
@@ -352,9 +352,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
-          
             <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
           
         </div>
       
