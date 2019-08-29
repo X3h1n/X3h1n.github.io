@@ -79,22 +79,22 @@
 
 
 
-<meta name="description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta name="description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。">
 <meta name="keywords" content="Linux kernel pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2018 0ctf final baby">
 <meta property="og:url" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/index.html">
 <meta property="og:site_name" content="X3h1n">
-<meta property="og:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta property="og:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/2.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/1.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/3.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/4.png">
-<meta property="og:updated_time" content="2019-08-27T13:34:22.595Z">
+<meta property="og:updated_time" content="2019-08-29T02:57:05.858Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="2018 0ctf final baby">
-<meta name="twitter:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。 调试题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。在这里下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.">
+<meta name="twitter:description" content="第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。">
 <meta name="twitter:image" content="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/2.png">
 
 
@@ -315,7 +315,7 @@
       
 
       
-        <p>第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。</p>
+        <p>第三道Linux kernel pwn的题目，这道题做完WIKI关于内核的就学习完了。<br><a id="more"></a></p>
 <h1 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h1><p>题目只给了baby.ko和加载的文件系统core.cpio，没有bzImage，为了调试，我们需要得到其原始内核,在IDA中可以看到其内核版本为4.15.0-22-generic SMP mod_unload。<br><img src="/2019/08/27/20180ctf-final-baby/2.png" alt="1"><br>在<a href="https://ubuntu.pkgs.org/18.04/ubuntu-updates-main-amd64/linux-image-4.15.0-22-generic_4.15.0-22.24_amd64.deb.html" target="_blank" rel="noopener">这里</a>下载对应内核的deb包linux-image-4.15.0-22-generic_4.15.0-22.24_amd64.deb，解压，在./data/boot中得到vmlinuz-4.15.0-22-generic。</p>
 <p>查看模块加载的基址，在init启动文件中加入以下命令，使得内核启动时便是root权限，这样可以查看baby.ko加载的基址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsid /bin/cttyhack setuidgid 0 /bin/sh</span><br></pre></td></tr></table></figure></p>
 <p>通过lsmod命令查看加载的模块及基址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/ # lsmod</span><br><span class="line">baby 16384 0 - Live 0xffffffffc030a000 (OE)</span><br></pre></td></tr></table></figure></p>
