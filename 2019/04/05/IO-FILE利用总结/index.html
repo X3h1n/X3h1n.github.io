@@ -87,13 +87,13 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/IO-FILE利用总结/1.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/IO-FILE利用总结/2.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/1.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/2.PNG">
 <meta property="og:updated_time" content="2019-04-23T09:21:30.808Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="IO_FILE利用总结">
 <meta name="twitter:description" content="一直很想写一篇IO_FILE的利用总结，虽然写的有点晚了，希望写这一篇总结可以对IO_FILE有一个深入的了解吧…">
-<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/IO-FILE利用总结/1.PNG">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/04/05/IO-FILE利用总结/1.PNG">
 
 
 
@@ -336,9 +336,9 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p2 = <span class="built_in">malloc</span>(<span class="number">0x1000</span>);</span><br></pre></td></tr></table></figure>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//glibc-2.25 ./malloc/malloc.c</span></span><br><span class="line"><span class="keyword">if</span> (old_size &gt;= MINSIZE)</span><br><span class="line">&#123;</span><br><span class="line">    _int_free (av, old_top, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>malloc会分配另外一个page作为新的top chunk，新的top chunk与原来的top chunk相邻，原来的top chunk会进入unsorted bin中。原来堆的大小：</p>
-<p><img src="IO-FILE利用总结/1.PNG" alt="1"></p>
+<p><img src="/2019/04/05/IO-FILE利用总结/1.PNG" alt="1"></p>
 <p>top chunk扩展之后：</p>
-<p><img src="IO-FILE利用总结/2.PNG" alt="2"></p>
+<p><img src="/2019/04/05/IO-FILE利用总结/2.PNG" alt="2"></p>
 <p>原来的top chunk进入unsorted bin中，原来的top chunk大小为0x21000，从0x623000进行top chunk的扩展，与原来的top chunk相邻，在新的top chunk中分配0x1000，即chunk p1。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x623000</span>  <span class="comment">#chunk p1</span></span><br><span class="line"><span class="number">0x623000</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000001011</span></span><br><span class="line"><span class="number">0x623010</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x623020</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x623030</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt; x /<span class="number">8</span>gx <span class="number">0x624010</span>  <span class="comment">#新的top chunk</span></span><br><span class="line"><span class="number">0x624010</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000020ff1</span></span><br><span class="line"><span class="number">0x624020</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624030</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x624040</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br></pre></td></tr></table></figure>
 <p>下面开始第二阶段的利用，这里利用的是每当触发_IO_flush_all_lockp时，_IO_flush_all_lockp刷新所有的文件指针，即遍历_IO_list_all链中的每一项，分别调用_IO_OVERFLOW。所以这个POC的想法是使用伪文件指针覆盖_IO_list_all链中的文件指针，该fake FILE的_IO_OVERFLOW指向system，该FILE结构的前8个字节设置为“/bin/sh”，所以当调用_IO_OVERFLOW(fp, EOF)其实是调用system(“/bin/sh”)。这是第二阶段的思路。libc触发_IO_flush_all_lockp有以下三种情况：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libc触发abort时</span><br><span class="line">执行exit函数时</span><br><span class="line">程序执行流从main函数返回时</span><br></pre></td></tr></table></figure></p>

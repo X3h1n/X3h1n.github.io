@@ -87,16 +87,16 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="Pwnable.kr的第6道题目random的writeup。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/1.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/6.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/4.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/5.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/3.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/1.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/6.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/4.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/5.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/3.PNG">
 <meta property="og:updated_time" content="2019-08-29T02:34:15.990Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="pwnable.kr random">
 <meta name="twitter:description" content="Pwnable.kr的第6道题目random的writeup。">
-<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/pwnable-kr-random/1.PNG">
+<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/31/pwnable-kr-random/1.PNG">
 
 
 
@@ -319,15 +319,15 @@
         <p>Pwnable.kr的第6道题目random的writeup。</p>
 <a id="more"></a>
 <p>首先连接题目，查看当前目录：</p>
-<p><img src="./pwnable-kr-random\1.PNG" alt="1"></p>
+<p><img src="/2018/08/31/pwnable-kr-random/1.PNG" alt="1"></p>
 <p>查看题目的源码random.c：</p>
-<p><img src="./pwnable-kr-random\6.PNG" alt="6"></p>
+<p><img src="/2018/08/31/pwnable-kr-random/6.PNG" alt="6"></p>
 <p>可以看到程序首先调用rand()生成随机数random，若输入的key与random异或的值为0xdeadbeef，即可得到flag，关键是要知道随机数random的值。rand函数并不是真正的随机数生成器，rand()根据srand函数提供的种子生成随机序列，若在第一次调用rand函数之前没有调用srand生成种子seed，系统会将种子seed设置为1。若种子相同，则得到的随机序列也相同。因此，在该程序中，每次产生的随机数random其实是不变的。可以使用gdb调试程序，查看生成的random的值。</p>
 <p>我们知道，程序在执行完rand函数后，随机数即返回值存储在eax寄存器中，在0x400606处设置断点，查看eax的值：</p>
-<p><img src="./pwnable-kr-random\4.PNG" alt="4"></p>
-<p><img src="./pwnable-kr-random\5.PNG" alt="4"></p>
+<p><img src="/2018/08/31/pwnable-kr-random/4.PNG" alt="4"></p>
+<p><img src="/2018/08/31/pwnable-kr-random/5.PNG" alt="4"></p>
 <p>因此，key = random ^ 0xdeadbeef = 1804289383 ^ 0xdeadbeef = 3039230856，输入3039230856，得到flag：</p>
-<p><img src="./pwnable-kr-random/3.PNG" alt="3"></p>
+<p><img src="/2018/08/31/pwnable-kr-random/3.PNG" alt="3"></p>
 
       
     </div>

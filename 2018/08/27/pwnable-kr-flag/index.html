@@ -87,16 +87,16 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="Pwnable.kr的第四道题目flag的writeup">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/pwnable-kr-flag/1.PNG">
-<meta property="og:image" content="e:/hexo/source/_posts/pwnable-kr-flag/2.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/pwnable-kr-flag/3.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/pwnable-kr-flag/4.PNG">
-<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/pwnable-kr-flag/5.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/1.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/hexo/source/_posts/pwnable-kr-flag/2.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/3.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/4.PNG">
+<meta property="og:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/5.PNG">
 <meta property="og:updated_time" content="2019-08-29T02:36:42.347Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="pwnable.kr flag">
 <meta name="twitter:description" content="Pwnable.kr的第四道题目flag的writeup">
-<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/pwnable-kr-flag/1.PNG">
+<meta name="twitter:image" content="http://x3h1n.github.io/2018/08/27/pwnable-kr-flag/1.PNG">
 
 
 
@@ -319,13 +319,13 @@
         <p>Pwnable.kr的第四道题目flag的writeup</p>
 <a id="more"></a>
 <p>下载二进制程序flag，通过checksec看到该程序加了upx的壳：</p>
-<p><img src="pwnable-kr-flag/1.PNG" alt="1"></p>
+<p><img src="/2018/08/27/pwnable-kr-flag/1.PNG" alt="1"></p>
 <p>在<a href="https://down.52pojie.cn/Tools/Unpackers/" target="_blank" rel="noopener">爱盘</a>上下载了upx脱壳的工具UPX Unpacker，脱壳得到flag_upx：</p>
-<p><img src="E:\hexo\source\_posts\pwnable-kr-flag\2.PNG" alt="2"></p>
+<p><img src="/2018/08/27/pwnable-kr-flag/hexo\source\_posts\pwnable-kr-flag\2.PNG" alt="2"></p>
 <p>使用IDA打开flag_upx，看到flag：</p>
-<p><img src="pwnable-kr-flag/3.PNG" alt="3"></p>
-<p><img src="pwnable-kr-flag/4.PNG" alt="4"></p>
-<p><img src="pwnable-kr-flag/5.PNG" alt="5"></p>
+<p><img src="/2018/08/27/pwnable-kr-flag/3.PNG" alt="3"></p>
+<p><img src="/2018/08/27/pwnable-kr-flag/4.PNG" alt="4"></p>
+<p><img src="/2018/08/27/pwnable-kr-flag/5.PNG" alt="5"></p>
 <p>因此flag为UPX…? sounds like a delivery service :)。</p>
 
       
