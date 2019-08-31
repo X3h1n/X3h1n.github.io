@@ -239,6 +239,520 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/31/leetcode之字符串相关/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/31/leetcode之字符串相关/" itemprop="url">leetcode之字符串相关</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-31T15:43:43+08:00">
+                2019-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>记录在算法学习过程中与字符串相关的题目，easy部分。<br></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/08/31/leetcode之字符串相关/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/31/leetcode之树的遍历/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/31/leetcode之树的遍历/" itemprop="url">leetcode之树的遍历</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-31T15:42:44+08:00">
+                2019-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>记录在算法学习过程中与树的遍历相关的题目,easy部分。</p>
+<h1 id="938-Range-Sum-of-BST"><a href="#938-Range-Sum-of-BST" class="headerlink" title="938 Range Sum of BST"></a>938 Range Sum of BST</h1><h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given the root node of a binary search tree, return the sum of values of all nodes with value between L and R (inclusive).<br>The binary search tree is guaranteed to have unique values.</p>
+<h2 id="题目解析"><a href="#题目解析" class="headerlink" title="题目解析"></a>题目解析</h2><p>给定一个二叉搜索树，L和R，返回节点值在L和R的所有节点值之和。<br>递归遍历，累加在给定范围内的节点的值。因为是二叉搜索树，所以在遍历时可以根据父节点的值决定下一步遍历左子树还是右子树。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">int</span> sum;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">rangeSumBST</span><span class="params">(TreeNode* root, <span class="keyword">int</span> L, <span class="keyword">int</span> R)</span> </span>&#123;</span><br><span class="line">        sum = <span class="number">0</span>;</span><br><span class="line">        helper(root,L,R);</span><br><span class="line">        <span class="keyword">return</span> sum;   </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">helper</span><span class="params">(TreeNode* root, <span class="keyword">int</span> L, <span class="keyword">int</span> R)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val &gt;= L &amp;&amp; root-&gt;val &lt;= R)&#123;</span><br><span class="line">            sum += root-&gt;val;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val &gt; L)&#123;</span><br><span class="line">            helper(root-&gt;left,L,R);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val &lt; R)&#123;</span><br><span class="line">            helper(root-&gt;right,L,R);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="617-Merge-Two-Binary-Trees"><a href="#617-Merge-Two-Binary-Trees" class="headerlink" title="617 Merge Two Binary Trees"></a>617 Merge Two Binary Trees</h1><h2 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given two binary trees and imagine that when you put one of them to cover the other, some nodes of the two trees are overlapped while the others are not.</p>
+<p>You need to merge them into a new binary tree. The merge rule is that if two nodes overlap, then sum node values up as the new value of the merged node. Otherwise, the NOT null node will be used as the node of new tree.</p>
+<h2 id="题目解析-1"><a href="#题目解析-1" class="headerlink" title="题目解析"></a>题目解析</h2><p>合并两个二叉树，对于重合节点则是节点值相加，未重合节点作为合并后的树的新的节点。<br>递归合并，当有重合节点时节点值为原来两个二叉树节点值的加和。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">mergeTrees</span><span class="params">(TreeNode* t1, TreeNode* t2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!t1 &amp;&amp; !t2)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">if</span>(!t1 &amp;&amp; t2)</span><br><span class="line">            <span class="keyword">return</span> t2;</span><br><span class="line">        <span class="keyword">if</span>(t1 &amp;&amp; !t2)</span><br><span class="line">            <span class="keyword">return</span> t1;</span><br><span class="line">        TreeNode *t = <span class="keyword">new</span> TreeNode(t1-&gt;val + t2-&gt;val);</span><br><span class="line">        t-&gt;left = mergeTrees(t1-&gt;left,t2-&gt;left);</span><br><span class="line">        t-&gt;right = mergeTrees(t1-&gt;right,t2-&gt;right);</span><br><span class="line">        <span class="keyword">return</span> t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="700-Search-in-a-Binary-Search-Tree"><a href="#700-Search-in-a-Binary-Search-Tree" class="headerlink" title="700 Search in a Binary Search Tree"></a>700 Search in a Binary Search Tree</h1><h2 id="题目描述-2"><a href="#题目描述-2" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given the root node of a binary search tree (BST) and a value. You need to find the node in the BST that the node’s value equals the given value. Return the subtree rooted with that node. If such node doesn’t exist, you should return NULL.</p>
+<h2 id="题目解析-2"><a href="#题目解析-2" class="headerlink" title="题目解析"></a>题目解析</h2><p>二叉搜索树，对于给定值，在二叉搜索树种找到该节点并返回。<br>利用二叉搜索树的根节点数值大于它的左子树节点数值，小于它的右子树节点数值。先判断根节点与给定val的大小，若相等则直接返回，若大于根节点，则在右子树种继续寻找，反之则在左子树种寻找。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">searchBST</span><span class="params">(TreeNode* root, <span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val == val)</span><br><span class="line">            <span class="keyword">return</span> root;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val &gt; val)</span><br><span class="line">            <span class="keyword">return</span> searchBST(root-&gt;left, val);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> searchBST(root-&gt;right, val);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>看到一个执行效率更快的答案，同样是递归，但是作者在代码中关闭了stdin同步，因此执行效率更快，还有这种操作！<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Live coding problems, watch at</span></span><br><span class="line"><span class="comment">// https://www.twitch.tv/yipcubed</span></span><br><span class="line"><span class="comment">// https://www.youtube.com/channel/UCTV_UOPu7EWXvYWsBFxMsSA/videos</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// makes code faster, but larger. Just for LeetCode fun!</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> GCC optimise (<span class="meta-string">"Ofast"</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// makes stdin not synced so it is faster. Just for LeetCode fun!</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">auto</span> _no_sync_ __attribute__((unused)) = []() &#123;              <span class="comment">// NOLINT</span></span><br><span class="line">    ios_base::sync_with_stdio(<span class="literal">false</span>);</span><br><span class="line">    <span class="built_in">cin</span>.tie(<span class="literal">nullptr</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">&#125;();</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">searchBST</span><span class="params">(TreeNode* root, <span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="keyword">if</span> (root-&gt;val == val)</span><br><span class="line">            <span class="keyword">return</span> root;</span><br><span class="line">        <span class="keyword">if</span> (val &lt; root-&gt;val)</span><br><span class="line">            <span class="keyword">return</span> searchBST(root-&gt;left, val);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> searchBST(root-&gt;right, val);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># <span class="number">589</span> N-ary Tree Preorder Traversal</span><br><span class="line">## 题目描述</span><br><span class="line">Given an n-ary tree, <span class="keyword">return</span> the preorder traversal of its nodes' values.</span><br><span class="line"></span><br><span class="line">## 题目解析</span><br><span class="line">树的前序遍历，递归遍历，左孩子-&gt;父节点-&gt;右孩子</span><br><span class="line">~~~c++</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// Definition for a Node.</span></span><br><span class="line"><span class="comment">class Node &#123;</span></span><br><span class="line"><span class="comment">public:</span></span><br><span class="line"><span class="comment">    int val;</span></span><br><span class="line"><span class="comment">    vector&lt;Node*&gt; children;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node() &#123;&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node(int _val, vector&lt;Node*&gt; _children) &#123;</span></span><br><span class="line"><span class="comment">        val = _val;</span></span><br><span class="line"><span class="comment">        children = _children;</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">class Solution &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; ans;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; preorder(Node* root) &#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> ans;</span><br><span class="line">        ans.push_back(root-&gt;val);</span><br><span class="line">        <span class="built_in">vector</span>&lt;Node*&gt; _children = root-&gt;children;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;_children.size();i++)&#123;</span><br><span class="line">            preorder(_children[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="590-N-ary-Tree-Postorder-Traversal"><a href="#590-N-ary-Tree-Postorder-Traversal" class="headerlink" title="590 N-ary Tree Postorder Traversal"></a>590 N-ary Tree Postorder Traversal</h1><h2 id="题目描述-3"><a href="#题目描述-3" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given an n-ary tree, return the postorder traversal of its nodes’ values.</p>
+<h2 id="题目解析-3"><a href="#题目解析-3" class="headerlink" title="题目解析"></a>题目解析</h2><p>树的后序遍历，左孩子-&gt;右孩子-&gt;父节点<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// Definition for a Node.</span></span><br><span class="line"><span class="comment">class Node &#123;</span></span><br><span class="line"><span class="comment">public:</span></span><br><span class="line"><span class="comment">    int val;</span></span><br><span class="line"><span class="comment">    vector&lt;Node*&gt; children;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node() &#123;&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node(int _val, vector&lt;Node*&gt; _children) &#123;</span></span><br><span class="line"><span class="comment">        val = _val;</span></span><br><span class="line"><span class="comment">        children = _children;</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; ans;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; postorder(Node* root) &#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> ans;</span><br><span class="line">        <span class="built_in">vector</span>&lt;Node*&gt; _children = root-&gt;children;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;_children.size();i++)&#123;</span><br><span class="line">            <span class="comment">//ans.push_back(_children[i]-&gt;val);</span></span><br><span class="line">            postorder(_children[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        ans.push_back(root-&gt;val);</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="965-Univalued-Binary-Tree"><a href="#965-Univalued-Binary-Tree" class="headerlink" title="965 Univalued Binary Tree"></a>965 Univalued Binary Tree</h1><h2 id="题目描述-4"><a href="#题目描述-4" class="headerlink" title="题目描述"></a>题目描述</h2><p>A binary tree is univalued if every node in the tree has the same value.</p>
+<p>Return true if and only if the given tree is univalued.</p>
+<h2 id="题目解析-4"><a href="#题目解析-4" class="headerlink" title="题目解析"></a>题目解析</h2><p>判断是否为单值树，以根节点的值为比较值，先比较左子树，再比较右子树<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">isUnivalTree</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">int</span> ans = root-&gt;val;</span><br><span class="line">        <span class="keyword">if</span>(_isUnivalTree(root-&gt;left,ans))</span><br><span class="line">            <span class="keyword">return</span> _isUnivalTree(root-&gt;right,ans);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">bool</span> _isUnivalTree(TreeNode* root, <span class="keyword">int</span> _val)&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;val == _val)&#123;</span><br><span class="line">            <span class="keyword">if</span>(_isUnivalTree(root-&gt;left,_val))</span><br><span class="line">                <span class="keyword">return</span> _isUnivalTree(root-&gt;right,_val);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="559-Maximum-Depth-of-N-ary-Tree"><a href="#559-Maximum-Depth-of-N-ary-Tree" class="headerlink" title="559 Maximum Depth of N-ary Tree"></a>559 Maximum Depth of N-ary Tree</h1><h2 id="题目描述-5"><a href="#题目描述-5" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given a n-ary tree, find its maximum depth.</p>
+<p>The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.</p>
+<h2 id="题目解析-5"><a href="#题目解析-5" class="headerlink" title="题目解析"></a>题目解析</h2><p>求多叉树的深度，递归每次遍历孩子节点时取最大深度<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// Definition for a Node.</span></span><br><span class="line"><span class="comment">class Node &#123;</span></span><br><span class="line"><span class="comment">public:</span></span><br><span class="line"><span class="comment">    int val;</span></span><br><span class="line"><span class="comment">    vector&lt;Node*&gt; children;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node() &#123;&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Node(int _val, vector&lt;Node*&gt; _children) &#123;</span></span><br><span class="line"><span class="comment">        val = _val;</span></span><br><span class="line"><span class="comment">        children = _children;</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">maxDepth</span><span class="params">(Node* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">vector</span>&lt;Node*&gt; _children = root-&gt;children;</span><br><span class="line">        <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; depth;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;_children.size();i++)&#123;</span><br><span class="line">            depth.push_back(maxDepth(_children[i]));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> ans = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;depth.size();i++)</span><br><span class="line">            <span class="keyword">if</span>(ans &lt; depth[i])</span><br><span class="line">                ans = depth[i];</span><br><span class="line">        <span class="keyword">return</span> (ans+<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="897-Increasing-Order-Search-Tree"><a href="#897-Increasing-Order-Search-Tree" class="headerlink" title="897 Increasing Order Search Tree"></a>897 Increasing Order Search Tree</h1><h2 id="题目描述-6"><a href="#题目描述-6" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given a binary search tree, rearrange the tree in in-order so that the leftmost node in the tree is now the root of the tree, and every node has no left child and only 1 right child.</p>
+<h2 id="题目解析-6"><a href="#题目解析-6" class="headerlink" title="题目解析"></a>题目解析</h2><p>给定二叉搜索树，以最左边节点为根，重新排列子树，最后的树只有右子树，没有左子树<br>思路：重新建立一个BST，newRoot赋值为0，递归遍历左子树，将newRoot的左子树赋值为root-&gt;val，因为遍历是递归遍历，所以赋值顺序是从原来BST的左孩子节点到根节点，左子树递归完成后root也被赋值了，然后再遍历右子树。最后返回的是newRoot的右子树。这里用到一个临时节点，因为每次都只赋值给新BST的右孩子。<br>注意：每次赋值给新BST只需要原来BST的节点值即可，不能将节点赋值给新的BST<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    TreeNode* newRoot = <span class="keyword">new</span> TreeNode(<span class="number">0</span>);</span><br><span class="line">    TreeNode* temp = newRoot;</span><br><span class="line">    <span class="function">TreeNode* <span class="title">increasingBST</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;left)</span><br><span class="line">            increasingBST(root-&gt;left);</span><br><span class="line">        temp-&gt;right = <span class="keyword">new</span> TreeNode(root-&gt;val);</span><br><span class="line">        temp = temp-&gt;right;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;right)</span><br><span class="line">            increasingBST(root-&gt;right);</span><br><span class="line">        <span class="keyword">return</span> newRoot-&gt;right;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="872-Leaf-Similar-Trees"><a href="#872-Leaf-Similar-Trees" class="headerlink" title="872 Leaf-Similar Trees"></a>872 Leaf-Similar Trees</h1><h2 id="题目描述-7"><a href="#题目描述-7" class="headerlink" title="题目描述"></a>题目描述</h2><p>Consider all the leaves of a binary tree.  From left to right order, the values of those leaves form a leaf value sequence.<br><img src="/2019/08/31/leetcode之树的遍历/1.png" alt="1"><br>For example, in the given tree above, the leaf value sequence is (6, 7, 4, 9, 8).</p>
+<p>Two binary trees are considered leaf-similar if their leaf value sequence is the same.</p>
+<p>Return true if and only if the two given trees with head nodes root1 and root2 are leaf-similar.</p>
+<h2 id="题目解析-7"><a href="#题目解析-7" class="headerlink" title="题目解析"></a>题目解析</h2><p>求二叉树的叶值序列，若两个二叉树的叶值序列是相似的，则它们是leaf-similar。<br>思路是求每一个二叉树的叶值序列，然后比较两个序列，注意的是递归的传参，最好不要在参与递归的函数里定义在递归过程中会变化的变量，可以让他们作为参数传进去。另外就是注意二叉树为空的判断。vector的变量可以直接用运算符比较。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">leafSimilar</span><span class="params">(TreeNode* root1, TreeNode* root2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root1 &amp;&amp; !root2)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">if</span>((!root1 &amp;&amp; root2)||(root1 &amp;&amp; !root2))</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; s1,s2;</span><br><span class="line">        leafSequence(s1,root1);</span><br><span class="line">        leafSequence(s2,root2);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(s1 == s2)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">leafSequence</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; &amp;ans, TreeNode* root)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(root-&gt;left==<span class="literal">NULL</span> &amp;&amp; root-&gt;right==<span class="literal">NULL</span>)&#123;</span><br><span class="line">            ans.push_back(root-&gt;val);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">if</span>(root-&gt;left)</span><br><span class="line">                leafSequence(ans,root-&gt;left);</span><br><span class="line">            <span class="keyword">if</span>(root-&gt;right)</span><br><span class="line">                leafSequence(ans,root-&gt;right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="104-Maximum-Depth-of-Binary-Tree"><a href="#104-Maximum-Depth-of-Binary-Tree" class="headerlink" title="104 Maximum Depth of Binary Tree"></a>104 Maximum Depth of Binary Tree</h1><h2 id="题目描述-8"><a href="#题目描述-8" class="headerlink" title="题目描述"></a>题目描述</h2><p>Given a binary tree, find its maximum depth.</p>
+<p>The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.</p>
+<p>Note: A leaf is a node with no children.</p>
+<h2 id="题目解析-8"><a href="#题目解析-8" class="headerlink" title="题目解析"></a>题目解析</h2><p>求二叉树的最大深度<br>之前做过求多叉树的深度(559 Maximum Depth of N-ary Tree)，分别递归求左子树和右子树的深度，返回它们最大值+1.<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(NULL), right(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">maxDepth</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!root)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> leftDepth=<span class="number">0</span>,rightDepth=<span class="number">0</span>;</span><br><span class="line">        leftDepth = maxDepth(root-&gt;left);</span><br><span class="line">        rightDepth = maxDepth(root-&gt;right);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span>(max(leftDepth,rightDepth)+<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>因为这些题目是之前做的，现在想系统的整理一下，没有记录参考链接，以后的题目一定记录，感谢给予帮助的各位大佬们~~</p>
+<h1 id="待增加"><a href="#待增加" class="headerlink" title="待增加"></a>待增加</h1>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/31/leetcode之动态规划/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/31/leetcode之动态规划/" itemprop="url">leetcode之动态规划</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-31T14:46:23+08:00">
+                2019-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>记录自己在学习算法过程中遇到的动态规划的题目，easy部分。<br></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/08/31/leetcode之动态规划/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/30/virtual-machine-pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/30/virtual-machine-pwn/" itemprop="url">virtual machine pwn</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-30T15:52:15+08:00">
+                2019-08-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/08/27/20180ctf-final-baby/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -970,502 +1484,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/07/01/LCTF2018-easy-heap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/01/LCTF2018-easy-heap/" itemprop="url">LCTF2018 easy_heap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-01T20:35:14+08:00">
-                2019-07-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>一道tache的题目，开始学tcache的时候没有调通，今天正好室友也在调这个题目，就又参考CTF-WIKI上的exp调了一下。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/07/01/LCTF2018-easy-heap/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/06/28/CISCN2017-babydriver/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/28/CISCN2017-babydriver/" itemprop="url">CISCN2017 babydriver</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-28T21:33:12+08:00">
-                2019-06-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>应该是第一道linux kernel pwn的题目，记录一下。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/28/CISCN2017-babydriver/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/28/Linux-kernel-pwn基础/" itemprop="url">Linux kernel pwn基础</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-28T10:40:47+08:00">
-                2019-06-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/28/Linux-kernel-pwn基础/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/06/24/SCTF2019-pwn/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/24/SCTF2019-pwn/" itemprop="url">SCTF2019 pwn</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-24T15:35:50+08:00">
-                2019-06-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>周末和大佬们打了SCTF，太菜了，感觉自己做的题目还是太少，见的类型也少，天枢这次一共做了3道pwn题，第一天都卡在one_heap了，free四次真的太少了，第二天早上two_heap和easy_heap出的很快，easy_heap和姚老板在TSCTF2019上出的babyheap一样，我还没把脚本改完大佬已经拿到了1血…<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/24/SCTF2019-pwn/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1516,7 +1534,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
