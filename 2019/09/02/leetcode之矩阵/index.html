@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="这篇记录在学习算法过程中遇到的关于数组、矩阵的一些题目。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-09-02T13:41:55.261Z">
+<meta property="og:updated_time" content="2019-09-03T01:28:33.650Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="leetcode之矩阵">
 <meta name="twitter:description" content="这篇记录在学习算法过程中遇到的关于数组、矩阵的一些题目。">
@@ -318,7 +318,8 @@
 <p>对行数和列数相同的矩阵来说，其实求转置矩阵就是以对角线为中心，来交换对应的元素，而且在遍历过程中，每次行数增加，在对应列数的循环上可以少遍历一个元素，因为在上一行已经交换过了，就是col起的作用。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> col=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span>(j=col;j&lt;m;j++)</span><br><span class="line">            &#123;</span><br><span class="line">                temp=A[i][j];</span><br><span class="line">                A[i][j]=A[j][i];</span><br><span class="line">                A[j][i]=temp;</span><br><span class="line">            &#125;</span><br><span class="line">            col++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> A;</span><br></pre></td></tr></table></figure></p>
 <h1 id="806-Number-of-Lines-To-Write-String"><a href="#806-Number-of-Lines-To-Write-String" class="headerlink" title="806 Number of Lines To Write String"></a>806 Number of Lines To Write String</h1><h2 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h2><p>We are to write the letters of a given string S, from left to right into lines. Each line has maximum width 100 units, and if writing a letter would cause the width of the line to exceed 100 units, it is written on the next line. We are given an array widths, an array where widths[0] is the width of ‘a’, widths[1] is the width of ‘b’, …, and widths[25] is the width of ‘z’.</p>
 <p>Now answer two questions: how many lines have at least one character from S, and what is the width used by the last such line? Return your answer as an integer list of length 2.</p>
-<h2 id="题目解析-1"><a href="#题目解析-1" class="headerlink" title="题目解析"></a>题目解析</h2><h1 id="待增加"><a href="#待增加" class="headerlink" title="待增加"></a>待增加</h1>
+<h2 id="题目解析-1"><a href="#题目解析-1" class="headerlink" title="题目解析"></a>题目解析</h2><p>数组widths给出了26个小写字母每个字母所占的宽度，一行的宽度为100，给定字符串S，按照widths对应宽度进行排列，如果一行中的空闲宽度不足以放下字符S[i]，S[i]就放在下一行，最后返回的是总的行数和最后一行已用的宽度。<br>思路：遍历字符串，每次进行判断，总宽度是否大于100，若大于100，就换下一行，行数加一；否则只累加字符宽度。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; numberOfLines(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; widths, <span class="built_in">string</span> S)&#123;</span><br><span class="line">        <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; ans = &#123;<span class="number">1</span>,<span class="number">0</span>&#125;;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;S.size();i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(ans[<span class="number">1</span>] + widths[S[i]-<span class="string">'a'</span>] &gt; <span class="number">100</span>)&#123;</span><br><span class="line">                ans[<span class="number">0</span>] += <span class="number">1</span>;</span><br><span class="line">                ans[<span class="number">1</span>] = widths[S[i]-<span class="string">'a'</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                ans[<span class="number">1</span>] += widths[S[i]-<span class="string">'a'</span>];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="待增加"><a href="#待增加" class="headerlink" title="待增加"></a>待增加</h1>
       
     </div>
     
@@ -357,6 +358,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/03/leetcode之其他/" rel="prev" title="leetcode之其他">
+                leetcode之其他 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -433,7 +438,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-count">41</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -446,7 +451,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
