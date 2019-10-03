@@ -88,7 +88,8 @@
 <meta property="og:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
-<meta property="og:updated_time" content="2019-07-17T07:00:57.064Z">
+<meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/4.png">
+<meta property="og:updated_time" content="2019-09-19T09:11:01.413Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux kernel pwn基础">
 <meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
@@ -314,11 +315,13 @@
       
         <p>主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。</p>
 <a id="more"></a>
-<h1 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h1><p>模块相关</p>
+<h1 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h1><p>模块相关</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">insmod:加载指定模块</span><br><span class="line">rmmod：卸载指定模块</span><br><span class="line">lsmod:查看已经加载的模块</span><br></pre></td></tr></table></figure>
-<p>启动qemu</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">32位启动：</span><br><span class="line">qemu-system-i386 -kernel linux-2.6.32.1/arch/i386/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br><span class="line">64位启动：</span><br><span class="line">qemu-system-x86_64 -kernel linux-2.6.32.1/arch/x86/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br></pre></td></tr></table></figure>
+<p>启动qemu<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">32位启动：</span><br><span class="line">qemu-system-i386 -kernel linux-2.6.32.1/arch/i386/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br><span class="line">64位启动：</span><br><span class="line">qemu-system-x86_64 -kernel linux-2.6.32.1/arch/x86/boot/bzImage -initrd busybox-1.28.2/rootfs.img -append &quot;root=/dev/ram rdinit=/sbin/init&quot;</span><br></pre></td></tr></table></figure></p>
 <p>ctf kernel pwn文件组成<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rootfs.cpio:文件系统镜像</span><br><span class="line">boot.sh：kernel启动的脚本，一般是qemu启动，可以根据参数查看题目的保护情况</span><br><span class="line">bzImage：压缩后的内核文件</span><br><span class="line">vmlinux：静态编译，未压缩的内核文件，可以在里面找ROP</span><br><span class="line">init文件：在rootfs.cpio文件解压可以看到，记录了系统初始化时的操作，一般在文件里insmod一个内核模块.ko文件，通常是有漏洞的文件</span><br><span class="line">.ko文件：需要拖到IDA里面分析找漏洞的文件，可以根据init文件的路径去rootfs.cpio里面找</span><br></pre></td></tr></table></figure></p>
+<p>查看系统的slab信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/slabinfo</span><br></pre></td></tr></table></figure></p>
+<p>获取程序加载基址或直接lsmod，找到对应的module<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/module/core/sections/.text</span><br></pre></td></tr></table></figure></p>
+<p>打包文件系统<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">find . | cpio -o --format=newc &gt; ../rootfs.cpio</span><br></pre></td></tr></table></figure></p>
 <h1 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h1><p>提权</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">commit_creds(prepare_kernel_cred(0))</span><br></pre></td></tr></table></figure>
 <p>查看函数地址，在/proc/kallsyms中查看</p>
@@ -334,6 +337,12 @@
 <p>在ubuntu14.04上安装pwntools:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install -y python-dev python-pip libffi-dev libssl-dev</span><br><span class="line">sudo pip install -U setuptools</span><br><span class="line">sudo pip install cryptography==2.4.2</span><br><span class="line">sudo pip install pwntools</span><br></pre></td></tr></table></figure></p>
 <p>寻找rop的另外一个工具：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/sashs/Ropper</span><br></pre></td></tr></table></figure></p>
 <p>因为通常要找的rop较多，而且寻找的速度较慢，因此可以使用该工具找到所有的rop，重定向到文件，然后再去找自己需要的。使用方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ropper --file ./vmlinux --nocolor &gt; ropgadget</span><br></pre></td></tr></table></figure></p>
+<h1 id="gdb调试"><a href="#gdb调试" class="headerlink" title="gdb调试"></a>gdb调试</h1><p>首先修改init文件，添加以下命令，以便可以获取core.ko的代码段的基址。这样内核启动时就是root权限，当然这是为了调试方便，真正执行exp可以去掉这条命令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsid /bin/cttyhack setuidgid 0 /bin/sh</span><br></pre></td></tr></table></figure></p>
+<p>然后重新打包文件系统，运行start.sh起内核，在qemu中查找core.ko的.text段的地址：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/ # cat /sys/module/core/sections/.text</span><br><span class="line">0xffffffffc0205000</span><br></pre></td></tr></table></figure></p>
+<p>在另外一个terminal中启动gdb：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb ./vmlinux -q</span><br></pre></td></tr></table></figure></p>
+<p>然后添加core.ko的符号表，加载了符号表之后就可以直接对函数名下断点了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ add-symbol-file ./core.ko 0xffffffffc0205000</span><br><span class="line">add symbol table from file &quot;./core.ko&quot; at</span><br><span class="line">  .text_addr = 0xffffffffc0205000</span><br><span class="line">Reading symbols from ./core.ko...(no debugging symbols found)...done.</span><br></pre></td></tr></table></figure></p>
+<p>然后运行以下命令连接qemu进行调试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">target remote localhost:1234</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2019/06/28/Linux-kernel-pwn基础/4.png" alt="4"></p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/kernel/basic_knowledge-zh/</a><br><a href="https://www.cnblogs.com/pcat/p/5451780.html" target="_blank" rel="noopener">https://www.cnblogs.com/pcat/p/5451780.html</a><br><a href="https://blog.csdn.net/tiantao2012/article/details/78864757" target="_blank" rel="noopener">https://blog.csdn.net/tiantao2012/article/details/78864757</a><br><a href="https://pengcc.iteye.com/blog/914092" target="_blank" rel="noopener">https://pengcc.iteye.com/blog/914092</a></p>
 
       
@@ -456,7 +465,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -502,7 +511,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#指令"><span class="nav-number">1.</span> <span class="nav-text">指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">2.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工具"><span class="nav-number">3.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#命令"><span class="nav-number">1.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">2.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工具"><span class="nav-number">3.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gdb调试"><span class="nav-number">4.</span> <span class="nav-text">gdb调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
 
           </div>
