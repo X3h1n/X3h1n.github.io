@@ -309,12 +309,14 @@
 
       
         
-          
-            <h1 id="CSAW-2015-stringipc"><a href="#CSAW-2015-stringipc" class="headerlink" title="CSAW 2015 stringipc"></a>CSAW 2015 stringipc</h1><h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>关于结构体kref，具体定义及涉及到的函数如下，具体可以看<a href="https://blog.csdn.net/wince_lover/article/details/70821020" target="_blank" rel="noopener">这篇博客</a>。<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">kref</span> &#123;</span></span><br><span class="line">    <span class="keyword">atomic_t</span> refcount; <span class="comment">//原子引用计数</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">kref_get</span><span class="params">(struct kref *kref)</span> <span class="comment">//y引用计数值加1</span></span></span><br><span class="line">int kref_put(struct kref *kref, void (*release)(struct kref *kref)) //引用计数值减1，计数值为0时调用回调函数release</span><br></pre></td></tr></table></figure></p>
-<p>Linux的IDR机制实现了id与数据结构地址的绑定，一般是结构体的地址，一般当地址数量较少时，可以通过一个全局的数组来存储这些地址，然后使用数组下标来访问，当地址数量很大时，固定长度的数组无法存储，IDR将数组和链表相结合，内部采用红黑树实现，且具有很高的搜索效率，更多的关于IDR机制的可以看<a href="https://www.cnblogs.com/zero-jh/p/5184836.html" target="_blank" rel="noopener">这篇博客</a>。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">idr</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">idr_layer</span> *<span class="title">top</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">idr_layer</span> *<span class="title">id_free</span>;</span></span><br><span class="line">    <span class="keyword">int</span>          layers; <span class="comment">/* only valid without concurrent changes */</span></span><br><span class="line">    <span class="keyword">int</span>          id_free_cnt;</span><br><span class="line">    <span class="keyword">spinlock_t</span>      lock;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://bbs.pediy.com/thread-225488.htm" target="_blank" rel="noopener">https://bbs.pediy.com/thread-225488.htm</a><br><a href="https://www.anquanke.com/post/id/185408" target="_blank" rel="noopener">https://www.anquanke.com/post/id/185408</a><br><a href="https://www.cnblogs.com/0xJDchen/p/6143102.html" target="_blank" rel="noopener">https://www.cnblogs.com/0xJDchen/p/6143102.html</a><br><a href="https://xz.aliyun.com/t/5944#toc-13" target="_blank" rel="noopener">https://xz.aliyun.com/t/5944#toc-13</a><br><a href="http://p4nda.top/2018/11/07/stringipc/" target="_blank" rel="noopener">http://p4nda.top/2018/11/07/stringipc/</a></p>
-
-          
+          <p>调了好几天的题目，断断续续快一周了，整理一下与ret2dir相关的题目。一共有三道。<br></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/10/10/ret2dir利用学习/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
