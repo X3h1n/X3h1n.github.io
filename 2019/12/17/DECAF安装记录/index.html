@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Analysis Tool," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PAND">
+<meta name="keywords" content="Analysis Tool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DECAF安装及使用记录">
+<meta property="og:url" content="http://x3h1n.github.io/2019/12/17/DECAF安装记录/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PAND">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-12-17T12:49:53.283Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DECAF安装及使用记录">
+<meta name="twitter:description" content="准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PAND">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/12/17/DECAF安装记录/"/>
+
+
+
+
+
+  <title>DECAF安装及使用记录 | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/12/17/DECAF安装记录/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">DECAF安装及使用记录</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-17T20:28:03+08:00">
+                2019-12-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PANDA。记录一下安装过程，看到网上的教程大都是根据官方文档来的，但是只依据官方文档并不能安装好。<br><a id="more"></a></p>
+<h1 id="decaf安装"><a href="#decaf安装" class="headerlink" title="decaf安装"></a>decaf安装</h1><p>系统版本如下，在16.04上出的错误比较多，于是就换了更低版本的14.04。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Linux ubuntu 4.2.0-27-generic #32~14.04.1-Ubuntu SMP Fri Jan 22 15:32:26 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux</span><br></pre></td></tr></table></figure></p>
+<h2 id="安装所需的库"><a href="#安装所需的库" class="headerlink" title="安装所需的库"></a>安装所需的库</h2><p>安装qemu:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install qemu</span><br><span class="line">sudo apt-get build-dep qemu</span><br></pre></td></tr></table></figure></p>
+<p>第二条命令报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf$ sudo apt-get build-dep qemu</span><br><span class="line">Reading package lists... Done</span><br><span class="line">E: You must put some &apos;source&apos; URIs in your sources.list</span><br></pre></td></tr></table></figure></p>
+<p>ubuntu的软件源我使用的是清华源，看到一条<a href="https://blog.csdn.net/qldxsun/article/details/54973124" target="_blank" rel="noopener">解决方案</a>是将其换为ubuntu的官方源，还好我有备份。<br>更换源之后卸载qemu重新安装qemu：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove --purge qemu</span><br><span class="line">sudo apt-get install qemu</span><br></pre></td></tr></table></figure></p>
+<p>在System Settings – Software&amp;Updates中勾选source code，然后再执行第二条命令，即可成功安装和build-dep。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get build-dep qemu</span><br></pre></td></tr></table></figure></p>
+<p>安装BFD library:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install binutils-dev</span><br></pre></td></tr></table></figure></p>
+<p>安装其他库，为了避免后面报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install zlib1g-dev</span><br><span class="line">sudo apt-get install libglib2.0-dev</span><br><span class="line">sudo apt-get install libtsk-dev</span><br><span class="line">sudo apt-get install libboost-dev</span><br></pre></td></tr></table></figure></p>
+<p>下载DECAF源码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/decaf-project/DECAF/archive/v1.91.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>这里将源码根文件夹名称重命名为DECAF。</p>
+<h2 id="编译DECAF"><a href="#编译DECAF" class="headerlink" title="编译DECAF"></a>编译DECAF</h2><p>说明一下，后面提到的root directory of decaf都指的是decaf的路径，不是DECAF的根目录，我的系统上是/home/chen/DECAF/decaf，因为DECAF的目录组成如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF$ ls</span><br><span class="line">decaf  docker  docs  image  LICENSE  README.md</span><br></pre></td></tr></table></figure></p>
+<p>decaf默认编译是如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VMI is enabled and TCG tainting and TCG IR logging is disabled</span><br></pre></td></tr></table></figure></p>
+<p>开始我是使用一条命令配置各个功能然后编译的，但是后面在编译插件时出现了错误，为了避免错误，我又选择遵从官方文档，先执行默认配置和编译：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf</span><br><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>出现错误如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf$ make</span><br><span class="line">Building Sleuthkit, please wait...</span><br><span class="line">  GEN   Sleuthkit</span><br><span class="line">make: *** [/home/chen/DECAF/decaf/shared/sleuthkit/lib/libtsk.so] Error 2</span><br></pre></td></tr></table></figure></p>
+<p>因为sleuthkit没有编译，先编译sleuthkit：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd shared/sleuthkit</span><br><span class="line">./configure</span><br></pre></td></tr></table></figure></p>
+<p>又出现了错误，官方文档说只有Sleuthkit编译没有错误之后，decaf才能正确编译。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sed: can&apos;t read config/ltmain.sh: No such file or directory</span><br><span class="line">mv: cannot stat &apos;libtoolT&apos;: No such file or directory</span><br><span class="line">cp: cannot stat &apos;libtoolT&apos;: No such file or directory</span><br><span class="line">chmod: cannot access &apos;libtool&apos;: No such file or directory</span><br><span class="line">config.status: executing tsk/tsk_incs.h commands</span><br></pre></td></tr></table></figure></p>
+<p>解决方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install autoconf libtool</span><br><span class="line">make distclean</span><br><span class="line">autoreconf -fiv</span><br></pre></td></tr></table></figure></p>
+<p>然后重新配置和编译Sleuthkit：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>返回decaf源码目录，重新配置和编译：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf</span><br><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>开启TCG tainting和TCG IR logging功能，重新编译：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./configure --enable-tcg-taint --enable-tcg-ir-log</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>在编译插件时，开启了TCG IR logging之后插件编译报错，出现错误，提示找不到tcg-target.h，没有找到解决方案，因此就选择关闭了TCG IR logging功能。只开启TCG tainting。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf/plugins/callbacktests$ ./configure --decaf-path=/home/chen/DECAF/decaf</span><br><span class="line">plugin path is /home/chen/DECAF/decaf/plugins/callbacktests</span><br><span class="line">path to DECAF is /home/chen/DECAF/decaf</span><br><span class="line">chen@ubuntu:~/DECAF/decaf/plugins/callbacktests$ make</span><br><span class="line">gcc -Wall -O2 -g -fPIC -MMD  -I. -I/home/chen/DECAF/decaf -I/home/chen/DECAF/decaf/plugins -I/home/chen/DECAF/decaf/fpu -I/home/chen/DECAF/decaf/shared -I/home/chen/DECAF/decaf/target-i386 -I/home/chen/DECAF/decaf/i386-softmmu -I/home/chen/DECAF/decaf/slirp  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -DNEED_CPU_H -I-pthread -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -c -o callbacktests.o callbacktests.c</span><br><span class="line">In file included from /home/chen/DECAF/decaf/target-i386/cpu.h:1044:0,</span><br><span class="line">                 from /home/chen/DECAF/decaf/qemu-common.h:110,</span><br><span class="line">                 from /home/chen/DECAF/decaf/shared/DECAF_types.h:29,</span><br><span class="line">                 from callbacktests.c:21:</span><br><span class="line">/home/chen/DECAF/decaf/exec-all.h:25:60: fatal error: tcg-target.h: No such file or directory</span><br><span class="line">compilation terminated.</span><br><span class="line">Makefile:31: recipe for target &apos;callbacktests.o&apos; failed</span><br><span class="line">make: *** [callbacktests.o] Error 1</span><br></pre></td></tr></table></figure></p>
+<p>至此，decaf成功编译，但是没有开启TCG IR logging功能。</p>
+<h2 id="编译插件"><a href="#编译插件" class="headerlink" title="编译插件"></a>编译插件</h2><p>插件的编译都是进入插件目录下，配置好decaf的源码目录，然后进行编译。成功编译好callbacktests、keylogger 、hookapitests、min_apitracer、tracecap，system_cfi和unpacker编译报错。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf/plugins/callbacktests</span><br><span class="line">./configure --decaf-path=/home/chen/DECAF/decaf</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>错误如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">unpacker.c: In function ‘unregister_callbacks’:</span><br><span class="line">unpacker.c:293:29: error: ‘DECAF_MEM_WRITE_CB’ undeclared (first use in this function)</span><br><span class="line">   DECAF_unregister_callback(DECAF_MEM_WRITE_CB,mem_write_cb_handle);</span><br><span class="line">                             ^</span><br><span class="line">unpacker.c:293:29: note: each undeclared identifier is reported only once for each function it appears in</span><br><span class="line">unpacker.c: In function ‘unpacker_loadmainmodule_notify’:</span><br><span class="line">unpacker.c:330:5: warning: implicit declaration of function ‘VMI_find_cr3_by_pid_c’ [-Wimplicit-function-declaration]</span><br><span class="line">     unpack_cr3 = VMI_find_cr3_by_pid_c(pid);</span><br><span class="line">     ^</span><br><span class="line">unpacker.c:336:50: error: ‘DECAF_MEM_WRITE_CB’ undeclared (first use in this function)</span><br><span class="line">      mem_write_cb_handle=DECAF_register_callback(DECAF_MEM_WRITE_CB,unpacker_mem_write,NULL);</span><br><span class="line">                                                  ^</span><br><span class="line">make: *** [unpacker.o] Error 1</span><br></pre></td></tr></table></figure></p>
+<h1 id="DECAF使用"><a href="#DECAF使用" class="headerlink" title="DECAF使用"></a>DECAF使用</h1><p>首先制作镜像，decaf只支持32位的客户机操作系统，我选择的是Windows 7 32位系统，首先使用vmware制作类型为vmdk类型的镜像，初步理解是使用vmware安装一个虚拟机，然后把那个vmdk文件拷贝出来，好在我分析的软件在32位系统上可以运行。win7.vmdk是我使用vmware生成的镜像文件，将其转化为 QCOW2 image Format。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img convert win7.vmdk -O qcow win7.img</span><br></pre></td></tr></table></figure></p>
+<p>启动虚拟机，可以正常启动，不过好慢啊：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf/i386-softmmu</span><br><span class="line">./qemu-system-i386 -monitor stdio -m 1024 ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/win7.img</span><br></pre></td></tr></table></figure></p>
+<p>使用官方文档里指定的参数启动时，在qemu里客户机的鼠标会乱窜，找了半天，下午找到了解决方法，启动的参数改成下面这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./qemu-system-i386 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/win7.img</span><br></pre></td></tr></table></figure></p>
+<p>想直接使用qemu制作镜像，下面两个方法可以直接pass，应该是decaf自己的问题，导致qemu无法安装操作系统，于是我换了一台ubuntu，想着把镜像制作好，到时候直接启动就好了，我简直太机智了。具体方法如下，鼠标的参数要加上，因为安装的过程要选择一些选项。过程比较慢，但可以成功安装。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//换一个ubuntu</span><br><span class="line">sudo apt-get install qemu</span><br><span class="line">qemu-img create -f qcow2 win7.qcow2 60G</span><br><span class="line">qemu-system-i386 -m 2048 win7.qcow2 -cdrom /home/chen/image/Windows_7.iso -show-cursor -usbdevice tablet</span><br></pre></td></tr></table></figure></p>
+<p>在启动镜像之前，需要进行一个操作，应该版本不兼容的问题，然后再启动镜像，镜像名称我改成了win7_full.qcow2，然后成功启动。比较了一下，我感觉直接使用qemu生成的镜像启动速度好像快了这么一点点。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">qemu-img amend -f qcow2 -o compat=0.10 win7_full.qcow2</span><br><span class="line">./qemu-system-i386 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/win7_full.qcow2</span><br></pre></td></tr></table></figure></p>
+<p>接下来会再研究一下PANDA，然后对比一下，慎重选择。本来选择DECAF是因为它的污点分析的速度最快，但是目前decaf++那个功能编译没有成功，就很难受，而且decaf不支持64位的架构。</p>
+<h1 id="没成功的尝试"><a href="#没成功的尝试" class="headerlink" title="没成功的尝试"></a>没成功的尝试</h1><p>可以不用看，但是也踩了很多坑…尝试使用qemu来制作镜像，但是一直报一个512的错误。</p>
+<h2 id="尝试一"><a href="#尝试一" class="headerlink" title="尝试一"></a>尝试一</h2><p>因为运行实在是太慢了，怀疑是不是因为镜像的问题，尝试直接用qemu制作镜像，仍然是32位的win7，首先制作虚拟磁盘文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img create -f qcow2 win7.qcow2 60G</span><br></pre></td></tr></table></figure></p>
+<p>然后安装操作系统：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-i386 -m 2048 win7.qcow2 -cdrom /home/chen/image/Windows_7.iso</span><br></pre></td></tr></table></figure></p>
+<p>出现错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/image$ qemu-system-i386 -m 2048 win7.qcow2 -cdrom /home/chen/image/Windows_7.iso</span><br><span class="line">Could not initialize SDL(No available video device) - exiting</span><br></pre></td></tr></table></figure></p>
+<p>解决方案如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove libsdl1.2debian</span><br><span class="line">sudo apt-get install libsdl1.2-dev</span><br><span class="line">sudo apt-get install xorg-dev</span><br></pre></td></tr></table></figure></p>
+<p>然后在<a href="http://www.libsdl.org/download-1.2.php" target="_blank" rel="noopener">这里</a>下载SDL-1.2，编译安装：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd SDL-1.2.15</span><br><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>make又报错了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">./src/video/x11/SDL_x11sym.h:168:17: error: conflicting types for ‘_XData32’</span><br><span class="line"> SDL_X11_SYM(int,_XData32,(Display *dpy,register long *data,unsigned len),(dpy,data,len),return)</span><br><span class="line">                 ^</span><br><span class="line">./src/video/x11/SDL_x11dyn.c:95:5: note: in definition of macro ‘SDL_X11_SYM’</span><br><span class="line">  rc fn params &#123; ret p##fn args ; &#125;</span><br><span class="line">     ^</span><br><span class="line">In file included from ./src/video/x11/SDL_x11dyn.h:34:0,</span><br><span class="line">                 from ./src/video/x11/SDL_x11dyn.c:26:</span><br><span class="line">/usr/include/X11/Xlibint.h:568:12: note: previous declaration of ‘_XData32’ was here</span><br><span class="line"> extern int _XData32(</span><br><span class="line">            ^</span><br><span class="line">make: *** [build/SDL_x11dyn.lo] Error 1</span><br></pre></td></tr></table></figure></p>
+<p>找到了<a href="https://blog.csdn.net/huierlc/article/details/50165237" target="_blank" rel="noopener">解决方案</a>，修改这一行，将第168行修改成这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vim ./src/video/x11/SDL_x11sym.h</span><br><span class="line">//line 168</span><br><span class="line">SDL_X11_SYM(int,_XData32,(Display *dpy,_Xconst long *data,unsigned len),(dpy,data,len),return)</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure></p>
+<p>依然是这个错误，佛了佛了….<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf/i386-softmmu$ ./qemu-system-i386 -m 2048 ../../image/win7.qcow2 -cdrom /home/chen/image/Windows_7.iso</span><br><span class="line">qemu-system-i386: /home/chen/DECAF/decaf/shared/tainting/taintcheck_opt.c:105: taintcheck_disk_check: Assertion `offset + size &lt;= 512&apos; failed.</span><br></pre></td></tr></table></figure></p>
+<h2 id="尝试二"><a href="#尝试二" class="headerlink" title="尝试二"></a>尝试二</h2><p>因为运行实在是太慢了，怀疑是不是因为镜像的问题，尝试直接用qemu制作镜像，仍然是32位的win7，步骤如下，这部分参考了<a href="https://www.freebuf.com/sectool/76665.html" target="_blank" rel="noopener">这篇文章</a>，感谢大佬。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">qemu-img create -f qcow2 win7.qcow2 60G</span><br><span class="line">cd DECAF/decaf/i386-softmmu</span><br><span class="line">./qemu-system-i386 -drive file=/home/chen/image/win7.qcow2,if=ide,cache=writeback -m 256M -cdrom /home/chen/image/Windows_7.iso -vnc :5901</span><br></pre></td></tr></table></figure></p>
+<p>第二条命令报错，出现不兼容问题：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf/i386-softmmu$ ./qemu-system-i386 -drive file=/home/chen/image/win7.qcow2,if=ide,cache=writeback -m 256M -cdrom /home/chen/image/Windows_7.iso -vnc :5901</span><br><span class="line">qemu-system-i386: -drive file=/home/chen/image/win7.qcow2,if=ide,cache=writeback: &apos;ide0-hd0&apos; uses a qcow2 feature which is not supported by this qemu version: QCOW version 3</span><br><span class="line">qemu-system-i386: -drive file=/home/chen/image/win7.qcow2,if=ide,cache=writeback: could not open disk image /home/chen/image/win7.qcow2: Operation not supported</span><br></pre></td></tr></table></figure></p>
+<p>解决方案：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img amend -f qcow2 -o compat=0.10 win7.qcow2</span><br></pre></td></tr></table></figure></p>
+<p>有一个512的check没有通过，难道是磁盘有一个512M的check嘛……<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/DECAF/decaf/i386-softmmu$ ./qemu-system-i386 -drive file=/home/chen/image/win7.qcow2,if=ide,cache=writeback -m 256M -cdrom /home/chen/image/Windows_7.iso -vnc :5901</span><br><span class="line">qemu-system-i386: /home/chen/DECAF/decaf/shared/tainting/taintcheck_opt.c:105: taintcheck_disk_check: Assertion `offset + size &lt;= 512&apos; failed.</span><br><span class="line">Aborted (core dumped)</span><br></pre></td></tr></table></figure></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>[官方安装文档] <a href="https://github.com/decaf-project/DECAF/wiki/Startup" target="_blank" rel="noopener">https://github.com/decaf-project/DECAF/wiki/Startup</a><br>[遇到错误可以在这里找] <a href="https://groups.google.com/forum/#!forum/decaf-platform-discuss" target="_blank" rel="noopener">https://groups.google.com/forum/#!forum/decaf-platform-discuss</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Analysis-Tool/" rel="tag"># Analysis Tool</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/23/leetcode之动态规划-medium部分/" rel="next" title="leetcode之动态规划 medium部分">
+                <i class="fa fa-chevron-left"></i> leetcode之动态规划 medium部分
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/17/PANDA安装及使用记录/" rel="prev" title="PANDA安装及使用记录">
+                PANDA安装及使用记录 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#decaf安装"><span class="nav-number">1.</span> <span class="nav-text">decaf安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装所需的库"><span class="nav-number">1.1.</span> <span class="nav-text">安装所需的库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译DECAF"><span class="nav-number">1.2.</span> <span class="nav-text">编译DECAF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译插件"><span class="nav-number">1.3.</span> <span class="nav-text">编译插件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DECAF使用"><span class="nav-number">2.</span> <span class="nav-text">DECAF使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#没成功的尝试"><span class="nav-number">3.</span> <span class="nav-text">没成功的尝试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#尝试一"><span class="nav-number">3.1.</span> <span class="nav-text">尝试一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#尝试二"><span class="nav-number">3.2.</span> <span class="nav-text">尝试二</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

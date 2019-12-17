@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Analysis Tool," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="接上一篇，PANDA同样是一个开源的基于qemu的动态二进制分析平台，提供指令记录和回放、执行LLVM等强大功能，方便编写各种插件。记录一下安装PANDA的过程。">
+<meta name="keywords" content="Analysis Tool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PANDA安装及使用记录">
+<meta property="og:url" content="http://x3h1n.github.io/2019/12/17/PANDA安装及使用记录/index.html">
+<meta property="og:site_name" content="X3h1n">
+<meta property="og:description" content="接上一篇，PANDA同样是一个开源的基于qemu的动态二进制分析平台，提供指令记录和回放、执行LLVM等强大功能，方便编写各种插件。记录一下安装PANDA的过程。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-12-17T12:56:01.691Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PANDA安装及使用记录">
+<meta name="twitter:description" content="接上一篇，PANDA同样是一个开源的基于qemu的动态二进制分析平台，提供指令记录和回放、执行LLVM等强大功能，方便编写各种插件。记录一下安装PANDA的过程。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","3display":"post","display":"always","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://x3h1n.github.io/2019/12/17/PANDA安装及使用记录/"/>
+
+
+
+
+
+  <title>PANDA安装及使用记录 | X3h1n</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">X3h1n</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/12/17/PANDA安装及使用记录/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">PANDA安装及使用记录</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-17T20:29:14+08:00">
+                2019-12-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>接上一篇，PANDA同样是一个开源的基于qemu的动态二进制分析平台，提供指令记录和回放、执行LLVM等强大功能，方便编写各种插件。记录一下安装PANDA的过程。<br><a id="more"></a></p>
+<h1 id="PANDA安装"><a href="#PANDA安装" class="headerlink" title="PANDA安装"></a>PANDA安装</h1><p>我是手动按照<a href="https://github.com/panda-re/panda/blob/master/panda/docs/build_ubuntu.md" target="_blank" rel="noopener">官方文档</a>安装的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo add-apt-repository ppa:phulin/panda</span><br><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get build-dep qemu</span><br><span class="line">sudo apt-get install git python-pip libc++-dev libelf-dev libdwarf-dev</span><br><span class="line">sudo apt-get install libelf-dev libdwarf-dev libwiretap-dev wireshark-dev python-pycparser</span><br><span class="line">sudo apt-get install llvm-3.3 clang-3.3</span><br><span class="line">sudo apt-get install protobuf-compiler protobuf-c-compiler python-protobuf</span><br><span class="line">sudo apt-get install libprotoc-dev libprotobuf-dev libprotobuf-c-dev</span><br></pre></td></tr></table></figure></p>
+<p>然后下载和安装panda：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/panda-re/panda</span><br><span class="line">mkdir -p build-panda</span><br><span class="line">cd build-panda</span><br><span class="line">../panda/build.sh</span><br></pre></td></tr></table></figure></p>
+<p>或者直接使用<a href="https://github.com/panda-re/panda/blob/master/panda/scripts/install_ubuntu.sh" target="_blank" rel="noopener">install_ubuntu.sh</a>这个脚本安装。我的情况是使用git clone服务器的网速太慢了，一直下载不下来，十几kb也是很醉啊，手动下载会出现错误2，但能找到解决方法。</p>
+<h2 id="遇到的错误"><a href="#遇到的错误" class="headerlink" title="遇到的错误"></a>遇到的错误</h2><h3 id="错误1："><a href="#错误1：" class="headerlink" title="错误1："></a>错误1：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~$ sudo apt-get install libprotobuf-c-dev</span><br><span class="line">Reading package lists... Done</span><br><span class="line">Building dependency tree</span><br><span class="line">Reading state information... Done</span><br><span class="line">E: Unable to locate package libprotobuf-c-dev</span><br></pre></td></tr></table></figure>
+<p>可以手动下载libprotobuf-c-dev，64位安装包下载地址在<a href="http://archive.ubuntu.com/ubuntu/pool/universe/p/protobuf-c/libprotobuf-c1_1.2.1-1_amd64.deb" target="_blank" rel="noopener">这里</a>。安装命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo dpkg -i libprotobuf-c1_1.2.1-1_amd64.deb</span><br></pre></td></tr></table></figure></p>
+<h3 id="错误2："><a href="#错误2：" class="headerlink" title="错误2："></a>错误2：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">chen@ubuntu:~/build-panda$ ../panda/build.sh</span><br><span class="line">build.sh: Older gcc/g++ found. Enforcing gnu11 mode.</span><br><span class="line">build.sh: Using protobuf 2.5.0.</span><br><span class="line">build.sh: Found LLVM on /usr/lib/llvm-3.3 -- LLVM SUPPORT IS ENABLED</span><br><span class="line">build.sh: Configuring PANDA...</span><br><span class="line">ERROR: DTC (libfdt) version &gt;= 1.4.2 not present. Your options:</span><br><span class="line">         (1) Preferred: Install the DTC (libfdt) devel package</span><br><span class="line">         (2) Fetch the DTC submodule, using:</span><br><span class="line">             git submodule update --init dtc</span><br></pre></td></tr></table></figure>
+<p>这是因为我的libfdt版本是1.4.0，手动安装高版本的libfdt，由于高版本的libfdt还要高版本的libfdt1，下载l<a href="http://archive.ubuntu.com/ubuntu/pool/main/d/device-tree-compiler/libfdt-dev_1.4.5-3_amd64.deb" target="_blank" rel="noopener">ibfdt-1.4.5</a>和<a href="http://archive.ubuntu.com/ubuntu/pool/main/d/device-tree-compiler/libfdt1_1.4.5-3_amd64.deb" target="_blank" rel="noopener">libfdt1-1.4.5</a>，然后安装：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo dpkg -i libfdt-dev_1.4.5-3_amd64.deb</span><br><span class="line">sudo dpkg -i libfdt1_1.4.5-3_amd64.deb</span><br></pre></td></tr></table></figure></p>
+<h1 id="PANDA使用"><a href="#PANDA使用" class="headerlink" title="PANDA使用"></a>PANDA使用</h1><p>首先制作虚拟磁盘文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img create -f qcow2 win7_64.qcow2 60G</span><br></pre></td></tr></table></figure></p>
+<p>然后安装操作系统，这里我用64位的win7，还是在另外一台机器上安装，然后再返回PANDA所在的系统中启动镜像，但是我64位的win7可能是因为操作系统镜像的问题，无法安装，还是记录一下命令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 -m 2048 win7_64.qcow2 -cdrom Win7_64.iso -show-cursor -usbdevice tablet</span><br><span class="line">qemu-img amend -f qcow2 -o compat=0.10 win7_64.qcow2</span><br></pre></td></tr></table></figure></p>
+<p>因此我选择直接在PANDA里启动和安装操作系统，可以启动成功，安装时间比较久，应该不会出什么问题。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd build-panda/x86_64_softmmu/</span><br><span class="line">./panda-system-x86_64 -drive file=../../image/x64/win7_64.qcow2,if=ide,cache=writeback -m 2048M -cdrom ../../image/x64/win7_64.iso -show-cursor -usbdevice tablet</span><br></pre></td></tr></table></figure></p>
+<p>安装好之后，再次启动就可以去掉iso镜像文件，启动命令如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd build-panda/x86_64_softmmu/</span><br><span class="line">./panda-system-x86_64 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/x64/win7_64.qcow2</span><br></pre></td></tr></table></figure></p>
+<p>32位的镜像可以用之前decaf做好的镜像，启动命令类似decaf：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd build-panda/i386_softmmu/</span><br><span class="line">./panda-system-i386 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/x86/win7_full.qcow2</span><br></pre></td></tr></table></figure></p>
+<p>同样，可以先使用vmware制作镜像，然后转换为qemu支持的格式。命令如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">qemu-img convert win7_64.vmdk -O qcow win7_64.img</span><br><span class="line">./panda-system-x86_64 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/x64/win7_64.img</span><br></pre></td></tr></table></figure></p>
+<p>使用感受就是PANDA比DECAF在qemu里的响应时间要短。但两个平台的功能侧重点不同，有时间再去读一下这两个工具的论文。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>[手动安装官方文档]<a href="https://github.com/panda-re/panda/blob/master/panda/docs/build_ubuntu.md" target="_blank" rel="noopener">https://github.com/panda-re/panda/blob/master/panda/docs/build_ubuntu.md</a><br><a href="https://www.freebuf.com/sectool/76665.html" target="_blank" rel="noopener">https://www.freebuf.com/sectool/76665.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Analysis-Tool/" rel="tag"># Analysis Tool</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/17/DECAF安装记录/" rel="next" title="DECAF安装及使用记录">
+                <i class="fa fa-chevron-left"></i> DECAF安装及使用记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PANDA安装"><span class="nav-number">1.</span> <span class="nav-text">PANDA安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的错误"><span class="nav-number">1.1.</span> <span class="nav-text">遇到的错误</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#错误1："><span class="nav-number">1.1.1.</span> <span class="nav-text">错误1：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#错误2："><span class="nav-number">1.1.2.</span> <span class="nav-text">错误2：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PANDA使用"><span class="nav-number">2.</span> <span class="nav-text">PANDA使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
