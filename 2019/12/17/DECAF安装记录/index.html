@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="X3h1n">
 <meta property="og:description" content="准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PAND">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-12-17T12:49:53.283Z">
+<meta property="og:updated_time" content="2020-01-02T02:30:37.752Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="DECAF安装及使用记录">
 <meta name="twitter:description" content="准备研究一下qemu，毕设可能会用到，先把工具选好，环境搭好。DECAF是一个二进制动态分析平台，基于qemu，有动态污点分析、二进制插桩等动态分析功能。DECAF++是DECAF升级版本，污点分析速度比DECAF快了两倍多。折腾了三四天，基本把DECAF装好了，有两个插件没有编译好，应该也用不到那两个，搭环境太难了，而且qemu太慢了，本来pin就已经够慢了，简直忍不了啊。有时间再试一下PAND">
@@ -334,7 +334,7 @@
 <p>至此，decaf成功编译，但是没有开启TCG IR logging功能。</p>
 <h2 id="编译插件"><a href="#编译插件" class="headerlink" title="编译插件"></a>编译插件</h2><p>插件的编译都是进入插件目录下，配置好decaf的源码目录，然后进行编译。成功编译好callbacktests、keylogger 、hookapitests、min_apitracer、tracecap，system_cfi和unpacker编译报错。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf/plugins/callbacktests</span><br><span class="line">./configure --decaf-path=/home/chen/DECAF/decaf</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
 <p>错误如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">unpacker.c: In function ‘unregister_callbacks’:</span><br><span class="line">unpacker.c:293:29: error: ‘DECAF_MEM_WRITE_CB’ undeclared (first use in this function)</span><br><span class="line">   DECAF_unregister_callback(DECAF_MEM_WRITE_CB,mem_write_cb_handle);</span><br><span class="line">                             ^</span><br><span class="line">unpacker.c:293:29: note: each undeclared identifier is reported only once for each function it appears in</span><br><span class="line">unpacker.c: In function ‘unpacker_loadmainmodule_notify’:</span><br><span class="line">unpacker.c:330:5: warning: implicit declaration of function ‘VMI_find_cr3_by_pid_c’ [-Wimplicit-function-declaration]</span><br><span class="line">     unpack_cr3 = VMI_find_cr3_by_pid_c(pid);</span><br><span class="line">     ^</span><br><span class="line">unpacker.c:336:50: error: ‘DECAF_MEM_WRITE_CB’ undeclared (first use in this function)</span><br><span class="line">      mem_write_cb_handle=DECAF_register_callback(DECAF_MEM_WRITE_CB,unpacker_mem_write,NULL);</span><br><span class="line">                                                  ^</span><br><span class="line">make: *** [unpacker.o] Error 1</span><br></pre></td></tr></table></figure></p>
-<h1 id="DECAF使用"><a href="#DECAF使用" class="headerlink" title="DECAF使用"></a>DECAF使用</h1><p>首先制作镜像，decaf只支持32位的客户机操作系统，我选择的是Windows 7 32位系统，首先使用vmware制作类型为vmdk类型的镜像，初步理解是使用vmware安装一个虚拟机，然后把那个vmdk文件拷贝出来，好在我分析的软件在32位系统上可以运行。win7.vmdk是我使用vmware生成的镜像文件，将其转化为 QCOW2 image Format。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img convert win7.vmdk -O qcow win7.img</span><br></pre></td></tr></table></figure></p>
+<h1 id="DECAF使用"><a href="#DECAF使用" class="headerlink" title="DECAF使用"></a>DECAF使用</h1><p>首先制作镜像，decaf只支持32位的客户机操作系统，我选择的是Windows 7 32位系统，首先使用vmware制作类型为vmdk类型的镜像，初步理解是使用vmware安装一个虚拟机，然后把那个vmdk文件拷贝出来，好在我分析的软件在32位系统上可以运行。win7.vmdk是我使用vmware生成的镜像文件，将其转化为 QCOW2 image Format。有一个注意事项是把vmware tools给卸载了，然后转化的格式一定是qcow2，不能是qcow或其他格式。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img convert win7.vmdk -O qcow2 win7.img</span><br></pre></td></tr></table></figure></p>
 <p>启动虚拟机，可以正常启动，不过好慢啊：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd DECAF/decaf/i386-softmmu</span><br><span class="line">./qemu-system-i386 -monitor stdio -m 1024 ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/win7.img</span><br></pre></td></tr></table></figure></p>
 <p>使用官方文档里指定的参数启动时，在qemu里客户机的鼠标会乱窜，找了半天，下午找到了解决方法，启动的参数改成下面这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./qemu-system-i386 -monitor stdio -m 1024 -show-cursor -usbdevice tablet ­netdev user,id=mynet -device rtl8139,netdev=mynet ../../image/win7.img</span><br></pre></td></tr></table></figure></p>
 <p>想直接使用qemu制作镜像，下面两个方法可以直接pass，应该是decaf自己的问题，导致qemu无法安装操作系统，于是我换了一台ubuntu，想着把镜像制作好，到时候直接启动就好了，我简直太机智了。具体方法如下，鼠标的参数要加上，因为安装的过程要选择一些选项。过程比较慢，但可以成功安装。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//换一个ubuntu</span><br><span class="line">sudo apt-get install qemu</span><br><span class="line">qemu-img create -f qcow2 win7.qcow2 60G</span><br><span class="line">qemu-system-i386 -m 2048 win7.qcow2 -cdrom /home/chen/image/Windows_7.iso -show-cursor -usbdevice tablet</span><br></pre></td></tr></table></figure></p>
@@ -473,7 +473,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-count">47</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -539,7 +539,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
