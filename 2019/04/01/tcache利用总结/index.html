@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/8.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/9.PNG">
 <meta property="og:image" content="http://x3h1n.github.io/2019/04/01/tcache利用总结/10.PNG">
-<meta property="og:updated_time" content="2019-04-26T08:48:26.561Z">
+<meta property="og:updated_time" content="2020-03-20T04:46:07.576Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="tcache利用总结">
 <meta name="twitter:description" content="tcache利用的2道典型题目">
@@ -322,7 +322,7 @@
 
       
         <p>tcache利用的2道典型题目<br><a id="more"></a><br>想着把之前学习和做过的题都整理一遍，首先是tcache的利用总结，会有2道题目</p>
-<h1 id="tcache简述"><a href="#tcache简述" class="headerlink" title="tcache简述"></a>tcache简述</h1><p>为了提升堆管理的性能，glibc 2.26之后引进了tcache，tcache使用两个新的结构体tcache_entry和tcache_perthread_struct进行管理，在free时，大小小于smallbin size的堆块会先放入tcache中，每条tcache链上的堆块大小相同，每条tcache链最多放入7个堆块。在malloc时会优先在tcache中寻找合适大小的堆块。所以如果想利用之前fastbin或unsorted bin attack时要注意先把对应大小的tcache链填满或释放掉。</p>
+<h1 id="tcache简述"><a href="#tcache简述" class="headerlink" title="tcache简述"></a>tcache简述</h1><p>为了提升堆管理的性能，glibc 2.26之后引进了tcache，tcache使用两个新的结构体tcache_entry和tcache_perthread_struct进行管理，在free时，大小小于largebin size的堆块会先放入tcache中，每条tcache链上的堆块大小相同，每条tcache链最多放入7个堆块。在malloc时会优先在tcache中寻找合适大小的堆块。所以如果想利用之前fastbin或unsorted bin attack时要注意先把对应大小的tcache链填满或释放掉。</p>
 <p>#tcache利用<br>tcache利用常和off by one、chunk overlapp结合，进行tcache的double free。</p>
 <h2 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h2><p>tcache需要libc版本在2.26以上，2.27居多，之前尝试在ubuntu 18.04上装pwndbg，一直没有装成功，同学推荐了pwn的docker，目前有两种解决方案：推荐一个gdb-peda的插件，<a href="https://github.com/scwuaptx/Pwngdb" target="_blank" rel="noopener">Pwngdb</a>,在ubuntu18.04上挺好用的，在ubuntu18.10上使用Ctrl+C下断点的时候反应很慢，还没找到解决方案。另外推荐两个pwn环境的docker，<a href="https://github.com/skysider/pwndocker" target="_blank" rel="noopener">pwndocker</a>和<a href="https://github.com/Escapingbug/ancypwn" target="_blank" rel="noopener">ancypwn</a>。</p>
 <p>#HITCON 2018 baby_tcache</p>
