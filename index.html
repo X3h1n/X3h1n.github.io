@@ -239,6 +239,417 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2020/07/22/AFL学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/07/22/AFL学习/" itemprop="url">AFL学习</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-07-22T20:01:02+08:00">
+                2020-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="AFL安装"><a href="#AFL安装" class="headerlink" title="AFL安装"></a>AFL安装</h1><p>我的系统是ubuntu 16.04 64bits<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install clang</span><br><span class="line">sudo apt-get install llvm</span><br></pre></td></tr></table></figure></p>
+<p>在<a href="https://lcamtuf.coredump.cx/afl/" target="_blank" rel="noopener">AFL官网</a>下载最新版本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</span><br></pre></td></tr></table></figure></p>
+<p>解压后进入AFL目录执行以下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure></p>
+<h1 id="AFL简介和模式"><a href="#AFL简介和模式" class="headerlink" title="AFL简介和模式"></a>AFL简介和模式</h1><p>AFL 的设计就是在 dumb fuzzer 之上加了一层基于边界（edge）覆盖率的反馈机制，在此过程中 AFL 会维护一个语料库队列 queue，包含了初始测试用例及变异后有新状态产生的测试用例，对应的变异操作分为确定性策略和随机性策略两类，而状态的分析，即边界覆盖率的统计工作，需依赖插桩来完成。<br>AFL分为三种模式，编译层级的llvm mode，汇编级别的普通模式，运行时级别的qemu mode。<br>普通模式：对gcc做一层的简单封装，指定-B prefix选项替换gcc的as汇编器。也就是后面介绍的afl-as汇编。<br>llvm模式：通过编写pass来实现tuple信息的记录，对每个基本块都会插入探针。<br>qemu模式：通过patch源码来实现afl-as.h中的操作。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-qemu-cpu-inl.h</span></span><br><span class="line"><span class="comment">/* This snippet kicks in when the instruction pointer is positioned at</span></span><br><span class="line"><span class="comment">   _start and does the usual forkserver stuff, not very different from</span></span><br><span class="line"><span class="comment">   regular instrumentation injected via afl-as.h. */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> AFL_QEMU_CPU_SNIPPET2 do &#123; \</span></span><br><span class="line">    <span class="keyword">if</span>(itb-&gt;pc == afl_entry_point) &#123; \</span><br><span class="line">      afl_setup(); \</span><br><span class="line">      afl_forkserver(cpu); \</span><br><span class="line">    &#125; \</span><br><span class="line">    afl_maybe_log(itb-&gt;pc); \</span><br><span class="line">  &#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br></pre></td></tr></table></figure></p>
+<h1 id="AFL初始化"><a href="#AFL初始化" class="headerlink" title="AFL初始化"></a>AFL初始化</h1><p>ALF维护了两个bitemap，trace_bits和virgin_bits，另外还有两个bitmap，virgin_tmout和virgin_crash。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">EXP_ST u8* trace_bits;                <span class="comment">/* SHM with instrumentation bitmap  */</span>  <span class="comment">//记录当前tuple的信息，位于共享内存上</span></span><br><span class="line">EXP_ST u8  virgin_bits[MAP_SIZE],     <span class="comment">/* Regions yet untouched by fuzzing */</span>  <span class="comment">//记录总的tuple的信息</span></span><br><span class="line">           virgin_tmout[MAP_SIZE],    <span class="comment">/* Bits we haven't seen in tmouts   */</span>  <span class="comment">//所有目标程序出现timeout的tuple信息</span></span><br><span class="line">           virgin_crash[MAP_SIZE];    <span class="comment">/* Bits we haven't seen in crashes  */</span>  <span class="comment">//所有目标程序出现crash的tuple信息</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="afl-as汇编器"><a href="#afl-as汇编器" class="headerlink" title="afl-as汇编器"></a>afl-as汇编器</h1><p>源码-&gt;编译-&gt;汇编，gcc中的-B选项用于设置编译器的搜索路径，将其设置为afl-as的路径。<br>afl-as分析源代码，在分支处插入桩代码，然后调用真正的as汇编器进行汇编，相当于是做了一个hook as的操作。<br>R(MAP_SIZE)生成一个0~MAP_SIZE的随机数，运行时保存在ECX中，同于标识一个代码块。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.c</span></span><br><span class="line">    <span class="keyword">if</span> (line[<span class="number">0</span>] == <span class="string">'\t'</span>) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (line[<span class="number">1</span>] == <span class="string">'j'</span> &amp;&amp; line[<span class="number">2</span>] != <span class="string">'m'</span> &amp;&amp; R(<span class="number">100</span>) &lt; inst_ratio) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">fprintf</span>(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</span><br><span class="line">                R(MAP_SIZE));  <span class="comment">//根据架构的不同插入不同的插桩代码</span></span><br><span class="line"></span><br><span class="line">        ins_lines++;</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>比如trampoline_fmt_32：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> u8* trampoline_fmt_32 =</span><br><span class="line"></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"/* --- AFL TRAMPOLINE (32-BIT) --- */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">".align 4\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"leal -16(%%esp), %%esp\n"</span></span><br><span class="line">  <span class="string">"movl %%edi,  0(%%esp)\n"</span></span><br><span class="line">  <span class="string">"movl %%edx,  4(%%esp)\n"</span></span><br><span class="line">  <span class="string">"movl %%ecx,  8(%%esp)\n"</span></span><br><span class="line">  <span class="string">"movl %%eax, 12(%%esp)\n"</span>   <span class="comment">//保存edi、edx、ecx、eax寄存器</span></span><br><span class="line">  <span class="string">"movl $0x%08x, %%ecx\n"</span>     <span class="comment">//ecx = "0x%08x"</span></span><br><span class="line">  <span class="string">"call __afl_maybe_log\n"</span>    <span class="comment">//调用__afl_maybe_log</span></span><br><span class="line">  <span class="string">"movl 12(%%esp), %%eax\n"</span></span><br><span class="line">  <span class="string">"movl  8(%%esp), %%ecx\n"</span></span><br><span class="line">  <span class="string">"movl  4(%%esp), %%edx\n"</span></span><br><span class="line">  <span class="string">"movl  0(%%esp), %%edi\n"</span>   <span class="comment">//恢复寄存器</span></span><br><span class="line">  <span class="string">"leal 16(%%esp), %%esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"/* --- END --- */\n"</span></span><br><span class="line">  <span class="string">"\n"</span>;</span><br></pre></td></tr></table></figure></p>
+<h1 id="afl-fork-server"><a href="#afl-fork-server" class="headerlink" title="afl fork server"></a>afl fork server</h1><p>由于fuzz过程需要不断的fork和执行target的操作，AFL实现了fork server机制，启动target进程后，target会运行一个fork server，fuzzer不负责fork子进程，而是与fork server通信，由fork server来完成fork子进程和执行target的操作。<br>为什么要有fork server的存在呢？因为正常情况下我们的想法是构造一个测试样例，然后执行execve()，输入给目标程序，但execve()函数执行之后除非出错，否则不会返回，且运行程序会替换当前进程，pid不变，那么我们就无法通过pid来标识不同的测试用例。所以fuzzer先fork一个子进程，执行execve()来运行fork server，fork server是fuzzer的子进程，然后fork server负责fork子进程和执行target的操作。这样fuzzer是目标程序的父父进程，然后fuzzer和fork server通过建立两个管道st_pipe, ctl_pipe用于传递状态和命令。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="function">EXP_ST <span class="keyword">void</span> <span class="title">init_forkserver</span><span class="params">(<span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">itimerval</span> <span class="title">it</span>;</span></span><br><span class="line">  <span class="keyword">int</span> st_pipe[<span class="number">2</span>], ctl_pipe[<span class="number">2</span>];  <span class="comment">//使用两个管道进行命令和状态传递</span></span><br><span class="line">  <span class="keyword">int</span> status;</span><br><span class="line">  s32 rlen;</span><br><span class="line"></span><br><span class="line">  ACTF(<span class="string">"Spinning up the fork server..."</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (pipe(st_pipe) || pipe(ctl_pipe)) PFATAL(<span class="string">"pipe() failed"</span>);</span><br><span class="line"></span><br><span class="line">  forksrv_pid = fork(); <span class="comment">//父进程为fuzzer，子进程为fork server</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (forksrv_pid &lt; <span class="number">0</span>) PFATAL(<span class="string">"fork() failed"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!forksrv_pid) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rlimit</span> <span class="title">r</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Umpf. On OpenBSD, the default fd limit for root users is set to</span></span><br><span class="line"><span class="comment">       soft 128. Let's try to fix that... */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!getrlimit(RLIMIT_NOFILE, &amp;r) &amp;&amp; r.rlim_cur &lt; FORKSRV_FD + <span class="number">2</span>) &#123;</span><br><span class="line"></span><br><span class="line">      r.rlim_cur = FORKSRV_FD + <span class="number">2</span>;</span><br><span class="line">      setrlimit(RLIMIT_NOFILE, &amp;r); <span class="comment">/* Ignore errors */</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mem_limit) &#123;</span><br><span class="line"></span><br><span class="line">      r.rlim_max = r.rlim_cur = ((<span class="keyword">rlim_t</span>)mem_limit) &lt;&lt; <span class="number">20</span>;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    dup2(dev_null_fd, <span class="number">1</span>);</span><br><span class="line">    dup2(dev_null_fd, <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (out_file) &#123;</span><br><span class="line"></span><br><span class="line">      dup2(dev_null_fd, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">      dup2(out_fd, <span class="number">0</span>);</span><br><span class="line">      close(out_fd);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Set up control and status pipes, close the unneeded original fds. */</span></span><br><span class="line">    <span class="comment">//为管道分配id</span></span><br><span class="line">    <span class="keyword">if</span> (dup2(ctl_pipe[<span class="number">0</span>], FORKSRV_FD) &lt; <span class="number">0</span>) PFATAL(<span class="string">"dup2() failed"</span>);</span><br><span class="line">    <span class="keyword">if</span> (dup2(st_pipe[<span class="number">1</span>], FORKSRV_FD + <span class="number">1</span>) &lt; <span class="number">0</span>) PFATAL(<span class="string">"dup2() failed"</span>);</span><br><span class="line"></span><br><span class="line">    close(ctl_pipe[<span class="number">0</span>]);</span><br><span class="line">    close(ctl_pipe[<span class="number">1</span>]);</span><br><span class="line">    close(st_pipe[<span class="number">0</span>]);</span><br><span class="line">    close(st_pipe[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">    close(out_dir_fd);</span><br><span class="line">    close(dev_null_fd);</span><br><span class="line">    close(dev_urandom_fd);</span><br><span class="line">    close(fileno(plot_file));</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Close the unneeded endpoints. */</span></span><br><span class="line"></span><br><span class="line">  close(ctl_pipe[<span class="number">0</span>]);</span><br><span class="line">  close(st_pipe[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">  fsrv_ctl_fd = ctl_pipe[<span class="number">1</span>];</span><br><span class="line">  fsrv_st_fd  = st_pipe[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Wait for the fork server to come up, but don't wait too long. */</span></span><br><span class="line"></span><br><span class="line">  it.it_value.tv_sec = ((exec_tmout * FORK_WAIT_MULT) / <span class="number">1000</span>);</span><br><span class="line">  it.it_value.tv_usec = ((exec_tmout * FORK_WAIT_MULT) % <span class="number">1000</span>) * <span class="number">1000</span>;</span><br><span class="line"></span><br><span class="line">  setitimer(ITIMER_REAL, &amp;it, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  rlen = read(fsrv_st_fd, &amp;status, <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">  it.it_value.tv_sec = <span class="number">0</span>;</span><br><span class="line">  it.it_value.tv_usec = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  setitimer(ITIMER_REAL, &amp;it, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If we have a four-byte "hello" message from the server, we're all set.</span></span><br><span class="line"><span class="comment">     Otherwise, try to figure out what went wrong. */</span></span><br><span class="line">  <span class="comment">//读取状态管道的信息，检查是否正常</span></span><br><span class="line">  <span class="keyword">if</span> (rlen == <span class="number">4</span>) &#123;</span><br><span class="line">    OKF(<span class="string">"All right - fork server is up."</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  FATAL(<span class="string">"Fork server handshake failed"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="fuzzer与fork-server、target的通信"><a href="#fuzzer与fork-server、target的通信" class="headerlink" title="fuzzer与fork server、target的通信"></a>fuzzer与fork server、target的通信</h1><h2 id="fuzzer与fork-server"><a href="#fuzzer与fork-server" class="headerlink" title="fuzzer与fork server"></a>fuzzer与fork server</h2><p>首先向状态管道写入4字节，通知fuzzer已经准备好，fuzzer会读取状态管道的信息，检查长度是否等于4来确定fork server是否准备完毕。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"> <span class="string">"__afl_forkserver:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Enter the fork server mode to avoid the overhead of execve() calls. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl %eax\n"</span></span><br><span class="line">  <span class="string">"  pushl %ecx\n"</span></span><br><span class="line">  <span class="string">"  pushl %edx\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Phone home and tell the parent that we're OK. (Note that signals with\n"</span></span><br><span class="line">  <span class="string">"     no SA_RESTART will mess it up). If this fails, assume that the fd is\n"</span></span><br><span class="line">  <span class="string">"     closed because we were execve()d from an instrumented binary, or because\n"</span> </span><br><span class="line">  <span class="string">"     the parent doesn't want to use the fork server. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $4          /* length    */\n"</span></span><br><span class="line">  <span class="string">"  pushl $__afl_temp /* data      */\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY((FORKSRV_FD + <span class="number">1</span>)) <span class="string">"  /* file desc */\n"</span></span><br><span class="line">  <span class="string">"  call  write\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  cmpl  $4, %eax\n"</span>  <span class="comment">//成功写入</span></span><br><span class="line">  <span class="string">"  jne   __afl_fork_resume\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"__afl_fork_wait_loop:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">    <span class="string">"__afl_fork_wait_loop:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"> rlen = read(fsrv_st_fd, &amp;status, <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">  it.it_value.tv_sec = <span class="number">0</span>;</span><br><span class="line">  it.it_value.tv_usec = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  setitimer(ITIMER_REAL, &amp;it, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If we have a four-byte "hello" message from the server, we're all set.</span></span><br><span class="line"><span class="comment">     Otherwise, try to figure out what went wrong. */</span></span><br><span class="line">  <span class="comment">//读取状态管道的信息，检查是否正常</span></span><br><span class="line">  <span class="keyword">if</span> (rlen == <span class="number">4</span>) &#123;</span><br><span class="line">    OKF(<span class="string">"All right - fork server is up."</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>fork server向状态管道成功写入4字节后，然后执行__afl_fork_wait_loop，读取命令管道，等待fuzzer通知其开始fork.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line">  <span class="string">"__afl_fork_wait_loop:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Wait for parent by reading from the pipe. Abort if read fails. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $4          /* length    */\n"</span></span><br><span class="line">  <span class="string">"  pushl $__afl_temp /* data      */\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY(FORKSRV_FD) <span class="string">"        /* file desc */\n"</span></span><br><span class="line">  <span class="string">"  call  read\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<p>一旦fork接收到fuzzer的信息，fork server进行fork，子进程是target进程，父进程是fork server。成功fork后，会跳转到__afl_fork_resume。<br>  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="string">"  cmpl  $4, %eax\n"</span></span><br><span class="line"><span class="string">"  jne   __afl_die\n"</span></span><br><span class="line"><span class="string">"\n"</span></span><br><span class="line"><span class="string">"  /* Once woken up, create a clone of our process. This is an excellent use\n"</span></span><br><span class="line"><span class="string">"     case for syscall(__NR_clone, 0, CLONE_PARENT), but glibc boneheadedly\n"</span></span><br><span class="line"><span class="string">"     caches getpid() results and offers no way to update the value, breaking\n"</span></span><br><span class="line"><span class="string">"     abort(), raise(), and a bunch of other things :-( */\n"</span></span><br><span class="line"><span class="string">"\n"</span></span><br><span class="line"><span class="string">"  call fork\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"><span class="string">"  cmpl $0, %eax\n"</span></span><br><span class="line"><span class="string">"  jl   __afl_die\n"</span></span><br><span class="line"><span class="string">"  je   __afl_fork_resume\n"</span></span><br><span class="line"><span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<p>__afl_fork_resume会关闭不需要的状态和命令管道，然后继续执行。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="string">"__afl_fork_resume:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* In child process: close fds, resume execution. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY(FORKSRV_FD) <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  call  close\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY((FORKSRV_FD + <span class="number">1</span>)) <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  call  close\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  addl  $8, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  popl %edx\n"</span></span><br><span class="line">  <span class="string">"  popl %ecx\n"</span></span><br><span class="line">  <span class="string">"  popl %eax\n"</span></span><br><span class="line">  <span class="string">"  jmp  __afl_store\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<p>然后将fork的子进程的pid通过状态管道发送给fuzzer，调用waitpid等待子进程执行完毕，然后将target子进程的结束状态写入状态管道，告知fuzzer。之后再次进入__afl_fork_wait_loop。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="string">"  /* In parent process: write PID to pipe, then wait for child. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  movl  %eax, __afl_fork_pid\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $4              /* length    */\n"</span></span><br><span class="line">  <span class="string">"  pushl $__afl_fork_pid /* data      */\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY((FORKSRV_FD + <span class="number">1</span>)) <span class="string">"      /* file desc */\n"</span></span><br><span class="line">  <span class="string">"  call  write\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $0             /* no flags  */\n"</span></span><br><span class="line">  <span class="string">"  pushl $__afl_temp    /* status    */\n"</span></span><br><span class="line">  <span class="string">"  pushl __afl_fork_pid /* PID       */\n"</span></span><br><span class="line">  <span class="string">"  call  waitpid\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  cmpl  $0, %eax\n"</span></span><br><span class="line">  <span class="string">"  jle   __afl_die\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Relay wait status to pipe, then loop back. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  pushl $4          /* length    */\n"</span></span><br><span class="line">  <span class="string">"  pushl $__afl_temp /* data      */\n"</span></span><br><span class="line">  <span class="string">"  pushl $"</span> STRINGIFY((FORKSRV_FD + <span class="number">1</span>)) <span class="string">"  /* file desc */\n"</span></span><br><span class="line">  <span class="string">"  call  write\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  jmp __afl_fork_wait_loop\n"</span></span><br></pre></td></tr></table></figure></p>
+<p>fuzzer侧通过调用run_target方法来执行测试用例，在run_target中，fuzzer会读取管道内的内容来获取target的状态。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> u8 <span class="title">run_target</span><span class="params">(<span class="keyword">char</span>** argv, u32 timeout)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">itimerval</span> <span class="title">it</span>;</span></span><br><span class="line">  <span class="keyword">static</span> u32 prev_timed_out = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> status = <span class="number">0</span>;</span><br><span class="line">  u32 tb4;</span><br><span class="line"></span><br><span class="line">  child_timed_out = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* After this memset, trace_bits[] are effectively volatile, so we</span></span><br><span class="line"><span class="comment">     must prevent any earlier operations from venturing into that</span></span><br><span class="line"><span class="comment">     territory. */</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(trace_bits, <span class="number">0</span>, MAP_SIZE);</span><br><span class="line">  MEM_BARRIER();</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If we're running in "dumb" mode, we can't rely on the fork server</span></span><br><span class="line"><span class="comment">     logic compiled into the target program, so we will just keep calling</span></span><br><span class="line"><span class="comment">     execve(). There is a bit of code duplication between here and </span></span><br><span class="line"><span class="comment">     init_forkserver(), but c'est la vie. */</span></span><br><span class="line">   <span class="comment">//初始化fork server</span></span><br><span class="line">  <span class="keyword">if</span> (dumb_mode == <span class="number">1</span> || no_forkserver) &#123;   <span class="comment">//dumb模式下不生成fork server,fuzzer直接execve()执行目标程序</span></span><br><span class="line"></span><br><span class="line">    child_pid = fork();</span><br><span class="line"></span><br><span class="line">    ... ...</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Isolate the process and configure standard descriptors. If out_file is</span></span><br><span class="line"><span class="comment">         specified, stdin is /dev/null; otherwise, out_fd is cloned instead. */</span></span><br><span class="line"></span><br><span class="line">      setsid();</span><br><span class="line"></span><br><span class="line">      dup2(dev_null_fd, <span class="number">1</span>);</span><br><span class="line">      dup2(dev_null_fd, <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (out_file) &#123;</span><br><span class="line"></span><br><span class="line">        dup2(dev_null_fd, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">        dup2(out_fd, <span class="number">0</span>);</span><br><span class="line">        close(out_fd);</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */</span></span><br><span class="line"></span><br><span class="line">      close(dev_null_fd);</span><br><span class="line">      close(out_dir_fd);</span><br><span class="line">      close(dev_urandom_fd);</span><br><span class="line">      close(fileno(plot_file));</span><br><span class="line"></span><br><span class="line">      ... ...</span><br><span class="line"></span><br><span class="line">      execv(target_path, argv);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Use a distinctive bitmap value to tell the parent about execv()</span></span><br><span class="line"><span class="comment">         falling through. */</span></span><br><span class="line"></span><br><span class="line">      *(u32*)trace_bits = EXEC_FAIL_SIG;</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">    s32 res;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* In non-dumb mode, we have the fork server up and running, so simply</span></span><br><span class="line"><span class="comment">       tell it to have at it, and then read back PID. */</span></span><br><span class="line">    <span class="comment">//通过命令管道通知fork server fork target子进程</span></span><br><span class="line">    <span class="keyword">if</span> ((res = write(fsrv_ctl_fd, &amp;prev_timed_out, <span class="number">4</span>)) != <span class="number">4</span>) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (stop_soon) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">      RPFATAL(res, <span class="string">"Unable to request new process from fork server (OOM?)"</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//通过状态管道读取target子进程的pid</span></span><br><span class="line">    <span class="keyword">if</span> ((res = read(fsrv_st_fd, &amp;child_pid, <span class="number">4</span>)) != <span class="number">4</span>) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (stop_soon) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">      RPFATAL(res, <span class="string">"Unable to request new process from fork server (OOM?)"</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (child_pid &lt;= <span class="number">0</span>) FATAL(<span class="string">"Fork server is misbehaving (OOM?)"</span>);</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Configure timeout, as requested by user, then wait for child to terminate. */</span></span><br><span class="line"></span><br><span class="line">  it.it_value.tv_sec = (timeout / <span class="number">1000</span>);</span><br><span class="line">  it.it_value.tv_usec = (timeout % <span class="number">1000</span>) * <span class="number">1000</span>;</span><br><span class="line"></span><br><span class="line">  setitimer(ITIMER_REAL, &amp;it, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* The SIGALRM handler simply kills the child_pid and sets child_timed_out. */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (dumb_mode == <span class="number">1</span> || no_forkserver) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (waitpid(child_pid, &amp;status, <span class="number">0</span>) &lt;= <span class="number">0</span>) PFATAL(<span class="string">"waitpid() failed"</span>);</span><br><span class="line"></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">    s32 res;</span><br><span class="line">    <span class="comment">//通过状态管道获取target子进程退出的状态</span></span><br><span class="line">    <span class="keyword">if</span> ((res = read(fsrv_st_fd, &amp;status, <span class="number">4</span>)) != <span class="number">4</span>) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (stop_soon) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">      RPFATAL(res, <span class="string">"Unable to communicate with fork server (OOM?)"</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ... ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> FAULT_NONE;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="fuzzer与target"><a href="#fuzzer与target" class="headerlink" title="fuzzer与target"></a>fuzzer与target</h2><p>AFL使用共享内存来完成fuzzer和target之间的信息传递，创建共享内存并写入环境变量，之后fork的子进程可以通过环境变量获取这块共享内存的shm_id。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="function">EXP_ST <span class="keyword">void</span> <span class="title">setup_shm</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  u8* shm_str;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!in_bitmap) <span class="built_in">memset</span>(virgin_bits, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(virgin_tmout, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line">  <span class="built_in">memset</span>(virgin_crash, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line"></span><br><span class="line">  shm_id = shmget(IPC_PRIVATE, MAP_SIZE, IPC_CREAT | IPC_EXCL | <span class="number">0600</span>);  <span class="comment">//分配共享内存，大小为64K</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (shm_id &lt; <span class="number">0</span>) PFATAL(<span class="string">"shmget() failed"</span>);</span><br><span class="line"></span><br><span class="line">  atexit(remove_shm);</span><br><span class="line"></span><br><span class="line">  shm_str = alloc_printf(<span class="string">"%d"</span>, shm_id); </span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If somebody is asking us to fuzz instrumented binaries in dumb mode,</span></span><br><span class="line"><span class="comment">     we don't want them to detect instrumentation, since we won't be sending</span></span><br><span class="line"><span class="comment">     fork server commands. This should be replaced with better auto-detection</span></span><br><span class="line"><span class="comment">     later on, perhaps? */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!dumb_mode) setenv(SHM_ENV_VAR, shm_str, <span class="number">1</span>);  <span class="comment">//将这块共享内存的标识符写入环境变量</span></span><br><span class="line"></span><br><span class="line">  ck_free(shm_str);</span><br><span class="line"></span><br><span class="line">  trace_bits = shmat(shm_id, <span class="literal">NULL</span>, <span class="number">0</span>); <span class="comment">//保存共享内存的地址</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (!trace_bits) PFATAL(<span class="string">"shmat() failed"</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>target调用shmat将这块共享内存映射到自己的进程空间中，然后保存在__afl_area_ptr中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"> <span class="string">"  pushl $0          /* shmat flags    */\n"</span></span><br><span class="line">  <span class="string">"  pushl $0          /* requested addr */\n"</span></span><br><span class="line">  <span class="string">"  pushl %eax        /* SHM ID         */\n"</span></span><br><span class="line">  <span class="string">"  call  shmat\n"</span></span><br><span class="line">  <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  cmpl $-1, %eax\n"</span></span><br><span class="line">  <span class="string">"  je   __afl_setup_abort\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Store the address of the SHM region. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  movl %eax, __afl_area_ptr\n"</span></span><br><span class="line">  <span class="string">"  movl %eax, %edx\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  popl %ecx\n"</span></span><br><span class="line">  <span class="string">"  popl %eax\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<p>target会在<strong>afl_maybe_log检查这块共享内存是否已经映射完成，</strong>afl_area_ptr就是上面共享内存映射到target地址空间中的地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="string">"__afl_maybe_log:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  lahf\n"</span></span><br><span class="line">  <span class="string">"  seto %al\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Check if SHM region is already mapped. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  movl  __afl_area_ptr, %edx\n"</span>  <span class="comment">//获取共享内存的地址</span></span><br><span class="line">  <span class="string">"  testl %edx, %edx\n"</span></span><br><span class="line">  <span class="string">"  je    __afl_setup\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="tuple信息统计和语料库更迭"><a href="#tuple信息统计和语料库更迭" class="headerlink" title="tuple信息统计和语料库更迭"></a>tuple信息统计和语料库更迭</h1><h2 id="分支信息的记录"><a href="#分支信息的记录" class="headerlink" title="分支信息的记录"></a>分支信息的记录</h2><p>AFL使用二元tuple来记录跳转的源地址和目的地址，从而获得target的代码覆盖情况。当有新的tuple出现或已有的tuple出现新的命中组时则说明产生了新状态，相应的测试用例会加入到语料库中。<br>在<strong>afl_maybe_log()中，将共享内存的地址保存后，edi保存的是前一次跳转的位置</strong>afl_prev_loc，与ecx异或后保存在edi中，ecx是上文中提到的标识代码块的随机数。然后以edx为基址，edi为下标，将edx[edi]进行加一操作，edx就是上文中共享内存的基址。<br>ecx右移一位后，被赋值给了__afl_prev_loc。<br>因此，AFL为每一个代码块都生成一个0~MAP_SIZE的随机数，标识其位置，将分支处的源代码块和目的代码块进行异或，作为该分支的key，来保存该分支的执行次数。用于保存执行次数的实际上是一个哈希表，大小为MAP_SIZE=64K。可能会存在碰撞的问题。<br>cur_location右移一位后，再赋值给prev_location，是为了标识源和目的代码块相同或两者颠倒的情况，如果不右移，则不能区分A-&gt;B和B-&gt;A，以及A-&gt;A和B-&gt;B这种分支。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-as.h</span></span><br><span class="line"><span class="comment">//cur_location = &lt;COMPILE_TIME_RANDOM&gt;;</span></span><br><span class="line"><span class="comment">//shared_mem[cur_location ^ prev_location]++; </span></span><br><span class="line"><span class="comment">//prev_location = cur_location &gt;&gt; 1;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> COVERAGE_ONLY</span></span><br><span class="line">  <span class="string">"  movl __afl_prev_loc, %edi\n"</span>  <span class="comment">//edi = prev_location</span></span><br><span class="line">  <span class="string">"  xorl %ecx, %edi\n"</span>  <span class="comment">//ecx = cur_location  edi = prev_location ^ cur_location</span></span><br><span class="line">  <span class="string">"  shrl $1, %ecx\n"</span>   <span class="comment">// ecx = ecx &gt;&gt; 1</span></span><br><span class="line">  <span class="string">"  movl %ecx, __afl_prev_loc\n"</span>  <span class="comment">//prev_location = cur_location &gt;&gt; 1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="string">"  movl %ecx, %edi\n"</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^!COVERAGE_ONLY */</span></span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> SKIP_COUNTS</span></span><br><span class="line">  <span class="string">"  orb  $1, (%edx, %edi, 1)\n"</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="string">"  incb (%edx, %edi, 1)\n"</span>  <span class="comment">// shmt[prev_location ^ cur_location]++</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="分支信息统计"><a href="#分支信息统计" class="headerlink" title="分支信息统计"></a>分支信息统计</h3><p>为了统计边界覆盖率，AFL将每个tuple的命中数使用1字节来保存，初始值为0xFF，命中数分为8个组别，若无此类新状态产生，则其值为1，若出现其值则置为0。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1，2，3，4-7，8-15，16-31，32-127，128-255</span><br></pre></td></tr></table></figure></p>
+<p>执行完目标程序后，调用claassify_count对当前tuple的状态进行统计，trace_bits记录了这一信息：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __x86_64__</span></span><br><span class="line">  classify_counts((u64*)trace_bits);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  classify_counts((u32*)trace_bits);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^__x86_64__ */</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Destructively classify execution counts in a trace. This is used as a</span></span><br><span class="line"><span class="comment">   preprocessing step for any newly acquired traces. Called on every exec,</span></span><br><span class="line"><span class="comment">   must be fast. */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> u8 count_class_lookup8[<span class="number">256</span>] = &#123;</span><br><span class="line"></span><br><span class="line">  [<span class="number">0</span>]           = <span class="number">0</span>,</span><br><span class="line">  [<span class="number">1</span>]           = <span class="number">1</span>,</span><br><span class="line">  [<span class="number">2</span>]           = <span class="number">2</span>,</span><br><span class="line">  [<span class="number">3</span>]           = <span class="number">4</span>,</span><br><span class="line">  [<span class="number">4</span> ... <span class="number">7</span>]     = <span class="number">8</span>,</span><br><span class="line">  [<span class="number">8</span> ... <span class="number">15</span>]    = <span class="number">16</span>,</span><br><span class="line">  [<span class="number">16</span> ... <span class="number">31</span>]   = <span class="number">32</span>,</span><br><span class="line">  [<span class="number">32</span> ... <span class="number">127</span>]  = <span class="number">64</span>,</span><br><span class="line">  [<span class="number">128</span> ... <span class="number">255</span>] = <span class="number">128</span></span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>在统计完成后，has_new_bits函数通过比对trace_bits和virgin_bits来判断是否有新状态产生，位运算来提高比对效率。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> u8 <span class="title">has_new_bits</span><span class="params">(u8* virgin_map)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __x86_64__</span></span><br><span class="line"></span><br><span class="line">  u64* current = (u64*)trace_bits;</span><br><span class="line">  u64* virgin  = (u64*)virgin_map;</span><br><span class="line"></span><br><span class="line">  u32  i = (MAP_SIZE &gt;&gt; <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"></span><br><span class="line">  u32* current = (u32*)trace_bits;</span><br><span class="line">  u32* virgin  = (u32*)virgin_map;</span><br><span class="line"></span><br><span class="line">  u32  i = (MAP_SIZE &gt;&gt; <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^__x86_64__ */</span></span></span><br><span class="line"></span><br><span class="line">  u8   ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (i--) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Optimize for (*current &amp; *virgin) == 0 - i.e., no bits in current bitmap</span></span><br><span class="line"><span class="comment">       that have not been already cleared from the virgin map - since this will</span></span><br><span class="line"><span class="comment">       almost always be the case. */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (unlikely(*current) &amp;&amp; unlikely(*current &amp; *virgin)) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (likely(ret &lt; <span class="number">2</span>)) &#123;</span><br><span class="line"></span><br><span class="line">        u8* cur = (u8*)current;</span><br><span class="line">        u8* vir = (u8*)virgin;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Looks like we have not found any new bytes yet; see if any non-zero</span></span><br><span class="line"><span class="comment">           bytes in current[] are pristine in virgin[]. */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __x86_64__</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((cur[<span class="number">0</span>] &amp;&amp; vir[<span class="number">0</span>] == <span class="number">0xff</span>) || (cur[<span class="number">1</span>] &amp;&amp; vir[<span class="number">1</span>] == <span class="number">0xff</span>) ||</span><br><span class="line">            (cur[<span class="number">2</span>] &amp;&amp; vir[<span class="number">2</span>] == <span class="number">0xff</span>) || (cur[<span class="number">3</span>] &amp;&amp; vir[<span class="number">3</span>] == <span class="number">0xff</span>) ||</span><br><span class="line">            (cur[<span class="number">4</span>] &amp;&amp; vir[<span class="number">4</span>] == <span class="number">0xff</span>) || (cur[<span class="number">5</span>] &amp;&amp; vir[<span class="number">5</span>] == <span class="number">0xff</span>) ||</span><br><span class="line">            (cur[<span class="number">6</span>] &amp;&amp; vir[<span class="number">6</span>] == <span class="number">0xff</span>) || (cur[<span class="number">7</span>] &amp;&amp; vir[<span class="number">7</span>] == <span class="number">0xff</span>)) ret = <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">else</span> ret = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((cur[<span class="number">0</span>] &amp;&amp; vir[<span class="number">0</span>] == <span class="number">0xff</span>) || (cur[<span class="number">1</span>] &amp;&amp; vir[<span class="number">1</span>] == <span class="number">0xff</span>) ||</span><br><span class="line">            (cur[<span class="number">2</span>] &amp;&amp; vir[<span class="number">2</span>] == <span class="number">0xff</span>) || (cur[<span class="number">3</span>] &amp;&amp; vir[<span class="number">3</span>] == <span class="number">0xff</span>)) ret = <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">else</span> ret = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^__x86_64__ */</span></span></span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      *virgin &amp;= ~*current;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    current++;</span><br><span class="line">    virgin++;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (ret &amp;&amp; virgin_map == virgin_bits) bitmap_changed = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>AFL希望维护一组最小测试用例集，这个集合能够触发目前bitmap中的所有路径，且长度更为精简、执行速度更快。AFL使用top_rated数组来保存各个tuple状态当前相应的最优测试用例，如果某个测试用例触发了新状态，或有更有利的长度和执行速度，则它就是top_rated[i]。<br>执行完测试用例后，fuzzer都会调用update_bitmap_score函数判断当前测试用例是否优于top_rated中已有的测试用例。<br>trace_mini的大小是MAP_SIZE/8，它的每个bit对应了bitmap中的一个字节，如果这个测试用例访问了该状态，对应的bit就会置为1，用来标识该测试用例覆盖分支的能力。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">update_bitmap_score</span><span class="params">(struct queue_entry* q)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  u32 i;</span><br><span class="line">  u64 fav_factor = q-&gt;exec_us * q-&gt;len;  <span class="comment">//执行速度*测试用例长度</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* For every byte set in trace_bits[], see if there is a previous winner,</span></span><br><span class="line"><span class="comment">     and how it compares to us. */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; MAP_SIZE; i++)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (trace_bits[i]) &#123;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (top_rated[i]) &#123; <span class="comment">//如果当前状态有top_rated[i]</span></span><br><span class="line">  </span><br><span class="line">         <span class="comment">/* Faster-executing or smaller test cases are favored. */</span></span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (fav_factor &gt; top_rated[i]-&gt;exec_us * top_rated[i]-&gt;len) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">         <span class="comment">/* Looks like we're going to win. Decrease ref count for the</span></span><br><span class="line"><span class="comment">            previous winner, discard its trace_bits[] if necessary. */</span></span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (!--top_rated[i]-&gt;tc_ref) &#123;     <span class="comment">//tc_ref标识该测试用例入选top_rated的次数，原来的top_rated[i]的入选次数减一</span></span><br><span class="line">           ck_free(top_rated[i]-&gt;trace_mini);</span><br><span class="line">           top_rated[i]-&gt;trace_mini = <span class="number">0</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/* Insert ourselves as the new winner. */</span></span><br><span class="line"></span><br><span class="line">       top_rated[i] = q;  <span class="comment">//当前testcase入选top_rated</span></span><br><span class="line">       q-&gt;tc_ref++;  <span class="comment">//q的入选次数加一</span></span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (!q-&gt;trace_mini) &#123;  </span><br><span class="line">         q-&gt;trace_mini = ck_alloc(MAP_SIZE &gt;&gt; <span class="number">3</span>);  </span><br><span class="line">         minimize_bits(q-&gt;trace_mini, trace_bits);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       score_changed = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="文件变异"><a href="#文件变异" class="headerlink" title="文件变异"></a>文件变异</h1><p>文件变异有两种策略：确定性策略和随机性策略，确定性策略包含bitflip，整数加减，整数替换、字典插入和替换。这类策略比较耗时，是为了产生简洁有效的测试用例。</p>
+<h2 id="确定性策略"><a href="#确定性策略" class="headerlink" title="确定性策略"></a>确定性策略</h2><h3 id="bitflip"><a href="#bitflip" class="headerlink" title="bitflip"></a>bitflip</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="comment">/* Single walking bit. */</span>  </span><br><span class="line">stage_short = <span class="string">"flip1"</span>;</span><br><span class="line">stage_name  = <span class="string">"bitflip 1/1"</span>;   <span class="comment">//每次翻转一个bit</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Two walking bits. */</span></span><br><span class="line">stage_name  = <span class="string">"bitflip 2/1"</span>;</span><br><span class="line">stage_short = <span class="string">"flip2"</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Four walking bits. */</span></span><br><span class="line">stage_name  = <span class="string">"bitflip 4/1"</span>;</span><br><span class="line">stage_short = <span class="string">"flip4"</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Walking byte. */</span></span><br><span class="line">stage_name  = <span class="string">"bitflip 8/8"</span>;  <span class="comment">//依次对每个字节进行翻转</span></span><br><span class="line">stage_short = <span class="string">"flip8"</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Two walking bytes. */</span></span><br><span class="line">stage_name  = <span class="string">"bitflip 16/8"</span>;  <span class="comment">//依次对每个word进行翻转</span></span><br><span class="line">stage_short = <span class="string">"flip16"</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Four walking bytes. */</span></span><br><span class="line">stage_name  = <span class="string">"bitflip 32/8"</span>;  <span class="comment">//依次对每个dword进行翻转</span></span><br><span class="line">stage_short = <span class="string">"flip32"</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="生成token"><a href="#生成token" class="headerlink" title="生成token"></a>生成token</h4><p>在bitflip 1/1中，如果连续多个字节的最低有效位进行翻转后，执行路径没有发生变化且和之前的执行路径不相同，则AFL认为这一段连续的字节上一个token。比如文件起始的魔数IHDR，对这四个字节做bitflip 1/1，程序执行路径与翻转前不同，且不同字节的翻转程序执行路径没有发生变化，则IHDR可能是一个文件的魔数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//xxxxxxxxIHDRxxxxxxxx</span></span><br><span class="line"><span class="keyword">if</span> (!dumb_mode &amp;&amp; (stage_cur &amp; <span class="number">7</span>) == <span class="number">7</span>) &#123;</span><br><span class="line"></span><br><span class="line">      u32 cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (stage_cur == stage_max - <span class="number">1</span> &amp;&amp; cksum == prev_cksum) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* If at end of file and we are still collecting a string, grab the</span></span><br><span class="line"><span class="comment">           final character and force output. */</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (a_len &lt; MAX_AUTO_EXTRA) a_collect[a_len] = out_buf[stage_cur &gt;&gt; <span class="number">3</span>];</span><br><span class="line">        a_len++;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (a_len &gt;= MIN_AUTO_EXTRA &amp;&amp; a_len &lt;= MAX_AUTO_EXTRA)</span><br><span class="line">          maybe_add_auto(a_collect, a_len);</span><br></pre></td></tr></table></figure></p>
+<p>AFL对token的长度做了限制:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="comment">/* Length limits for auto-detected dictionary tokens: */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MIN_AUTO_EXTRA      3</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_AUTO_EXTRA      32</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="effector-map"><a href="#effector-map" class="headerlink" title="effector map"></a>effector map</h4><p>在进行bitflip 8/8时，AFL使用了一个effector map来记录每个字节对执行路径的影响。对一个字节进行翻转后，如果执行路径和之前的执行路径不同，则将其置为1，否则为0。如果一个byte完全翻转，都无法带来执行路径的变化，那么这个byte很有可能是只是文件中的数据，而不决定文件的结构，在后续的文件变异中，会参考effector map，跳过无效的字节，提高效率。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">    <span class="comment">/* We also use this stage to pull off a simple trick: we identify</span></span><br><span class="line"><span class="comment">       bytes that seem to have no effect on the current execution path</span></span><br><span class="line"><span class="comment">       even when fully flipped - and we skip them during more expensive</span></span><br><span class="line"><span class="comment">       deterministic stages, such as arithmetics or known ints. */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!eff_map[EFF_APOS(stage_cur)]) &#123;</span><br><span class="line"></span><br><span class="line">      u32 cksum;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* If in dumb mode or if the file is very short, just flag everything</span></span><br><span class="line"><span class="comment">         without wasting time on checksums. */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (!dumb_mode &amp;&amp; len &gt;= EFF_MIN_LEN)   <span class="comment">//非dumb模式且文件大小大于EFF_MIN_LEN</span></span><br><span class="line">        cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        cksum = ~queue_cur-&gt;exec_cksum;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (cksum != queue_cur-&gt;exec_cksum) &#123;</span><br><span class="line">        eff_map[EFF_APOS(stage_cur)] = <span class="number">1</span>;  <span class="comment">//字节翻转带来新的执行路径</span></span><br><span class="line">        eff_cnt++;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外，dumb模式下会对所有字符进行变异，当文件大小小于EFF_MIN_LEN时，认为所有字符都是有效的，EFF_MIN_LEN默认为128字节。如果有效字节数超过90%，则认为整个文件都是有效的。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="comment">/* Minimum input file length at which the effector logic kicks in: */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EFF_MIN_LEN         128</span></span><br><span class="line"><span class="comment">/* Maximum effector density past which everything is just fuzzed unconditionally (%): */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EFF_MAX_PERC        90</span></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="keyword">if</span> (eff_cnt != EFF_ALEN(len) &amp;&amp;</span><br><span class="line">      eff_cnt * <span class="number">100</span> / EFF_ALEN(len) &gt; EFF_MAX_PERC) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(eff_map, <span class="number">1</span>, EFF_ALEN(len));</span><br><span class="line"></span><br><span class="line">    blocks_eff_select += EFF_ALEN(len);</span><br><span class="line"></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">    blocks_eff_select += eff_cnt;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="arithmetic"><a href="#arithmetic" class="headerlink" title="arithmetic"></a>arithmetic</h3><p>整数加减变换有三种，分别是对一个字节，一个word和一个dword做整数加减的变异。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="comment">/* 8-bit arithmetics. */</span></span><br><span class="line">stage_name  = <span class="string">"arith 8/8"</span>;</span><br><span class="line">stage_short = <span class="string">"arith8"</span>;</span><br><span class="line"><span class="comment">/* 16-bit arithmetics, both endians. */</span></span><br><span class="line"><span class="keyword">if</span> (len &lt; <span class="number">2</span>) <span class="keyword">goto</span> skip_arith;</span><br><span class="line">stage_name  = <span class="string">"arith 16/8"</span>;</span><br><span class="line">stage_short = <span class="string">"arith16"</span>;</span><br><span class="line"><span class="comment">/* 32-bit arithmetics, both endians. */</span></span><br><span class="line"><span class="keyword">if</span> (len &lt; <span class="number">4</span>) <span class="keyword">goto</span> skip_arith;</span><br><span class="line">stage_name  = <span class="string">"arith 32/8"</span>;</span><br><span class="line">stage_short = <span class="string">"arith32"</span>;</span><br></pre></td></tr></table></figure></p>
+<p>具体的，以arith 8/8”为例，j从1开始到ARITH_MAX对每个字节进行加减j。如果整数加/减法变异后与bitflip相同，则不进行重复的变异。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="comment">/* Maximum offset for integer addition / subtraction stages: */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ARITH_MAX           35</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">    <span class="comment">/* Let's consult the effector map... */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!eff_map[EFF_APOS(i)]) &#123;  <span class="comment">//如果整个字节都判断无效，则跳过该字节</span></span><br><span class="line">      stage_max -= <span class="number">2</span> * ARITH_MAX;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    stage_cur_byte = i;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">1</span>; j &lt;= ARITH_MAX; j++) &#123;</span><br><span class="line"></span><br><span class="line">      u8 r = orig ^ (orig + j);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Do arithmetic operations only if the result couldn't be a product</span></span><br><span class="line"><span class="comment">         of a bitflip. */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (!could_be_bitflip(r)) &#123;  <span class="comment">//如果加法变异后与bitflip相同，则不重复进行整数加法的变异</span></span><br><span class="line"></span><br><span class="line">        stage_cur_val = j;</span><br><span class="line">        out_buf[i] = orig + j;  <span class="comment">//加法变异</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (common_fuzz_stuff(argv, out_buf, len)) <span class="keyword">goto</span> abandon_entry;</span><br><span class="line">        stage_cur++;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">else</span> stage_max--;</span><br><span class="line"></span><br><span class="line">      r =  orig ^ (orig - j);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (!could_be_bitflip(r)) &#123;  <span class="comment">//如果减法变异后与bitflip相同，则不重复进行整数减法的变异</span></span><br><span class="line"></span><br><span class="line">        stage_cur_val = -j;</span><br><span class="line">        out_buf[i] = orig - j;  <span class="comment">//减法变异</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (common_fuzz_stuff(argv, out_buf, len)) <span class="keyword">goto</span> abandon_entry;</span><br><span class="line">        stage_cur++;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">else</span> stage_max--;</span><br><span class="line"></span><br><span class="line">      out_buf[i] = orig;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="interest"><a href="#interest" class="headerlink" title="interest"></a>interest</h3><p>确定性策略的第三种是替换变异，一共分为三种，每次对8bit、16bit、32bit进行替换。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">stage_name  = <span class="string">"interest 8/8"</span>;</span><br><span class="line">stage_short = <span class="string">"int8"</span>;</span><br><span class="line">stage_name  = <span class="string">"interest 16/8"</span>;</span><br><span class="line">stage_short = <span class="string">"int16"</span>;</span><br><span class="line">stage_name  = <span class="string">"interest 32/8"</span>;</span><br><span class="line">stage_short = <span class="string">"int32"</span>;</span><br></pre></td></tr></table></figure></p>
+<p>替换的字符是预先定义好的，可以看到大都是一些类型边界的数字：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INTERESTING_8 \</span></span><br><span class="line">  <span class="number">-128</span>,          <span class="comment">/* Overflow signed 8-bit when decremented  */</span> \</span><br><span class="line">  <span class="number">-1</span>,            <span class="comment">/*                                         */</span> \</span><br><span class="line">   <span class="number">0</span>,            <span class="comment">/*                                         */</span> \</span><br><span class="line">   <span class="number">1</span>,            <span class="comment">/*                                         */</span> \</span><br><span class="line">   <span class="number">16</span>,           <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">32</span>,           <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">64</span>,           <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">100</span>,          <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">127</span>           <span class="comment">/* Overflow signed 8-bit when incremented  */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INTERESTING_16 \</span></span><br><span class="line">  <span class="number">-32768</span>,        <span class="comment">/* Overflow signed 16-bit when decremented */</span> \</span><br><span class="line">  <span class="number">-129</span>,          <span class="comment">/* Overflow signed 8-bit                   */</span> \</span><br><span class="line">   <span class="number">128</span>,          <span class="comment">/* Overflow signed 8-bit                   */</span> \</span><br><span class="line">   <span class="number">255</span>,          <span class="comment">/* Overflow unsig 8-bit when incremented   */</span> \</span><br><span class="line">   <span class="number">256</span>,          <span class="comment">/* Overflow unsig 8-bit                    */</span> \</span><br><span class="line">   <span class="number">512</span>,          <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">1000</span>,         <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">1024</span>,         <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">4096</span>,         <span class="comment">/* One-off with common buffer size         */</span> \</span><br><span class="line">   <span class="number">32767</span>         <span class="comment">/* Overflow signed 16-bit when incremented */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INTERESTING_32 \</span></span><br><span class="line">  <span class="number">-2147483648L</span>L, <span class="comment">/* Overflow signed 32-bit when decremented */</span> \</span><br><span class="line">  <span class="number">-100663046</span>,    <span class="comment">/* Large negative number (endian-agnostic) */</span> \</span><br><span class="line">  <span class="number">-32769</span>,        <span class="comment">/* Overflow signed 16-bit                  */</span> \</span><br><span class="line">   <span class="number">32768</span>,        <span class="comment">/* Overflow signed 16-bit                  */</span> \</span><br><span class="line">   <span class="number">65535</span>,        <span class="comment">/* Overflow unsig 16-bit when incremented  */</span> \</span><br><span class="line">   <span class="number">65536</span>,        <span class="comment">/* Overflow unsig 16 bit                   */</span> \</span><br><span class="line">   <span class="number">100663045</span>,    <span class="comment">/* Large positive number (endian-agnostic) */</span> \</span><br><span class="line">   <span class="number">2147483647</span>    <span class="comment">/* Overflow signed 32-bit when incremented */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"><span class="keyword">static</span> s8  interesting_8[]  = &#123; INTERESTING_8 &#125;;</span><br><span class="line"><span class="keyword">static</span> s16 interesting_16[] = &#123; INTERESTING_8, INTERESTING_16 &#125;;</span><br><span class="line"><span class="keyword">static</span> s32 interesting_32[] = &#123; INTERESTING_8, INTERESTING_16, INTERESTING_32 &#125;;</span><br></pre></td></tr></table></figure></p>
+<p>同样的也会进行effector map的check：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">  <span class="comment">/* Setting 8-bit integers. */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line"></span><br><span class="line">    u8 orig = out_buf[i];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Let's consult the effector map... */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!eff_map[EFF_APOS(i)]) &#123;   <span class="comment">//如果整个字节都判断无效，则跳过该字节</span></span><br><span class="line">      stage_max -= <span class="keyword">sizeof</span>(interesting_8);</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    stage_cur_byte = i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(interesting_8); j++) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Skip if the value could be a product of bitflips or arithmetics. */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (could_be_bitflip(orig ^ (u8)interesting_8[j]) ||</span><br><span class="line">          could_be_arith(orig, (u8)interesting_8[j], <span class="number">1</span>)) &#123;   /如果与比特翻转和整数加减得到的变异相同，则跳过</span><br><span class="line">        stage_max--;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      stage_cur_val = interesting_8[j];</span><br><span class="line">      out_buf[i] = interesting_8[j];  <span class="comment">//替换变异</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (common_fuzz_stuff(argv, out_buf, len)) <span class="keyword">goto</span> abandon_entry;</span><br><span class="line"></span><br><span class="line">      out_buf[i] = orig;</span><br><span class="line">      stage_cur++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="dictionary"><a href="#dictionary" class="headerlink" title="dictionary"></a>dictionary</h3><h4 id="user-extras-over"><a href="#user-extras-over" class="headerlink" title="user extras over"></a>user extras over</h4><p>使用用户提供的tokens进行替换变异，extras_cnt是用户提供的tokens的数量，如果用户提供的tokens大于MAX_DET_EXTRAS，默认为200，则会随机挑选tokens进行变异，UR(extras_cnt)会产生一个0~extras_cnt的随机数，如果随机数大于MAX_DET_EXTRAS，则不使用当前tokens进行变异。同样的查找effector map如果替换的目标byte是无效的，则直接跳过该byte。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="comment">/* Maximum number of user-specified dictionary tokens to use in deterministic</span></span><br><span class="line"><span class="comment">   steps; past this point, the "extras/user" step will be still carried out,</span></span><br><span class="line"><span class="comment">   but with proportionally lower odds: */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_DET_EXTRAS      200</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">      <span class="comment">/* Skip extras probabilistically if extras_cnt &gt; MAX_DET_EXTRAS. Also</span></span><br><span class="line"><span class="comment">         skip them if there's no room to insert the payload, if the token</span></span><br><span class="line"><span class="comment">         is redundant, or if its entire span has no bytes set in the effector</span></span><br><span class="line"><span class="comment">         map. */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> ((extras_cnt &gt; MAX_DET_EXTRAS &amp;&amp; UR(extras_cnt) &gt;= MAX_DET_EXTRAS) ||</span><br><span class="line">          extras[j].len &gt; len - i ||</span><br><span class="line">          !<span class="built_in">memcmp</span>(extras[j].data, out_buf + i, extras[j].len) ||</span><br><span class="line">          !<span class="built_in">memchr</span>(eff_map + EFF_APOS(i), <span class="number">1</span>, EFF_SPAN_ALEN(i, extras[j].len))) &#123;</span><br><span class="line"></span><br><span class="line">        stage_max--;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="user-extras-insert"><a href="#user-extras-insert" class="headerlink" title="user extras insert"></a>user extras insert</h4><p>使用用户提供的tokens进行插入变异，从文件的第一个字节开始，遍历用户定义的token，依次进行插入变异，变异后的文件分为插入位置之前的部分、插入的token部分和尾部，依次复制到目标缓冲区中，得到变异的文件。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="comment">/* Maximum size of input file, in bytes (keep under 100MB): */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_FILE            (1 * 1024 * 1024)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;= len; i++) &#123;</span><br><span class="line"></span><br><span class="line">    stage_cur_byte = i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; extras_cnt; j++) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (len + extras[j].len &gt; MAX_FILE) &#123;  <span class="comment">//如果token的长度大于MAX_FILE，则跳过该token，默认最大为1KB</span></span><br><span class="line">        stage_max--; </span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Insert token */</span></span><br><span class="line">      <span class="built_in">memcpy</span>(ex_tmp + i, extras[j].data, extras[j].len);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Copy tail */</span></span><br><span class="line">      <span class="built_in">memcpy</span>(ex_tmp + i + extras[j].len, out_buf + i, len - i);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (common_fuzz_stuff(argv, ex_tmp, len + extras[j].len)) &#123;</span><br><span class="line">        ck_free(ex_tmp);</span><br><span class="line">        <span class="keyword">goto</span> abandon_entry;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      stage_cur++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Copy head */</span></span><br><span class="line">    ex_tmp[i] = out_buf[i];</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="auto-extras-over"><a href="#auto-extras-over" class="headerlink" title="auto extras over"></a>auto extras over</h4><p>使用收集到的tokens进行替换变异，在bitflip 1/1中进行了tokens的收集。这部分类似于user extras over，限制自动收集的token的数目为USE_AUTO_EXTRAS，默认为50。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> USE_AUTO_EXTRAS     50</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; MIN(a_extras_cnt, USE_AUTO_EXTRAS); j++) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* See the comment in the earlier code; extras are sorted by size. */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (a_extras[j].len &gt; len - i ||</span><br><span class="line">          !<span class="built_in">memcmp</span>(a_extras[j].data, out_buf + i, a_extras[j].len) ||</span><br><span class="line">          !<span class="built_in">memchr</span>(eff_map + EFF_APOS(i), <span class="number">1</span>, EFF_SPAN_ALEN(i, a_extras[j].len))) &#123;</span><br><span class="line"></span><br><span class="line">        stage_max--;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      last_len = a_extras[j].len;</span><br><span class="line">      <span class="built_in">memcpy</span>(out_buf + i, a_extras[j].data, last_len);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (common_fuzz_stuff(argv, out_buf, len)) <span class="keyword">goto</span> abandon_entry;</span><br><span class="line"></span><br><span class="line">      stage_cur++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="随机性策略（random-havoc）"><a href="#随机性策略（random-havoc）" class="headerlink" title="随机性策略（random havoc）"></a>随机性策略（random havoc）</h2><p>有以下几种随机变异的方式：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//随机选取某个bit进行翻转</span></span><br><span class="line">FLIP_BIT(out_buf, UR(temp_len &lt;&lt; <span class="number">3</span>)); </span><br><span class="line"><span class="comment">//随机选取一个字节进行随机的interest替换</span></span><br><span class="line">out_buf[UR(temp_len)] = interesting_8[UR(<span class="keyword">sizeof</span>(interesting_8))]; </span><br><span class="line"><span class="comment">//随机选取字节序，随机选取一个word进行随机的interest替换替换</span></span><br><span class="line"><span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;  <span class="comment">//随机选取到小端字节序</span></span><br><span class="line">  *(u16*)(out_buf + UR(temp_len - <span class="number">1</span>)) = interesting_16[UR(<span class="keyword">sizeof</span>(interesting_16) &gt;&gt; <span class="number">1</span>)];</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">else</span> &#123; <span class="comment">//大端字节序</span></span><br><span class="line">  *(u16*)(out_buf + UR(temp_len - <span class="number">1</span>)) = SWAP16(interesting_16[UR(<span class="keyword">sizeof</span>(interesting_16) &gt;&gt; <span class="number">1</span>)]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//随机选取字节序，随机选取一个dword进行随机的interest替换替换</span></span><br><span class="line"><span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;</span><br><span class="line">  *(u32*)(out_buf + UR(temp_len - <span class="number">3</span>)) = interesting_32[UR(<span class="keyword">sizeof</span>(interesting_32) &gt;&gt; <span class="number">2</span>)];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line"> *(u32*)(out_buf + UR(temp_len - <span class="number">3</span>)) = SWAP32(interesting_32[UR(<span class="keyword">sizeof</span>(interesting_32) &gt;&gt; <span class="number">2</span>)]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//随机选取一个字节减去一个随机数</span></span><br><span class="line">out_buf[UR(temp_len)] -= <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"><span class="comment">//随机选取一个字节加上一个随机数</span></span><br><span class="line"> out_buf[UR(temp_len)] += <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"><span class="comment">//随机选取一个word,随机选取字节序，减去一个随机数</span></span><br><span class="line"><span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;</span><br><span class="line">  u32 pos = UR(temp_len - <span class="number">1</span>);</span><br><span class="line"> *(u16*)(out_buf + pos) -= <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">  u32 pos = UR(temp_len - <span class="number">1</span>);</span><br><span class="line">  u16 num = <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line">  *(u16*)(out_buf + pos) =</span><br><span class="line">  SWAP16(SWAP16(*(u16*)(out_buf + pos)) - num);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//随机选取一个word,随机选取字节序，加上一个随机数</span></span><br><span class="line"> <span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;</span><br><span class="line">  u32 pos = UR(temp_len - <span class="number">1</span>);</span><br><span class="line">  *(u16*)(out_buf + pos) += <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  u32 pos = UR(temp_len - <span class="number">1</span>);</span><br><span class="line">  u16 num = <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line">  *(u16*)(out_buf + pos) =</span><br><span class="line">   SWAP16(SWAP16(*(u16*)(out_buf + pos)) + num);</span><br><span class="line"> &#125;</span><br><span class="line"><span class="comment">//随机选取一个dword,随机选取字节序，减去一个随机数</span></span><br><span class="line">          <span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;</span><br><span class="line"></span><br><span class="line">            u32 pos = UR(temp_len - <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">            *(u32*)(out_buf + pos) -= <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"></span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">            u32 pos = UR(temp_len - <span class="number">3</span>);</span><br><span class="line">            u32 num = <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"></span><br><span class="line">            *(u32*)(out_buf + pos) =</span><br><span class="line">              SWAP32(SWAP32(*(u32*)(out_buf + pos)) - num);</span><br><span class="line"></span><br><span class="line">          &#125;</span><br><span class="line"><span class="comment">//随机选取一个dword,随机选取字节序，加上一个随机数</span></span><br><span class="line">          <span class="keyword">if</span> (UR(<span class="number">2</span>)) &#123;</span><br><span class="line"></span><br><span class="line">            u32 pos = UR(temp_len - <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">            *(u32*)(out_buf + pos) += <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"></span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">            u32 pos = UR(temp_len - <span class="number">3</span>);</span><br><span class="line">            u32 num = <span class="number">1</span> + UR(ARITH_MAX);</span><br><span class="line"></span><br><span class="line">            *(u32*)(out_buf + pos) =</span><br><span class="line">              SWAP32(SWAP32(*(u32*)(out_buf + pos)) + num);</span><br><span class="line"></span><br><span class="line">          &#125;</span><br><span class="line"><span class="comment">//随机选取某个字节，设置为一个随机数</span></span><br><span class="line">out_buf[UR(temp_len)] ^= <span class="number">1</span> + UR(<span class="number">255</span>);</span><br><span class="line"><span class="comment">//随机删除一段bytes</span></span><br><span class="line">del_len = choose_block_len(temp_len - <span class="number">1</span>);</span><br><span class="line">del_from = UR(temp_len - del_len + <span class="number">1</span>);</span><br><span class="line">memmove(out_buf + del_from, out_buf + del_from + del_len,</span><br><span class="line">                    temp_len - del_from - del_len);</span><br><span class="line"><span class="comment">//随机选取一个位置，插入一段随机内容，其中75%的概率是插入原文中随机位置的内容，25%的概率是插入一段随机选取的数</span></span><br><span class="line"><span class="comment">//随机选取一个位置，替换一段随机内容，其中75%的概率是插入原文中随机位置的内容，25%的概率是插入一段随机选取的数</span></span><br><span class="line"><span class="comment">//随机选取一个token进行替换</span></span><br><span class="line"><span class="comment">//随机选取一个token进行插入</span></span><br></pre></td></tr></table></figure></p>
+<p>AFL会生成一个随机数来限制随机选取变异的组合数量：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//config.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HAVOC_STACK_POW2    7</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">u32 use_stacking = <span class="number">1</span> &lt;&lt; (<span class="number">1</span> + UR(HAVOC_STACK_POW2));</span><br></pre></td></tr></table></figure></p>
+<h2 id="splice"><a href="#splice" class="headerlink" title="splice"></a>splice</h2><p>最后进入splice，将两个input拼接在一起，然后继续执行havoc变异。具体的，对于当前input来说，在当前队列中随机选取一个input（但不是本身），当前input的头部拼接选取的input的尾部。然后再进行随机性策略的变异。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//afl-fuzz.c</span></span><br><span class="line">    <span class="comment">/* Pick a random queue entry and seek to it. Don't splice with yourself. */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123; tid = UR(queued_paths); &#125; <span class="keyword">while</span> (tid == current_entry);</span><br><span class="line"></span><br><span class="line">    splicing_with = tid;</span><br><span class="line">    target = <span class="built_in">queue</span>;</span><br><span class="line">    ... ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Read the testcase into a new buffer. */</span></span><br><span class="line"></span><br><span class="line">    fd = open(target-&gt;fname, O_RDONLY);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (fd &lt; <span class="number">0</span>) PFATAL(<span class="string">"Unable to open '%s'"</span>, target-&gt;fname);</span><br><span class="line"></span><br><span class="line">    new_buf = ck_alloc_nozero(target-&gt;len);</span><br><span class="line"></span><br><span class="line">    ck_read(fd, new_buf, target-&gt;len, target-&gt;fname);</span><br><span class="line"></span><br><span class="line">    close(fd);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Find a suitable splicing location, somewhere between the first and</span></span><br><span class="line"><span class="comment">       the last differing byte. Bail out if the difference is just a single</span></span><br><span class="line"><span class="comment">       byte or so. */</span></span><br><span class="line"></span><br><span class="line">    locate_diffs(in_buf, new_buf, MIN(len, target-&gt;len), &amp;f_diff, &amp;l_diff);  <span class="comment">//两个input进行比对，返回第一个和最后一个diff的偏移</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (f_diff &lt; <span class="number">0</span> || l_diff &lt; <span class="number">2</span> || f_diff == l_diff) &#123;  <span class="comment">//如果没有找到diff或first和last相同</span></span><br><span class="line">      ck_free(new_buf);</span><br><span class="line">      <span class="keyword">goto</span> retry_splicing;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Split somewhere between the first and last differing byte. */</span></span><br><span class="line"></span><br><span class="line">    split_at = f_diff + UR(l_diff - f_diff);  <span class="comment">//随机选取一个在first_diff和last_diff的位置作为拼接位置</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Do the thing. */</span></span><br><span class="line"></span><br><span class="line">    len = target-&gt;len;</span><br><span class="line">    <span class="built_in">memcpy</span>(new_buf, in_buf, split_at);  <span class="comment">//使用当前input的头部替换选取的input的头部</span></span><br><span class="line">    in_buf = new_buf;</span><br><span class="line"></span><br><span class="line">    ck_free(out_buf);</span><br><span class="line">    out_buf = ck_alloc_nozero(len);</span><br><span class="line">    <span class="built_in">memcpy</span>(out_buf, in_buf, len); </span><br><span class="line"></span><br><span class="line">    <span class="keyword">goto</span> havoc_stage;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<p>对一个文件变异完成后，AFL会对文件队列的下一个进行变异处理。当队列中的全部文件都变异测试后，就完成了一个”cycle”。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://zhuanlan.zhihu.com/p/51443698" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/51443698</a></p>
+<p><a href="http://rk700.github.io/2017/12/28/afl-internals/" target="_blank" rel="noopener">http://rk700.github.io/2017/12/28/afl-internals/</a></p>
+<p><a href="http://rk700.github.io/2018/01/04/afl-mutations/" target="_blank" rel="noopener">http://rk700.github.io/2018/01/04/afl-mutations/</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2020/06/21/浏览器漏洞利用学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/06/21/浏览器漏洞利用学习/" itemprop="url">浏览器漏洞利用基础</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-06-21T13:33:17+08:00">
+                2020-06-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>开始学习浏览器的漏洞调试和利用，主要参考了一篇非常经典的<a href="https://www.freebuf.com/vuls/203721.html" target="_blank" rel="noopener">文章</a>,记录自己学习的过程。<br></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2020/06/21/浏览器漏洞利用学习/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2020/06/16/IDA-Python整理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="X3h1n">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/06/16/IDA-Python整理/" itemprop="url">IDA Python API整理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-06-16T14:29:27+08:00">
+                2020-06-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>整理了最近用到的IDA Python的API，刚刚才发现在IDA Python在IDA7.4及以后做了改动，官网上有API的说明，所以我都使用的是新的API，它们在IDA 6.x-7.3以及7.4、7.5上都适用。<br></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2020/06/16/IDA-Python整理/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2020/03/07/CVE-2017-16995复现/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -681,7 +1092,7 @@
 
       
         
-          <p>调试的第一个CVE，CVE-2017-5123。<br></p>
+          <p>调试的第一个CVE，CVE-2017-5123。漏洞针对的Linux内核版本： Linux version 4.14.0-rc4。<br></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/12/30/CVE-2017-5123复现/#more" rel="contents">
@@ -1094,378 +1505,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/11/07/balsnCTF-2019-knote/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/11/07/balsnCTF-2019-knote/" itemprop="url">balsnCTF 2019 knote</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-07T16:32:20+08:00">
-                2019-11-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>复现一下balsnCTF 2019 knote，利用到了缺页中断时的条件竞争来修改堆块的size造成溢出，从而实现任意地址读写。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/11/07/balsnCTF-2019-knote/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/10/24/hackme/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/24/hackme/" itemprop="url">starctf 2019 hackme</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-24T11:00:09+08:00">
-                2019-10-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>starctf 2019的一道kernel pwn的题目。照着官方和p4nda大佬的exp复盘一下。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/24/hackme/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://x3h1n.github.io/2019/10/10/ret2dir利用学习/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="X3h1n">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/10/ret2dir利用学习/" itemprop="url">ret2dir利用学习</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-10T11:16:12+08:00">
-                2019-10-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>调了好几天的题目，断断续续快一周了，整理一下与ret2dir相关的题目。不，又来更了，应该有两周了，踩了很多坑，记录一下。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/10/ret2dir利用学习/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1516,7 +1555,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">51</span>
+                  <span class="site-state-item-count">54</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1529,7 +1568,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">16</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
